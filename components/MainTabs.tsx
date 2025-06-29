@@ -6,6 +6,7 @@ import { Profile } from './Home/Profile/Profile';
 import Seting from './Home/Seting';
 import { bg_danger, bg_info, bg_primary } from './styles/Styles';
 import ShareMusician from './pages/event/ShareMusician';
+import Maps from './pages/Maps/Maps';
 
 const Tab = createBottomTabNavigator();
 
@@ -28,7 +29,7 @@ const MainTabs = () => {
     >
       <Tab.Screen name="Musicos" component={ShareMusician}/>
       <Tab.Screen name="Perfil" component={Profile} />
-      <Tab.Screen name="Feed" component={Dashboard} />
+      <Tab.Screen name="Feed" component={Maps} />
       <Tab.Screen name="Inicio" component={Dashboard} />
       <Tab.Screen name="Configuracion" component={Seting} />
     </Tab.Navigator>
