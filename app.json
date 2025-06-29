@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "MussikOn",
+    "slug": "MussikOn",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/3.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/3.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f1f1f1"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/4.png",
+        "backgroundColor": "#f1f1f1"
+      },
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ],
+      "package": "com.musikOn"
+    },
+    "web": {
+      "favicon": "./assets/3.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d7419299-dcce-446f-8fbd-6807a2bef5aa"
+      }
+    }
+  }
+}
