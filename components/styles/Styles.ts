@@ -3,7 +3,7 @@ import { colores } from "./media_responsive";
 
 // text comon app
 
-export const appName = " APP MusikOn";
+export const appName = "MussikOn";
 export const bg_dinamic_primary = "#62a4ff";
 export const bg_dinamic_info = "#d5effd";
 
@@ -109,8 +109,8 @@ export const s = StyleSheet.create({
       marginTop: 80,
     },
     logo: {
-      width: 120,
-      height: 120,
+      width: 180,
+      height: 180,
     },
     title: {
       fontSize: 28,

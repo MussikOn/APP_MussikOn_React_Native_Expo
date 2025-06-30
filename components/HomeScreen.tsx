@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Image, TouchableOpacity, Animated} from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../utils/DatasTypes";
-import { s } from "./styles/Styles";
+import { appName, s } from "./styles/Styles";
 import { validateToken } from "../utils/functions";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { ScrollView } from "react-native-gesture-handler";
@@ -47,8 +47,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   
   {/* Logo y título */}
 <Animated.View style={[s.header, { opacity: fadeAnim }]}>
-<Image source={require("../assets/Logo_app.png")} style={s.logo}/>
-<Text style={s.title}>Bienvenido a MusikOn</Text>
+<Image source={require("../assets/4.png")} style={s.logo}/>
+<Text style={s.title}>Bienvenido a {appName}</Text>
 <Text style={s.subtitle}>Conéctate con músicos y eventos en vivo</Text>
 </Animated.View>
 
