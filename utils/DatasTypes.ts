@@ -9,18 +9,11 @@ export type RootStackParamList = {
       HomePage:undefined;
       Seting:undefined;
       MainTabs:undefined;
+      RequestMusician: undefined;
 };
-// export type RootStackParamListTab = {
-//       Home: undefined;
-//       HandleLogin:undefined;
-//       Dashboard:undefined;
-//       UseSocket:undefined;
-//       Profile:undefined;
-//       Register:undefined;
-//       HomePage:undefined;
-//       Seting:undefined;
-    
-// };
+
+
+
 export type Token = {
       iat:number;
       name:string;
