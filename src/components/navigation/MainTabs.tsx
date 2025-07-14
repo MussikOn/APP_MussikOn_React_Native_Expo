@@ -1,14 +1,20 @@
-import React from 'react';
-import { View } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import Dashboard from '../../screens/dashboard/Dashboard';
-import { Profile } from '../../screens/profile/Profile';
-import SettingsScreen from '../../screens/settings/SettingsScreen';
-import { color_primary, color_secondary, color_white, color_info } from '../../styles/Styles';
-import ShareMusician from '../features/pages/event/ShareMusician';
-import Maps from '../features/pages/Maps/MapsMovil';
+import React from "react";
+import { View } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import Dashboard from "../../screens/dashboard/Dashboard";
+import { Profile } from "../../screens/profile/Profile";
+import SettingsScreen from "../../screens/settings/SettingsScreen";
+import {
+  color_primary,
+  color_secondary,
+  color_white,
+  color_info,
+} from "../../styles/Styles";
+import ShareMusician from "../features/pages/event/ShareMusician";
+import Maps from "../features/pages/Maps/MapsMovil";
+import CreateEventScreen from "../features/pages/Maps/CreateEventScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +27,7 @@ const MainTabs = () => {
         tabBarActiveTintColor: color_primary,
         tabBarInactiveTintColor: color_secondary,
         tabBarStyle: {
-          position: 'absolute',
+          position: "absolute",
           bottom: 20,
           left: 20,
           right: 20,
@@ -40,7 +46,7 @@ const MainTabs = () => {
           const iconSize = focused ? size + 4 : size;
 
           // Estilo especial para el botón central 'Feed'
-          if (route.name === 'Feed') {
+          if (route.name === "Feed") {
             return (
               <LinearGradient
                 colors={[color_primary, color_info]}
@@ -48,8 +54,8 @@ const MainTabs = () => {
                   width: 60,
                   height: 60,
                   borderRadius: 30,
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  justifyContent: "center",
+                  alignItems: "center",
                   elevation: 5,
                   shadowColor: color_primary,
                   shadowOpacity: 0.3,
@@ -66,21 +72,22 @@ const MainTabs = () => {
 
           // Iconos estándar para las otras pestañas
           const icons: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-            Inicio: focused ? 'home' : 'home-outline',
-            Musicos: focused ? 'search' : 'search-outline',
-            Perfil: focused ? 'person' : 'person-outline',
-            Configuracion: focused ? 'settings' : 'settings-outline',
+            Inicio: focused ? "home" : "home-outline",
+            Musicos: focused ? "search" : "search-outline",
+            Perfil: focused ? "person" : "person-outline",
+            Configuracion: focused ? "settings" : "settings-outline",
           };
 
-          iconName = icons[route.name] || 'alert-circle-outline';
+          iconName = icons[route.name] || "alert-circle-outline";
 
           return <Ionicons name={iconName} size={iconSize} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Inicio" component={Dashboard} />
+      <Tab.Screen name="CreateEvent" component={CreateEventScreen} />
       <Tab.Screen name="Musicos" component={ShareMusician} />
-      <Tab.Screen name="Feed" component={Maps} options={{ tabBarLabel: '' }} />
+      <Tab.Screen name="Feed" component={Maps} options={{ tabBarLabel: "" }} />
       <Tab.Screen name="Perfil" component={Profile} />
       <Tab.Screen name="Configuracion" component={SettingsScreen} />
     </Tab.Navigator>
