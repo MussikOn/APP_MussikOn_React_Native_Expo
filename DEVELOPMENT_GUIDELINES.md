@@ -630,3 +630,53 @@ Para dudas o problemas:
 
 *Última actualización: $(date)*
 *Versión del documento: 1.0* 
+
+### 1. Verificar errores de TypeScript sin correr la app
+
+Puedes usar el comando de TypeScript para chequear errores en tu proyecto:
+
+```sh
+npx tsc --noEmit
+```
+
+Esto revisará todos los archivos TypeScript y te mostrará los errores, pero no generará archivos compilados.
+
+---
+
+### 2. Compilar el bundle de la app (sin correrla)
+
+Si quieres generar el bundle de tu app (por ejemplo, para producción), puedes usar:
+
+```sh
+npx expo export
+```
+o para un build de producción (esto sube el bundle a los servidores de Expo):
+
+```sh
+npx expo build
+```
+o, si usas EAS Build (el nuevo sistema de Expo):
+
+```sh
+npx eas build --platform android
+```
+o
+```sh
+npx eas build --platform ios
+```
+
+Pero para solo ver errores de TypeScript, el primer comando es suficiente.
+
+---
+
+### 3. Recomendación
+
+Te recomiendo primero correr:
+
+```sh
+npx tsc --noEmit
+```
+
+Así verás todos los errores de TypeScript en la consola, sin necesidad de correr la app.
+
+¿Quieres que ejecute este comando por ti para mostrarte los errores? 

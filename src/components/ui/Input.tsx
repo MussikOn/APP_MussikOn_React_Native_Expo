@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -44,7 +44,18 @@ const Input: React.FC<InputProps> = ({
   const animatedValue = useRef(new Animated.Value(hasValue ? 1 : 0)).current;
   const borderColor = useRef(new Animated.Value(0)).current;
 
+  // Sincroniza hasValue y la animación con el valor del input
+  useEffect(() => {
+    setHasValue(!!value);
+    Animated.timing(animatedValue, {
+      toValue: !!value ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [value]);
+
   const handleFocus = (e: any) => {
+    console.log('Input focused:', label);
     setIsFocused(true);
     setHasValue(!!value);
     Animated.parallel([
@@ -63,6 +74,7 @@ const Input: React.FC<InputProps> = ({
   };
 
   const handleBlur = (e: any) => {
+    console.log('Input blurred:', label);
     setIsFocused(false);
     setHasValue(!!value);
     Animated.parallel([
