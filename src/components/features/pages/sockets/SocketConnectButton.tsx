@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ 
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { socket } from "../../../../utils/soket";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +6,7 @@ import { bg_primary, bg_success } from "../../../../styles/Styles";
 import { getData } from "../../../../utils/functions";
 import { Token, User } from "../../../../types/DatasTypes";
 import { onDisconnect } from "firebase/database";
+import { useEffect, useState } from "react";
 
 export const SocketConnectButton = () => {
   const [connected, setConnected] = useState(false);
