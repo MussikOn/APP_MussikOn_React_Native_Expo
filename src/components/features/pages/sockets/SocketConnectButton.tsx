@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { bg_primary, bg_success } from "../../../../styles/Styles";
 import { getData } from "../../../../utils/functions";
 import { Token, User } from "../../../../types/DatasTypes";
-import { onDisconnect } from "firebase/database";
 import { useEffect, useState } from "react";
 
 export const SocketConnectButton = () => {
@@ -34,7 +33,7 @@ export const SocketConnectButton = () => {
       socket.emit("register", data.userEmail);
     };
   
-    const onDisconnect = () => {
+    const handleDisconnect = () => {
       console.info(`Usuario desconectado: ${socket.id}`);
       setConnected(false);
       setLoading(false);
@@ -46,12 +45,12 @@ export const SocketConnectButton = () => {
     };
   
     socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
+    socket.on("disconnect", handleDisconnect);
     socket.on("notification", onNotification); 
   
     return () => {
       socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
+      socket.off("disconnect", handleDisconnect);
       socket.off("notification", onNotification); 
     };
   }, [data]);
