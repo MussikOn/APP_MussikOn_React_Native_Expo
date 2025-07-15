@@ -22,7 +22,7 @@ import {
   color_success,
   color_danger,
   color_info,
-} from "../../../../styles/Styles";
+} from '@styles/Styles';
 
 /**
  * @interface LatLng

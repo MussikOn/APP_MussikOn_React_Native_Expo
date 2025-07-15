@@ -1,5 +1,5 @@
 import { StackScreenProps } from "@react-navigation/stack";
-import { RootStackParamList, Token } from "../../types/DatasTypes";
+import { RootStackParamList, Token } from '@appTypes/DatasTypes';
 import {
   View,
   Text,
@@ -9,12 +9,12 @@ import {
   SafeAreaView,
   Platform
 } from "react-native";
-import { bg_primary, s } from "../../styles/Styles";
-import { deleteToken, getData, getFirstName } from "../../utils/functions";
+import { bg_primary, s } from '@styles/Styles';
+import { deleteToken, getData, getFirstName } from '@utils/functions';
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useHeaderHeight } from "@react-navigation/elements";
-import AlertModal from "../../components/features/pages/alerts/AlertModal";
+import AlertModal from '@components/features/pages/alerts/AlertModal';
 
 const SettingsScreen = ({ navigation }:any) => {
   const headerHeight = useHeaderHeight();

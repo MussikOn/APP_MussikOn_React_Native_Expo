@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Pressable, View, Text, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { s, bg_white, appName, bg_primary } from "../../styles/Styles";
-import { saveToken } from "../../utils/functions";
-import { RootStackParamList } from "../../types/DatasTypes";
+import { s, bg_white, appName, bg_primary } from '@styles/Styles';
+import { saveToken } from '@utils/functions';
+import { RootStackParamList } from '@appTypes/DatasTypes';
 import { StackScreenProps } from "@react-navigation/stack";
 import { ScrollView } from "react-native-gesture-handler";
-import { URL_API } from "../../utils/ENV";
-import LoadingModal from "../../components/ui/LoadingModal";
-import AlertModal from "../../components/features/pages/alerts/AlertModal";
-import FormAlertModal from "../../components/features/pages/alerts/FormAlert";
+import { URL_API } from '@utils/ENV';
+import LoadingModal from '@components/ui/LoadingModal';
+import AlertModal from '@components/features/pages/alerts/AlertModal';
+import FormAlertModal from '@components/features/pages/alerts/FormAlert';
 import {
   label1,
   label2,
@@ -20,11 +20,11 @@ import {
   subTitle,
   titles,
   isNumeric,
-} from "../../components/features/pages/Register/components/registerStepConfig";
+} from '@components/features/pages/Register/components/registerStepConfig';
 
-import { ss } from "../../components/features/pages/Register/components/StepStyle";
-import { Data } from "../../components/features/pages/Register/components/RegisterTypes";
-import AnimatedBackground from "../../components/ui/styles/AnimatedBackground";
+import { ss } from '@components/features/pages/Register/components/StepStyle';
+import { Data } from '@components/features/pages/Register/components/RegisterTypes';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 
 type Props = StackScreenProps<RootStackParamList, "Register">;
 

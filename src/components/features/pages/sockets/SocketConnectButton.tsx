@@ -1,13 +1,9 @@
-<<<<<<< HEAD
- 
-=======
- 
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
-import { socket } from "../../../../utils/soket";
+import { socket } from '@utils/socket';
 import { Ionicons } from "@expo/vector-icons";
-import { bg_primary, bg_success } from "../../../../styles/Styles";
-import { getData } from "../../../../utils/functions";
-import { Token, User } from "../../../../types/DatasTypes";
+import { bg_primary, bg_success } from '@styles/Styles';
+import { getData } from '@utils/functions';
+import { Token, User } from '@appTypes/DatasTypes';
 import { useEffect, useState } from "react";
 
 export const SocketConnectButton = () => {
@@ -117,4 +113,3 @@ export const SocketConnectButton = () => {
     </Pressable>
   );
 };
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3

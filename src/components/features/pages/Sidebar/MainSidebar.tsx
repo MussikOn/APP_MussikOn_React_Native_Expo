@@ -2,7 +2,7 @@
 import React, { Children, useState } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Token } from '../../../../types/DatasTypes';
+import { Token } from '@appTypes/DatasTypes';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 

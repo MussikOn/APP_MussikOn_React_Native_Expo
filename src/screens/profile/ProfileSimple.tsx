@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { StackScreenProps } from "@react-navigation/stack";
-import { RootStackParamList } from '../../types/DatasTypes';
+import { RootStackParamList } from '@appTypes/DatasTypes';
 
 // type Props = StackScreenProps<RootStackParamList, 'Home'>;
 

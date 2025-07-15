@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LocationPickerModal from './LocationPickerModal';
-import { bg_primary, color_white } from '../../../../styles/Styles';
+import { bg_primary, color_white } from '@styles/Styles';
 
 interface LatLng {
   latitude: number;

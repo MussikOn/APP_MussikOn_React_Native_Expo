@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, gradients, shadows, textStyles } from '../../theme';
+import { colors, gradients, shadows, textStyles } from '@styles/theme';
 
 interface TabItem {
   key: string;

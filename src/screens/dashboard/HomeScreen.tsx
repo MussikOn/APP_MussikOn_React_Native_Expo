@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Image, TouchableOpacity, Animated} from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
-import { RootStackParamList } from "../../types/DatasTypes";
-import { appName, s } from "../../styles/Styles";
-import { validateToken } from "../../utils/functions";
+import { RootStackParamList } from '@appTypes/DatasTypes';
+import { appName, s } from '@styles/Styles';
+import { validateToken } from '@utils/functions';
 import { useHeaderHeight } from "@react-navigation/elements";
 import { ScrollView } from "react-native-gesture-handler";
-import ReelsScreen from "../../components/features/pages/reels/MainReels";
-import MapViewScreen from "../../components/features/Home/Maps/MapViewScreen";
-import AnimatedBackground from "../../components/ui/styles/AnimatedBackground";
+import ReelsScreen from '@components/features/pages/reels/MainReels';
+import MapViewScreen from '@components/features/Home/Maps/MapViewScreen';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 
 type Props = StackScreenProps<RootStackParamList, 'Home'>;
 

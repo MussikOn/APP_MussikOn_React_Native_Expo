@@ -12,7 +12,17 @@
     "strict": true,
     "skipLibCheck": true,           
     "moduleResolution": "node",     
-    "types": ["react", "react-native"]
+    "types": ["react", "react-native"],
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@screens/*": ["src/screens/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@utils/*": ["src/utils/*"],
+      "@appTypes/*": ["src/appTypes/*"],
+      "@styles/*": ["src/styles/*"],
+      "@assets/*": ["src/assets/*"]
+    }
   }
 }
 // ===================================================================================

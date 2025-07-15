@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
-import { Token} from '../src/types/DatasTypes';
+import { Token } from '@appTypes/DatasTypes';
 
 // Start Token Secction
 export const validateToken = async () =>{
@@ -13,37 +13,41 @@ export const validateToken = async () =>{
 
 export const saveToken = async (token: string) => {
   try {
-    await AsyncStorage.setItem('token', token);
+    await SecureStore.setItemAsync('token', token, { keychainAccessible: SecureStore.WHEN_UNLOCKED });
     console.log('Token guardado correctamente');
   } catch (error) {
     console.error('Error al guardar el token:', error);
+    throw error;
   }
 };
 
-
 export const getToken = async () => {
   try {
-    const token = await AsyncStorage.getItem('token');
+    const token = await SecureStore.getItemAsync('token');
     if (token !== null) {
       return token;
     }
+    return null;
   } catch (error) {
     console.error('Error al obtener el token:', error);
+    throw error;
   }
 };
 
 export const deleteToken = async () => {
   try {
-    await AsyncStorage.removeItem('token');
+    await SecureStore.deleteItemAsync('token');
     console.log('Token eliminado');
   } catch (error) {
     console.error('Error al eliminar el token:', error);
+    throw error;
   }
 };
 
 export const getData = async ()=>{
 try{  
   const token = await getToken();
+  if (!token) return null;
   const data1 = jwtDecode(token!);
   const data:Token = jwtDecode(token!);
   return data;

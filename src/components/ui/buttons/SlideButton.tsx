@@ -7,41 +7,28 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-<<<<<<< HEAD
 import { LinearGradient } from 'expo-linear-gradient';
-=======
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const SLIDE_WIDTH = width * 0.8;
 const SLIDER_SIZE = 60;
-<<<<<<< HEAD
 const TRIGGER_PERCENT = 0.8;
-=======
-const TRIGGER_PERCENT = 1;
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
 
 export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
   const [activated, setActivated] = useState(false);
   const pan = useRef(new Animated.ValueXY()).current;
-<<<<<<< HEAD
   const scaleAnim = useRef(new Animated.Value(1)).current;
-=======
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
 
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) => true,
-<<<<<<< HEAD
       onPanResponderGrant: () => {
         Animated.spring(scaleAnim, {
           toValue: 1.1,
           useNativeDriver: true,
         }).start();
       },
-=======
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
       onPanResponderMove: (_, gesture) => {
         if (gesture.dx > 0 && gesture.dx < SLIDE_WIDTH - SLIDER_SIZE) {
           pan.setValue({ x: gesture.dx, y: 0 });
@@ -49,13 +36,10 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
       },
       onPanResponderRelease: (_, gesture) => {
         const triggerDistance = (SLIDE_WIDTH - SLIDER_SIZE) * TRIGGER_PERCENT;
-<<<<<<< HEAD
-        
         Animated.spring(scaleAnim, {
           toValue: 1,
           useNativeDriver: true,
         }).start();
-
         if (gesture.dx > triggerDistance) {
           Animated.timing(pan, {
             toValue: { x: SLIDE_WIDTH - SLIDER_SIZE, y: 0 },
@@ -64,8 +48,6 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
           }).start(() => {
             setActivated(true);
             onActivate();
-            
-            // Reset after a delay
             setTimeout(() => {
               Animated.spring(pan, {
                 toValue: { x: 0, y: 0 },
@@ -74,25 +56,11 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
                 setActivated(false);
               });
             }, 2000);
-=======
-        if (gesture.dx > triggerDistance) {
-          Animated.timing(pan, {
-            toValue: { x: SLIDE_WIDTH - SLIDER_SIZE, y: 0 },
-            duration: 3000,
-            useNativeDriver: false,
-          }).start(() => {
-            setActivated(true);
-            onActivate(); // Acción del botón
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
           });
         } else {
           Animated.spring(pan, {
             toValue: { x: 0, y: 0 },
-<<<<<<< HEAD
             useNativeDriver: true,
-=======
-            useNativeDriver: false,
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
           }).start();
         }
       },
@@ -102,10 +70,8 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-<<<<<<< HEAD
         {activated ? '¡Conectado! 🎉' : 'Desliza para conectar'}
       </Text>
-
       <View style={styles.sliderContainer}>
         <LinearGradient
           colors={['#667eea', '#764ba2']}
@@ -118,7 +84,6 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
               {activated ? 'Conectado' : 'Desliza aquí'}
             </Text>
           </View>
-          
           <Animated.View
             style={[
               styles.sliderThumb,
@@ -146,26 +111,12 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
           </Animated.View>
         </LinearGradient>
       </View>
-
       {activated && (
         <View style={styles.successContainer}>
           <Ionicons name="checkmark-circle" size={24} color="#43e97b" />
           <Text style={styles.successText}>¡Conexión exitosa!</Text>
         </View>
       )}
-=======
-        {activated ? '¡Conectado!' : 'Desliza para conectar'}
-      </Text>
-
-      <View style={styles.slider}>
-        <Animated.View
-          style={[styles.sliderThumb, { transform: pan.getTranslateTransform() }]}
-          {...panResponder.panHandlers}
-        >
-          <Ionicons name="chevron-forward" size={32} color="#fff" />
-        </Animated.View>
-      </View>
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
     </View>
   );
 };
@@ -173,16 +124,11 @@ export const SlideButton = ({ onActivate }: { onActivate: () => void }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-<<<<<<< HEAD
     marginVertical: 20,
-=======
-    marginVertical: 30,
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-<<<<<<< HEAD
     marginBottom: 15,
     color: '#fff',
     textAlign: 'center',
@@ -196,23 +142,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-=======
-    marginBottom: 12,
-    color: '#333',
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
   },
   slider: {
     width: SLIDE_WIDTH,
     height: SLIDER_SIZE,
-<<<<<<< HEAD
-=======
-    backgroundColor: '#ddd',
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3
     borderRadius: SLIDER_SIZE / 2,
     justifyContent: 'center',
     padding: 5,
   },
-<<<<<<< HEAD
   sliderTrack: {
     position: 'absolute',
     left: 0,
@@ -251,31 +188,11 @@ const styles = StyleSheet.create({
   successContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(67, 233, 123, 0.2)',
-    borderRadius: 20,
+    marginTop: 16,
   },
   successText: {
     color: '#43e97b',
-    fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginLeft: 8,
   },
-}); 
-=======
-  sliderThumb: {
-    width: SLIDER_SIZE,
-    height: SLIDER_SIZE,
-    borderRadius: SLIDER_SIZE / 2,
-    backgroundColor: '#004aad',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    left: 0,
-    zIndex: 10,
-    elevation: 6,
-  },
 });
->>>>>>> 393b83cca8c6d11ef52d2b33d38431f7fcd4dad3

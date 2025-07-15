@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons"; // Asegúrate de importar esto
 import { StateData, RenderItemsProps } from "./DataStepsShareMusician"; // Ajusta tu ruta si es necesario
-import { bg_primary, bg_white, bg_dark } from "../../../../../styles/Styles"; // Ajusta rutas
+import { bg_primary, bg_white, bg_dark } from '@styles/Styles';
 
 export const RenderItems: React.FC<RenderItemsProps> = ({ data, stateData, setStateData }) => {
   return (

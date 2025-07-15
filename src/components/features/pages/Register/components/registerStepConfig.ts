@@ -1,6 +1,6 @@
-import { validarEmail, validarPassword } from "../../../../../utils/functions";
-import { Data } from "../components/RegisterTypes";
-import { MainState } from "../../../../../screens/auth/Register";
+import { validarEmail, validarPassword } from '@utils/functions';
+import { Data } from '@components/features/pages/Register/components/RegisterTypes';
+import { MainState } from '@screens/auth/Register';
 import { alertDataNexst } from "./RegisterTypes";
 const title: string = "!Alerta¡";
 export const Rules = [

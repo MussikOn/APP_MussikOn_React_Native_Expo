@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Button, FlatList } from "react-native";
 import { useSocket } from "./useSocket";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
-import { Token } from "../types/DatasTypes";
+import { Token } from '@appTypes/DatasTypes';
 
 
 const UseSocket = () => {
   const [user, setUser] = useState<Token | null>(null);
   useEffect(()=>{
     const DataUser = async () =>{
-      const token = await AsyncStorage.getItem("token");
+      const token = await SecureStore.getItemAsync("token");
       if(token){
         const decode:Token = jwtDecode(token);
         console.info(decode);

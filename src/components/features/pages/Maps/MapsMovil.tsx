@@ -24,7 +24,7 @@ import {
   color_success,
   color_danger,
   color_info,
-} from "../../../../styles/Styles";
+} from "@styles/Styles";
 
 // ¡IMPORTANTE! Reemplaza esta clave con tu propia API Key de Google Maps con la API "Directions" habilitada.
 // ¡ADVERTENCIA DE SEGURIDAD! No expongas tu API Key directamente en el código.

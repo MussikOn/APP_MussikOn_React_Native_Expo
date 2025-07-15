@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import AnimatedBackground from "../../../../components/ui/styles/AnimatedBackground";
-import { bg_dark, bg_primary, bg_white } from "../../../../styles/Styles";
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
+import { bg_dark, bg_primary, bg_white } from '@styles/Styles';
 import { Instruments, StateData } from "./forms/DataStepsShareMusician";
 import { RenderItems } from "./forms/DataStepsShareMusicians";
 

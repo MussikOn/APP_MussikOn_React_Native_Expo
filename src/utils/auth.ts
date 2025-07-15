@@ -1,9 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import {jwtDecode} from 'jwt-decode';
 
 export const isTokenExpired = async (): Promise<boolean> => {
   try {
-    const token = await AsyncStorage.getItem('token');
+    const token = await SecureStore.getItemAsync('token');
 
     if (!token) {
       return true; // Si no hay token, se considera expirado

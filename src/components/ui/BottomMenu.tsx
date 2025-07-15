@@ -1,7 +1,7 @@
 // components/BottomMenu.tsx
 import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { bg_white, bg_primary,iconSize} from '../../styles/Styles';
+import { bg_white, bg_primary,iconSize} from '@styles/Styles';
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = {

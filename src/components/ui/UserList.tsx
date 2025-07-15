@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import axios from 'axios';
-import { User } from '../../types/DatasTypes';
-import { URL_API } from '../../utils/ENV';
+import { User } from '@appTypes/DatasTypes';
+import { URL_API } from '@utils/ENV';
 
 
 const UserList = ({children}:any) => {

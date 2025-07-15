@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { s, appName, color_primary, color_white, color_secondary, text_primary, text_secondary, btn_primary, btn_white, border_color_primary, color_info } from '../../styles/Styles';
-import { URL_API } from '../../utils/ENV';
-import { saveToken } from '../../utils/functions';
-import { RootStackParamList } from '../../types/DatasTypes';
+import { s, appName, color_primary, color_white, color_secondary, text_primary, text_secondary, btn_primary, btn_white, border_color_primary, color_info } from '@styles/Styles';
+import { URL_API } from '@utils/ENV';
+import { saveToken } from '@utils/functions';
+import { RootStackParamList } from '@appTypes/DatasTypes';
 import { StackScreenProps } from '@react-navigation/stack';
 
 type Props = StackScreenProps<RootStackParamList, "Login">;

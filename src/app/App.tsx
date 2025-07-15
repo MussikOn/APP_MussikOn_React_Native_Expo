@@ -8,12 +8,12 @@ import { BlurView } from 'expo-blur';
 import * as SplashScreen from 'expo-splash-screen';
 import { Ionicons } from '@expo/vector-icons';
 
-import HomeScreen from '../screens/dashboard/HomeScreen';
-import { RootStackParamList } from '../types/DatasTypes';
-import Login from '../screens/auth/Login';
-import Register from '../screens/auth/Register';
-import { MainTabs } from '../components/navigation';
-import AnimatedBackground from '../components/ui/styles/AnimatedBackground';
+import HomeScreen from '@screens/dashboard/HomeScreen';
+import { RootStackParamList } from '@appTypes/DatasTypes';
+import Login from '@screens/auth/Login';
+import Register from '@screens/auth/Register';
+import { MainTabs } from '@components/navigation';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { colors, shadows, borderRadius } from '../../theme';
+import { colors, shadows, borderRadius } from '@styles/theme';
 
 interface CardProps {
   children: React.ReactNode;

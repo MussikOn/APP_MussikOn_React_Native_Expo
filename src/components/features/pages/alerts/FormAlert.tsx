@@ -20,7 +20,7 @@ import {
   color_success,
   s,
   bg_dark,
-} from "../../../../styles/Styles";
+} from '@styles/Styles';
 import { Data } from "../Register/components/RegisterTypes";
 
 const screenWidth = Dimensions.get("window").width;

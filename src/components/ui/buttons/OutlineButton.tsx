@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity } from "react-native";
-import { ss } from "../../features/pages/Register/components/StepStyle";
+import { ss } from '@components/features/pages/Register/components/StepStyle';
 
 export const OutlineButton = ({
     label,

@@ -1,10 +1,10 @@
 import { StackScreenProps } from "@react-navigation/stack";
-import { RootStackParamList, Token} from "../../../types/DatasTypes";
+import { RootStackParamList, Token } from '@appTypes/DatasTypes';
 import { View,Text, ScrollView, TouchableOpacity } from "react-native";
-import { s } from "../../../styles/Styles";
-import { deleteToken, getData, getFirstName } from "../../../utils/functions";
+import { s } from '@styles/Styles';
+import { deleteToken, getData, getFirstName } from '@utils/functions';
 import { useEffect, useState } from "react";
-import BottomMenu from "../../ui/BottomMenu";
+import BottomMenu from '@components/ui/BottomMenu';
 import AlertModal from "./alerts/AlertModal";
 import { useHeaderHeight } from '@react-navigation/elements';
 
@@ -76,7 +76,7 @@ const HomePage :React.FC<Props> = ({ navigation }) => {
             <BottomMenu 
             onHomePress={()=> alert("Inicio")} 
             onProfilePress={()=>alert("Perfil")} 
-            onSettingsPress={()=> navigation.navigate("Seting")} ></BottomMenu>
+            onSettingsPress={()=> navigation.navigate("Settings")} ></BottomMenu>
     </>
     );
 }

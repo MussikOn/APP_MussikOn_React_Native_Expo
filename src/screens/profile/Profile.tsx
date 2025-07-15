@@ -10,11 +10,11 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { bg_danger, bg_info, bg_primary, bg_secondary, bg_white, color_white} from '../../styles/Styles';
-import { Token } from '../../types/DatasTypes';
-import { getData, getFirstName } from '../../utils/functions';
-import ImagenRemota from '../../components/ui/components/images/RemoteImage';
-import AnimatedBackground from '../../components/ui/styles/AnimatedBackground';
+import { bg_danger, bg_info, bg_primary, bg_secondary, bg_white, color_white} from '@styles/Styles';
+import { Token } from '@appTypes/DatasTypes';
+import { getData, getFirstName } from '@utils/functions';
+import ImagenRemota from '@components/ui/components/images/RemoteImage';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 
 const Profile = () => {
   const [modalVisible, setModalVisible] = useState(false);

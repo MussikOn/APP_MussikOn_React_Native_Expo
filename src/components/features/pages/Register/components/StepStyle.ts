@@ -1,4 +1,4 @@
-import {bg_dark, bg_primary, bg_white, color_danger, color_success} from "../../../../../styles/Styles"
+import {bg_dark, bg_primary, bg_white, color_danger, color_success} from '@styles/Styles';
 import { StyleSheet } from "react-native";
 
 export const ss = StyleSheet.create({

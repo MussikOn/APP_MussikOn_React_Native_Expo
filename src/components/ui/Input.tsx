@@ -10,7 +10,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, textStyles, borderRadius } from '../../theme';
+import { colors, textStyles, borderRadius } from '@styles/theme';
 
 interface InputProps extends TextInputProps {
   label: string;

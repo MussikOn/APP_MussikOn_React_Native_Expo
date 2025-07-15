@@ -2,7 +2,7 @@
 import React from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { btn_danger, color_danger, color_success, s } from "../../../../styles/Styles";
+import { btn_danger, color_danger, color_success, s } from '@styles/Styles';
 
 const icons: Record<number, string> = {
   0: "❌",

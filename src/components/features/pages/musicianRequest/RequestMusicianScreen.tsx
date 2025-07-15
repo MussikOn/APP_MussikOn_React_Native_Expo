@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../types/DatasTypes';
-import { s, bg_primary, bg_white, color_white, btn_primary, text_white } from '../../../../../styles/Styles';
-import AnimatedBackground from '../../../ui/styles/AnimatedBackground';
+import { RootStackParamList } from '@appTypes/DatasTypes';
+import { s, bg_primary, bg_white, color_white, btn_primary, text_white } from '@styles/Styles';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 
 type Props = StackScreenProps<RootStackParamList, 'RequestMusician'>;
 

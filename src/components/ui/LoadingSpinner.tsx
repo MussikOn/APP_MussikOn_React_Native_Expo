@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, gradients } from '../../theme';
+import { colors, gradients } from '@styles/theme';
 
 interface LoadingSpinnerProps {
   size?: 'small' | 'medium' | 'large';

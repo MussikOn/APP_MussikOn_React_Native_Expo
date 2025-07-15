@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { bg_dinamic_info, bg_dinamic_primary, bg_info, bg_primary, bg_white } from '../../../styles/Styles';
+import { bg_dinamic_info, bg_dinamic_primary, bg_info, bg_primary, bg_white } from '@styles/Styles';
 
 const { width, height } = Dimensions.get('window');
 const widths = 20;
