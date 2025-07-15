@@ -1,266 +1,147 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  ScrollView, 
-  Image, 
-  Dimensions,
-  StatusBar,
-  Animated,
-  Platform
-} from 'react-native';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { appName, bg_primary } from '../../styles/Styles';
-import BottomMenu from '../../components/ui/BottomMenu';
-import { SlideButton } from '../../components/ui/buttons/SlideButton';
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Pressable } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { appName, bg_primary, color_white, color_info, color_success, color_danger } from '../../styles/Styles';
 import AnimatedBackground from '../../components/ui/styles/AnimatedBackground';
-import { SocketConnectButton } from '../../components/features/pages/sockets/SocketConnectButton';
 import { socket } from '../../utils/soket';
 
-const { width, height } = Dimensions.get('window');
+type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
-const Dashboard = ({ navigation }: any) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
+const ConnectionGlobe = ({ status, onPress }: { status: ConnectionStatus; onPress: () => void }) => {
+  const rotationAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
+    const orbitAnimation = Animated.loop(
+      Animated.timing(rotationAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 8000, // 8 segundos por órbita
+        easing: Easing.linear,
         useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
+      })
+    );
+
+    const pulseAnimation = Animated.loop(
+        Animated.sequence([
+            Animated.timing(pulseAnim, { toValue: 1.05, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+            Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+        ])
+    );
+
+    if (status === 'connecting' || status === 'connected') {
+      orbitAnimation.start();
+      if (status === 'connecting') {
+        pulseAnimation.start();
+      } else {
+        pulseAnimation.stop();
+        pulseAnim.setValue(1);
+      }
+    } else {
+      orbitAnimation.stop();
+      pulseAnimation.stop();
+      rotationAnim.setValue(0);
+      pulseAnim.setValue(1);
+    }
+
+    return () => {
+      orbitAnimation.stop();
+      pulseAnimation.stop();
+    };
+  }, [status]);
+
+  const rotate = rotationAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const animatedGlobeStyle = { transform: [{ scale: pulseAnim }] };
+
+  const { globeColor, iconName, statusText, iconColor } = {
+    disconnected: { globeColor: bg_primary, iconName: 'power', statusText: 'Conectar', iconColor: color_white },
+    connecting: { globeColor: color_info, iconName: 'sync', statusText: 'Conectando...', iconColor: color_white },
+    connected: { globeColor: color_success, iconName: 'wifi', statusText: 'Conectado', iconColor: color_white },
+    error: { globeColor: color_danger, iconName: 'wifi-off', statusText: 'Error de Conexión', iconColor: color_white },
+  }[status];
+
+  return (
+    <View style={styles.globeContainer}>
+      {(status === 'connecting' || status === 'connected') && (
+        <Animated.View style={[styles.orbit, { transform: [{ rotate }] }]}>
+          <Ionicons name="rocket" size={30} color={color_white} style={styles.rocket} />
+        </Animated.View>
+      )}
+      <Pressable onPress={onPress} disabled={status === 'connecting'}>
+        <Animated.View style={[styles.globe, { backgroundColor: globeColor }, animatedGlobeStyle]}>
+          <MaterialCommunityIcons name={iconName} size={80} color={iconColor} />
+        </Animated.View>
+      </Pressable>
+      <Text style={styles.statusText}>{statusText}</Text>
+    </View>
+  );
+};
+
+const Dashboard = ({ navigation }: any) => {
+  // Hook para obtener los márgenes seguros del dispositivo (notch, barra inferior, etc.)
+  const insets = useSafeAreaInsets();
+
+  const [status, setStatus] = useState<ConnectionStatus>(socket.connected ? 'connected' : 'disconnected');
+
+  useEffect(() => {
+    const onConnect = () => setStatus('connected');
+    const onDisconnect = () => setStatus('disconnected');
+    const onConnectError = () => setStatus('error');
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', onConnectError);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('connect_error', onConnectError);
+    };
   }, []);
 
-  const handleSlideActivate = () => {
-    socket.emit("send_notification", {
-      email: "astaciosanchezjefryagustin@gmail.com",
-      data: {
-        nombres: "Jefry Agustin",
-        apellidos: "Astacio Sanchez",
-        msg: "Hola, Como estas?",
-      }
-    });
-    console.log('🔥 Acción deslizable activada');
+  const handleConnection = () => {
+    if (status === 'connected') {
+      socket.disconnect();
+    } else {
+      setStatus('connecting');
+      socket.connect();
+    }
   };
-
-  const enviarNotificacion = () => {
-    const payload = {
-      toUserId: "juan.todman@corripio.com.do",
-      data: {
-        title: "Mensaje Para Juan",
-        message: "Juan es el programador mas duro del mundo.",
-        tipo: "evento",
-        fecha: "2025-04-30",
-      },
-    };
-    socket.emit("send-notification", payload);
-  };
-
-  const MenuCard = ({ 
-    icon, 
-    title, 
-    subtitle, 
-    gradient, 
-    onPress, 
-    iconType = 'ionicons' 
-  }: {
-    icon: string;
-    title: string;
-    subtitle: string;
-    gradient: string[];
-    onPress: () => void;
-    iconType?: 'ionicons' | 'material' | 'fontawesome';
-  }) => (
-    <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
-      <LinearGradient
-        colors={gradient}
-        style={styles.card}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.cardContent}>
-          <View style={styles.iconContainer}>
-            {iconType === 'ionicons' && (
-              <Ionicons name={icon as any} size={32} color="#fff" />
-            )}
-            {iconType === 'material' && (
-              <MaterialCommunityIcons name={icon as any} size={32} color="#fff" />
-            )}
-            {iconType === 'fontawesome' && (
-              <FontAwesome5 name={icon as any} size={28} color="#fff" />
-            )}
-          </View>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardSubtitle}>{subtitle}</Text>
-        </View>
-        <View style={styles.cardArrow}>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#004aad" />
       <AnimatedBackground />
-      
-      <ScrollView 
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header Section */}
-        <Animated.View 
-          style={[
-            styles.header,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <View style={styles.welcomeSection}>
-            <View style={styles.logoContainer}>
-              <Image
-                source={require('../../../assets/Logo_app.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.welcomeText}>
-              <Text style={styles.welcomeTitle}>¡Bienvenido a {appName}! 🎵</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Conecta con músicos y descubre eventos increíbles
-              </Text>
-            </View>
-          </View>
-        </Animated.View>
+      {/* 
+        Aplicamos los márgenes seguros como padding.
+        - paddingTop: insets.top asegura que no quede debajo de la barra de estado.
+        - paddingBottom: insets.bottom + 90 asegura que no quede debajo de la barra de pestañas.
+          (90 = 70 de altura de la barra + 20 de margen inferior)
+      */}
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 90 }]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Bienvenido a {appName} 🎶</Text>
+          <Text style={styles.subtitle}>Tu universo musical te espera</Text>
+        </View>
 
-        {/* Quick Actions */}
-        <Animated.View 
-          style={[
-            styles.quickActions,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
-          
-          <View style={styles.cardsGrid}>
-            <MenuCard
-              icon="person-circle-outline"
-              title="Mi Perfil"
-              subtitle="Gestiona tu información"
-              gradient={['#667eea', '#764ba2']}
-              onPress={() => navigation.navigate("Profile")}
-              iconType="ionicons"
-            />
-            
-            <MenuCard
-              icon="settings-outline"
-              title="Ajustes"
-              subtitle="Personaliza tu experiencia"
-              gradient={['#f093fb', '#f5576c']}
-              onPress={() => navigation.navigate("Seting")}
-              iconType="ionicons"
-            />
-            
-            <MenuCard
-              icon="account-music-outline"
-              title="Buscar Músicos"
-              subtitle="Encuentra talento musical"
-              gradient={['#4facfe', '#00f2fe']}
-              onPress={() => navigation.navigate("Musicos")}
-              iconType="material"
-            />
-            
-            <MenuCard
-              icon="calendar-outline"
-              title="Mis Eventos"
-              subtitle="Gestiona tus eventos"
-              gradient={['#43e97b', '#38f9d7']}
-              onPress={enviarNotificacion}
-              iconType="ionicons"
-            />
-          </View>
-        </Animated.View>
+        <ConnectionGlobe status={status} onPress={handleConnection} />
 
-        {/* Connection Section */}
-        <Animated.View 
-          style={[
-            styles.connectionSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <Text style={styles.sectionTitle}>Conexión</Text>
-          
-          <View style={styles.connectionCards}>
-            <View style={styles.socketCard}>
-              <SocketConnectButton />
-            </View>
-            
-            <View style={styles.slideCard}>
-              <SlideButton onActivate={handleSlideActivate} />
-            </View>
-          </View>
-        </Animated.View>
+        <View style={styles.navGrid}>
+          <TouchableOpacity style={styles.navCard} onPress={() => navigation.navigate("Profile")}>
+            <Ionicons name="person-circle-outline" size={40} color={color_white} />
+            <Text style={styles.navCardText}>Mi Perfil</Text>
+          </TouchableOpacity>
 
-        {/* Stats Section */}
-        <Animated.View 
-          style={[
-            styles.statsSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <Text style={styles.sectionTitle}>Estadísticas</Text>
-          
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Ionicons name="people-outline" size={24} color="#667eea" />
-              <Text style={styles.statNumber}>127</Text>
-              <Text style={styles.statLabel}>Músicos</Text>
-            </View>
-            
-            <View style={styles.statCard}>
-              <Ionicons name="calendar-outline" size={24} color="#f093fb" />
-              <Text style={styles.statNumber}>23</Text>
-              <Text style={styles.statLabel}>Eventos</Text>
-            </View>
-            
-            <View style={styles.statCard}>
-              <Ionicons name="chatbubbles-outline" size={24} color="#4facfe" />
-              <Text style={styles.statNumber}>89</Text>
-              <Text style={styles.statLabel}>Mensajes</Text>
-            </View>
-          </View>
-        </Animated.View>
-      </ScrollView>
-      
-      <BottomMenu
-        onHomePress={() => alert("Inicio")}
-        onProfilePress={() => alert("Perfil")}
-        onSettingsPress={() => navigation.navigate("Seting")}
-      />
+          <TouchableOpacity style={styles.navCard} onPress={() => navigation.navigate("Seting")}>
+            <Ionicons name="settings-outline" size={40} color={color_white} />
+            <Text style={styles.navCardText}>Ajustes</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.navCard} onPress={() => navigation.navigate("Musicos")}>
+            <MaterialCommunityIcons name="account-music-outline" size={40} color={color_white} />
+            <Text style={styles.navCardText}>Músicos</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </>
   );
 };
@@ -268,149 +149,80 @@ const Dashboard = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
-  },
-  scrollContent: {
-    paddingBottom: 100,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
   },
   header: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  welcomeSection: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  logoContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  welcomeText: {
-    flex: 1,
-  },
-  welcomeTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    lineHeight: 22,
-  },
-  quickActions: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
+    color: color_white,
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  cardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  cardContainer: {
-    width: (width - 50) / 2,
-    marginBottom: 15,
-  },
-  card: {
-    borderRadius: 20,
-    padding: 20,
-    minHeight: 120,
-    justifyContent: 'space-between',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  cardTitle: {
+  subtitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
-    lineHeight: 16,
-  },
-  cardArrow: {
-    alignSelf: 'flex-end',
-    marginTop: 10,
-  },
-  connectionSection: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  connectionCards: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  socketCard: {
-    flex: 1,
-    marginRight: 10,
-  },
-  slideCard: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  statsSection: {
-    paddingHorizontal: 20,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 15,
-    padding: 20,
-    alignItems: 'center',
-    marginHorizontal: 5,
-    backdropFilter: 'blur(10px)',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    color: color_white,
+    textAlign: 'center',
+    opacity: 0.9,
     marginTop: 8,
-    marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
+  globeContainer: {
+    width: 250,
+    height: 250,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 40,
+  },
+  globe: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  statusText: {
+    marginTop: 20,
+    color: color_white,
+    fontSize: 18,
+    fontWeight: '600',
     textAlign: 'center',
+  },
+  orbit: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  rocket: {
+    transform: [{ rotate: '-90deg' }],
+  },
+  navGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  navCard: {
+    alignItems: 'center',
+    padding: 10,
+  },
+  navCardText: {
+    marginTop: 5,
+    fontSize: 12,
+    fontWeight: '600',
+    color: color_white,
+    opacity: 0.9,
   },
 });
 
