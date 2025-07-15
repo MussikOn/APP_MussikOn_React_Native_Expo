@@ -125,7 +125,7 @@ const Dashboard = ({ navigation }: any) => {
       comment: 'Se requiere un repertorio de música clásica para la ceremonia y piezas populares para el cóctel. Vestimenta formal es indispensable.',
       budget: '20,000 RD$',
       eventType: 'Boda',
-      flyerUrl: 'https://via.placeholder.com/400x200.png?text=Boda+Ana+y+Carlos', // Opcional
+      flyerUrl: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/dj-concert-flyer-design-template-4c2f040ccbc983a6d539472a1d8f50b4_screen.jpg?ts=1698394859', // Opcional
       songs: ['Canon en D - Pachelbel', 'Perfect - Ed Sheeran', 'A Thousand Years - Christina Perri'],
       recommendations: ['Llegar 1 hora antes para prueba de sonido.', 'Estacionamiento disponible para el músico.'],
       mapsLink: 'https://maps.app.goo.gl/r6v8YmY4zB8nZJ2v8'
