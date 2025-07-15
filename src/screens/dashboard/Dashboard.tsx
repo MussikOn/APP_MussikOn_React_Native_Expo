@@ -130,24 +130,7 @@ const Dashboard = ({ navigation }: any) => {
       recommendations: ['Llegar 1 hora antes para prueba de sonido.', 'Estacionamiento disponible para el músico.'],
       mapsLink: 'https://maps.app.goo.gl/r6v8YmY4zB8nZJ2v8'
     },
-    {
-      id: 2,
-      eventName: 'Concierto Acústico',
-      requesterName: 'Café Cultural',
-      location: 'Zona Colonial, Santo Domingo',
-      date: '15 de Enero, 2025',
-      time: '8:00 PM',
-      duration: '2 sets de 45 min',
-      instrument: 'Guitarra y Voz',
-      bringInstrument: true,
-      comment: 'Buscamos un artista con repertorio de pop/rock en español e inglés. El ambiente es íntimo.',
-      budget: '8,000 RD$ + Consumo',
-      eventType: 'Concierto',
-      flyerUrl: null,
-      songs: ['Bachata Rosa - Juan Luis Guerra', 'Wonderwall - Oasis', 'La Flaca - Jarabe de Palo'],
-      recommendations: ['El pago se realiza al finalizar el evento.'],
-      mapsLink: 'https://maps.app.goo.gl/V7TqUvH8oP9sEa4u7'
-    },
+   
   ]);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
