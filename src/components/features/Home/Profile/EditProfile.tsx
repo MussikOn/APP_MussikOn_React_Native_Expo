@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { bg_primary } from "../../../../../styles/Styles";
+import { bg_primary } from '@styles/Styles';
 import axios from "axios";
 import { URL_API } from "../../../../utils/ENV";
 

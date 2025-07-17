@@ -25,6 +25,7 @@ import {
 } from "@styles/Styles";
 import AnimatedBackground from "@components/ui/styles/AnimatedBackground";
 import { socket } from "@utils/socket";
+import { useTranslation } from 'react-i18next';
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
@@ -37,6 +38,7 @@ const ConnectionGlobe = ({
 }) => {
   const rotationAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const { t } = useTranslation();
 
   useEffect(() => {
     const orbitAnimation = Animated.loop(
@@ -99,32 +101,32 @@ const ConnectionGlobe = ({
     iconColor,
   }:{
     globeColor: string;
-    iconName: string;
+    iconName: 'wifi' | 'sync' | 'power' | 'wifi-off';
     statusText: string;
     iconColor: string;
   } = {
     disconnected: {
       globeColor: bg_primary,
-      iconName: "power",
-      statusText: "Conectar",
+      iconName: 'power' as 'power',
+      statusText: t('home.connect'),
       iconColor: color_white,
     },
     connecting: {
       globeColor: color_info,
-      iconName: "sync",
-      statusText: "Conectando...",
+      iconName: 'sync' as 'sync',
+      statusText: t('home.connecting'),
       iconColor: color_white,
     },
     connected: {
       globeColor: color_success,
-      iconName: "wifi",
-      statusText: "Conectado",
+      iconName: 'wifi' as 'wifi',
+      statusText: t('home.connected'),
       iconColor: color_white,
     },
     error: {
       globeColor: color_danger,
-      iconName: "wifi-off",
-      statusText: "Error de Conexión",
+      iconName: 'wifi-off' as 'wifi-off',
+      statusText: t('home.connection_error'),
       iconColor: color_white,
     },
   }[status];
@@ -187,6 +189,7 @@ const InfoRow = ({
 const Dashboard = ({ navigation }: any) => {
   // Hook para obtener los márgenes seguros del dispositivo (notch, barra inferior, etc.)
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [status, setStatus] = useState<ConnectionStatus>(
     socket.connected ? "connected" : "disconnected"
@@ -395,13 +398,13 @@ const Dashboard = ({ navigation }: any) => {
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Bienvenido a {appName} 🎶</Text>
-            <Text style={styles.subtitle}>Tu universo musical te espera</Text>
+            <Text style={styles.title}>{t('home.welcome_title', { appName })}</Text>
+            <Text style={styles.subtitle}>{t('home.welcome_subtitle')}</Text>
           </View>
 
           {/* --- BANNER DE NOTIFICACIONES --- */}
           <View style={styles.notificationsBanner}>
-            <Text style={styles.bannerTitle}>Solicitudes de Eventos</Text>
+            <Text style={styles.bannerTitle}>{t('home.event_requests')}</Text>
             {notifications.length > 0 ? (
               notifications.map((notif) => (
                 <TouchableOpacity
@@ -425,7 +428,7 @@ const Dashboard = ({ navigation }: any) => {
               ))
             ) : (
               <Text style={styles.noNotificationsText}>
-                No tienes solicitudes pendientes.
+                {t('home.no_pending_requests')}
               </Text>
             )}
           </View>

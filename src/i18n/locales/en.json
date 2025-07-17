@@ -1,0 +1,97 @@
+{
+  "welcome": "Welcome to MussikOn!",
+  "app_subtitle": "Connecting musicians",
+  "login": {
+    "title": "Login",
+    "email": "Email",
+    "password": "Password",
+    "button": "Sign In",
+    "no_account": "Don't have an account?",
+    "register_here": "Register here",
+    "required": "is required",
+    "invalid": "is not valid",
+    "min_length": "must have at least 6 characters",
+    "error": "Login Error",
+    "connection_error": "Could not connect. Try again later."
+  },
+  "register": {
+    "title": "Register",
+    "name": "First Name",
+    "lastname": "Last Name",
+    "email": "Email",
+    "confirm_email": "Confirm Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "button": "Sign Up",
+    "required": "is required",
+    "invalid": "is not valid",
+    "min_length": "must have at least 6 characters",
+    "passwords_not_match": "Passwords do not match",
+    "emails_not_match": "Emails do not match",
+    "weak_password": "Weak password. Must contain uppercase, lowercase, numbers and special characters"
+  },
+  "home": {
+    "greeting": "Welcome, {{name}}!",
+    "welcome_title": "Welcome to {{appName}} 🎶",
+    "welcome_subtitle": "Your musical universe awaits",
+    "event_requests": "Event Requests",
+    "no_pending_requests": "You have no pending requests",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "connection_error": "Connection Error"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "change_password": "Change Password",
+    "theme": "Theme",
+    "language": "Language",
+    "logout": "Logout",
+    "logout_confirm": "Are you sure you want to logout?",
+    "cancel": "Cancel",
+    "language_title": "Select Language",
+    "language_description": "Choose the app language"
+  },
+  "navigation": {
+    "home": "Home",
+    "musicians": "Musicians",
+    "profile": "Profile",
+    "settings": "Settings",
+    "create_event": "Create Event"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "done": "Done",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Enter a valid email",
+    "min_length": "Must have at least {{min}} characters",
+    "max_length": "Must have maximum {{max}} characters",
+    "password_match": "Passwords must match",
+    "email_match": "Emails must match"
+  },
+  "alerts": {
+    "attention": "Attention!",
+    "warning": "Warning!",
+    "error": "Error!",
+    "success": "Success!",
+    "info": "Information"
+  }
+} 

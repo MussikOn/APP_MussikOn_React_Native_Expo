@@ -7,6 +7,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as SplashScreen from 'expo-splash-screen';
 import { Ionicons } from '@expo/vector-icons';
+import { I18nextProvider, useTranslation } from 'react-i18next';
+import i18n from '../i18n';
+import { LanguageProvider } from '../contexts/LanguageContext';
 
 import HomeScreen from '@screens/dashboard/HomeScreen';
 import { RootStackParamList } from '@appTypes/DatasTypes';
@@ -63,11 +66,12 @@ const screenOptions: StackNavigationOptions = {
   }),
 };
 
-const App = () => {
+function AppContent() {
   const [isReady, setIsReady] = useState(false);
   const [appIsReady, setAppIsReady] = useState(false);
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
+  const { t } = useTranslation();
 
   useEffect(() => {
     async function prepare() {
@@ -80,7 +84,6 @@ const App = () => {
         setAppIsReady(true);
       }
     }
-
     prepare();
   }, []);
 
@@ -115,7 +118,7 @@ const App = () => {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
-        <Animated.View style={[styles.splashContent, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
+        <Animated.View style={[styles.splashContent, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}> 
           <View style={styles.logoContainer}>
             <LinearGradient
               colors={['#ffffff', '#f8f9fa']}
@@ -126,8 +129,8 @@ const App = () => {
               <Ionicons name="musical-notes" size={60} color="#667eea" />
             </LinearGradient>
           </View>
-          <Text style={styles.appTitle}>MussikOn</Text>
-          <Text style={styles.appSubtitle}>Conectando músicos</Text>
+          <Text style={styles.appTitle}>{t('welcome')}</Text>
+          <Text style={styles.appSubtitle}>{t('app_subtitle')}</Text>
           <View style={styles.loadingContainer}>
             <Animated.View style={[styles.loadingDot, { opacity: fadeAnim }]} />
             <Animated.View style={[styles.loadingDot, { opacity: fadeAnim }]} />
@@ -142,7 +145,6 @@ const App = () => {
     <>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <AnimatedBackground />
-      
       <NavigationContainer
         theme={{
           dark: true,
@@ -182,7 +184,7 @@ const App = () => {
             name="Home" 
             component={HomeScreen} 
             options={{
-              title: "",
+              title: '',
               headerLeft: () => null,
               headerRight: () => (
                 <View style={styles.headerRight}>
@@ -195,7 +197,7 @@ const App = () => {
             name="Register" 
             component={Register} 
             options={{
-              title: "Registro",
+              title: t('register.title'),
               headerLeft: () => (
                 <View style={styles.headerLeft}>
                   <Ionicons name="arrow-back" size={24} color="#ffffff" />
@@ -207,7 +209,7 @@ const App = () => {
             name="Login" 
             component={Login} 
             options={{
-              title: "Iniciar Sesión",
+              title: t('login.title'),
               headerLeft: () => (
                 <View style={styles.headerLeft}>
                   <Ionicons name="arrow-back" size={24} color="#ffffff" />
@@ -227,7 +229,7 @@ const App = () => {
       </NavigationContainer>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   splashContainer: {
@@ -301,4 +303,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default function App() {
+  return (
+    <I18nextProvider i18n={i18n}>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </I18nextProvider>
+  );
+}

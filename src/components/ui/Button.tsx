@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, gradients, shadows, textStyles, borderRadius } from '../../theme';
+import { colors, gradients, shadows, textStyles, borderRadius } from '@theme';
 
 interface ButtonProps {
   title: string;
@@ -149,7 +149,7 @@ const Button: React.FC<ButtonProps> = ({
     >
       {variant === 'gradient' ? (
         <LinearGradient
-          colors={gradients.primary as [string, string, ...string[]]}
+          colors={gradients.primary as unknown as [string, string, ...string[]]}
           style={styles.gradientContainer}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}

@@ -5,7 +5,7 @@ import { s } from '@styles/Styles';
 import { deleteToken, getData, getFirstName } from '@utils/functions';
 import { useEffect, useState } from "react";
 import BottomMenu from '@components/ui/BottomMenu';
-import AlertModal from "./alerts/AlertModal";
+import AlertModal from '@components/features/pages/alerts/AlertModal';
 import { useHeaderHeight } from '@react-navigation/elements';
 
 
@@ -76,7 +76,7 @@ const HomePage :React.FC<Props> = ({ navigation }) => {
             <BottomMenu 
             onHomePress={()=> alert("Inicio")} 
             onProfilePress={()=>alert("Perfil")} 
-            onSettingsPress={()=> navigation.navigate("Settings")} ></BottomMenu>
+            onSettingsPress={()=> navigation.navigate("Seting")} ></BottomMenu>
     </>
     );
 }

@@ -15,13 +15,20 @@ import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useHeaderHeight } from "@react-navigation/elements";
 import AlertModal from '@components/features/pages/alerts/AlertModal';
+import { useTranslation } from 'react-i18next';
+import { LanguageProvider, useLanguage } from '../../contexts/LanguageContext';
+import LanguageSelector from '@components/ui/LanguageSelector';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const SettingsScreen = ({ navigation }:any) => {
+const SettingsScreenContent = ({ navigation }:any) => {
   const headerHeight = useHeaderHeight();
   const [userData, setUserData] = useState<Token>();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [opens, setOpens] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const { t } = useTranslation();
+  const { currentLanguage, availableLanguages } = useLanguage();
 
   const getDataUser = async () => {
     const data = await getData();
@@ -45,55 +52,95 @@ const SettingsScreen = ({ navigation }:any) => {
     getDataUser();
   }, []);
 
+  const getCurrentLanguageName = () => {
+    const language = availableLanguages.find(lang => lang.code === currentLanguage);
+    return language ? language.nativeName : 'Español';
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <AlertModal
-        message="¿Estás seguro que deseas cerrar sesión?"
-        title="Cerrar Sesión"
+        icon={1}
+        message={t('settings.logout_confirm', { defaultValue: '¿Estás seguro que deseas cerrar sesión?' })}
+        title={t('settings.logout', { defaultValue: 'Cerrar Sesión' })}
         visible={opens}
         onConfim={() => closeSesion()}
-        btnTxtConfirm="Cerrar Sesión"
-        confirmText="Cancelar"
+        btnTxtConfirm={t('settings.logout', { defaultValue: 'Cerrar Sesión' })}
+        confirmText={t('settings.cancel', { defaultValue: 'Cancelar' })}
         onClose={() => setOpens(false)}
+      />
+
+      <LanguageSelector
+        visible={languageModalVisible}
+        onClose={() => setLanguageModalVisible(false)}
       />
 
       <ScrollView contentContainerStyle={{ paddingTop: headerHeight + 10, paddingBottom: 100 }}>
         <View style={styles.container}>
-          <Text style={styles.title}>Ajustes</Text>
+          <Text style={styles.title}>{t('settings.title')}</Text>
 
           <View style={styles.section}>
-            <TouchableOpacity style={styles.item} onPress={() => alert("Perfil")}>
+            <TouchableOpacity style={styles.item} onPress={() => alert("Perfil")}> 
               <Ionicons name="person-outline" size={24} color={bg_primary} />
-              <Text style={styles.text}>Perfil</Text>
+              <Text style={styles.text}>{t('settings.profile')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.item} onPress={() => alert("Notificaciones")}>
+            <TouchableOpacity style={styles.item} onPress={() => alert("Notificaciones")}> 
               <Ionicons name="notifications-outline" size={24} color={bg_primary} />
-              <Text style={styles.text}>Notificaciones</Text>
+              <Text style={styles.text}>{t('settings.notifications')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
-            <TouchableOpacity style={styles.item} onPress={() => alert("Cambiar Contraseña")}>
+            <TouchableOpacity style={styles.item} onPress={() => alert("Cambiar Contraseña")}> 
               <Ionicons name="lock-closed-outline" size={24} color={bg_primary} />
-              <Text style={styles.text}>Cambiar Contraseña</Text>
+              <Text style={styles.text}>{t('settings.change_password')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.item} onPress={() => alert("Tema")}>
+            <TouchableOpacity style={styles.item} onPress={() => alert("Tema")}> 
               <Ionicons name="color-palette-outline" size={24} color={bg_primary} />
-              <Text style={styles.text}>Tema</Text>
+              <Text style={styles.text}>{t('settings.theme')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.item} onPress={() => setLanguageModalVisible(true)}> 
+              <Ionicons name="language-outline" size={24} color={bg_primary} />
+              <View style={styles.languageItem}>
+                <Text style={styles.text}>{t('settings.language')}</Text>
+                <View style={styles.languageDisplay}>
+                  <LinearGradient
+                    colors={currentLanguage === 'es' ? ['#FF6B6B', '#4ECDC4'] : ['#457B9D', '#A8DADC']}
+                    style={styles.languageBadge}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Text style={styles.languageFlag}>
+                      {currentLanguage === 'es' ? '🇪🇸' : '🇺🇸'}
+                    </Text>
+                    <Text style={styles.languageValue}>{getCurrentLanguageName()}</Text>
+                  </LinearGradient>
+                  <Ionicons name="chevron-forward" size={16} color="#999" style={styles.chevron} />
+                </View>
+              </View>
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
             <TouchableOpacity style={styles.item} onPress={() => setOpens(true)}>
               <Ionicons name="exit-outline" size={24} color="red" />
-              <Text style={[styles.text, { color: "red" }]}>Cerrar Sesión</Text>
+              <Text style={[styles.text, { color: "red" }]}>{t('settings.logout')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+};
+
+const SettingsScreen = ({ navigation }:any) => {
+  return (
+    <LanguageProvider>
+      <SettingsScreenContent navigation={navigation} />
+    </LanguageProvider>
   );
 };
 
@@ -133,6 +180,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 15,
     color: "#333",
+  },
+  languageItem: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginLeft: 15,
+  },
+  languageValue: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  languageDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  languageFlag: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  chevron: {
+    marginLeft: 4,
   },
 });
 

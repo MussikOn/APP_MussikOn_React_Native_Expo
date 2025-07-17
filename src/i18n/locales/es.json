@@ -1,0 +1,97 @@
+{
+  "welcome": "¡Bienvenido a MussikOn!",
+  "app_subtitle": "Conectando músicos",
+  "login": {
+    "title": "Iniciar Sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "button": "Entrar",
+    "no_account": "¿No tienes cuenta?",
+    "register_here": "Regístrate aquí",
+    "required": "es requerido",
+    "invalid": "no es válido",
+    "min_length": "debe tener al menos 6 caracteres",
+    "error": "Error al Iniciar Sesión",
+    "connection_error": "No se pudo conectar. Intenta más tarde."
+  },
+  "register": {
+    "title": "Registro",
+    "name": "Nombres",
+    "lastname": "Apellidos",
+    "email": "Correo electrónico",
+    "confirm_email": "Confirmar correo",
+    "password": "Contraseña",
+    "confirm_password": "Confirmar contraseña",
+    "button": "Registrarse",
+    "required": "es requerido",
+    "invalid": "no es válido",
+    "min_length": "debe tener al menos 6 caracteres",
+    "passwords_not_match": "Las contraseñas no coinciden",
+    "emails_not_match": "Los correos no coinciden",
+    "weak_password": "Contraseña débil. Debe contener mayúsculas, minúsculas, números y caracteres especiales"
+  },
+  "home": {
+    "greeting": "¡Bienvenido, {{name}}!",
+    "welcome_title": "Bienvenido a {{appName}} 🎶",
+    "welcome_subtitle": "Tu universo musical te espera",
+    "event_requests": "Solicitudes de Eventos",
+    "no_pending_requests": "No tienes solicitudes pendientes",
+    "connect": "Conectar",
+    "connecting": "Conectando...",
+    "connected": "Conectado",
+    "connection_error": "Error de Conexión"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "profile": "Perfil",
+    "notifications": "Notificaciones",
+    "change_password": "Cambiar Contraseña",
+    "theme": "Tema",
+    "language": "Idioma",
+    "logout": "Cerrar Sesión",
+    "logout_confirm": "¿Estás seguro que deseas cerrar sesión?",
+    "cancel": "Cancelar",
+    "language_title": "Seleccionar Idioma",
+    "language_description": "Elige el idioma de la aplicación"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "musicians": "Músicos",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "create_event": "Crear Evento"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "done": "Hecho",
+    "ok": "OK",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "validation": {
+    "required": "Este campo es requerido",
+    "email": "Ingresa un email válido",
+    "min_length": "Debe tener al menos {{min}} caracteres",
+    "max_length": "Debe tener máximo {{max}} caracteres",
+    "password_match": "Las contraseñas deben coincidir",
+    "email_match": "Los correos deben coincidir"
+  },
+  "alerts": {
+    "attention": "¡Atención!",
+    "warning": "¡Advertencia!",
+    "error": "¡Error!",
+    "success": "¡Éxito!",
+    "info": "Información"
+  }
+} 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Button, FlatList } from "react-native";
-import { useSocket } from "./useSocket";
+import { useSocket } from '../../hooks/useSocket';
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { Token } from '@appTypes/DatasTypes';
