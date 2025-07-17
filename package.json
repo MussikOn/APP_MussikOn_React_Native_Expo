@@ -22,6 +22,7 @@
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/stack": "^7.2.10",
+    "@reduxjs/toolkit": "^2.8.2",
     "@types/react-native-maps": "^0.24.1",
     "axios": "^1.8.4",
     "expo": "~52.0.38",
@@ -53,6 +54,7 @@
     "react-native-safe-area-context": "^4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
+    "react-redux": "^9.2.0",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
