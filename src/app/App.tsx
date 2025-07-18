@@ -10,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import { getData, getToken } from '@utils/functions';
+import { Token } from '@appTypes/DatasTypes';
 
 import HomeScreen from '@screens/dashboard/HomeScreen';
 import { RootStackParamList } from '@appTypes/DatasTypes';
@@ -69,6 +71,7 @@ const screenOptions: StackNavigationOptions = {
 function AppContent() {
   const [isReady, setIsReady] = useState(false);
   const [appIsReady, setAppIsReady] = useState(false);
+  const [user, setUser] = useState<Token | null>(null);
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
   const { t } = useTranslation();
@@ -76,8 +79,15 @@ function AppContent() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate loading
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Obtener usuario autenticado
+        const token = await getToken();
+        if (token) {
+          const userData = await getData();
+          setUser(userData || null);
+        } else {
+          setUser(null);
+        }
       } catch (e) {
         console.warn(e);
       } finally {
@@ -217,14 +227,16 @@ function AppContent() {
               ),
             }}
           />
-          <Stack.Screen 
-            name="MainTabs" 
-            component={MainTabs} 
-            options={{ 
-              headerShown: false,
-              gestureEnabled: false,
-            }} 
-          />
+          {user && (
+            <Stack.Screen 
+              name="MainTabs" 
+              children={() => <MainTabs user={user} />} 
+              options={{ 
+                headerShown: false,
+                gestureEnabled: false,
+              }} 
+            />
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </>
