@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,6 +30,7 @@ interface MainTabsProps {
 const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   // Tabs y pantallas según el rol
   const isOrganizador = user.roll === "eventCreator";
@@ -55,6 +57,20 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
     </TouchableOpacity>
   );
 
+  // Navegación real desde el sidebar
+  const handleSidebarNavigate = (route: string) => {
+    setSidebarVisible(false);
+    // Solo navegar si la tab existe
+    const validTabs = [
+      "Inicio", "Crear Evento", "Solicitudes", "Perfil", "Configuracion",
+      "Agenda", "Historial"
+    ];
+    if (validTabs.includes(route)) {
+      navigation.navigate(route as never);
+    }
+    // Si es logout, aquí se implementaría la lógica de cierre de sesión
+  };
+
   // Wrapper para cada tab con header personalizado y safe area
   function withSidebarHeader(Component: React.ComponentType<any>) {
     return (props: any) => (
@@ -73,7 +89,7 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
         isVisible={sidebarVisible}
         user={user}
         onClose={() => setSidebarVisible(false)}
-        onNavigate={() => setSidebarVisible(false)} // Solo cierra, la navegación real se implementa después
+        onNavigate={handleSidebarNavigate}
       />
       <Tab.Navigator
         screenOptions={({ route }) => ({
