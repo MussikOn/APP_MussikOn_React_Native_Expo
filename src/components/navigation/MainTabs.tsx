@@ -27,8 +27,14 @@ interface MainTabsProps {
   user: Token;
 }
 
+interface MainTabsNavigation {
+  name: string;
+  components: React.ComponentType<any>;
+}
+
 const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [mainTab, setMainTabs] = useState<MainTabsNavigation>();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -57,19 +63,12 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
     </TouchableOpacity>
   );
 
-  // Navegación real desde el sidebar
+  // Navegación del sidebar: solo cerrar, sin navegación real
   const handleSidebarNavigate = (route: string) => {
     setSidebarVisible(false);
-    // Solo navegar si la tab existe
-    const validTabs = [
-      "Inicio", "Crear Evento", "Solicitudes", "Perfil", "Configuracion",
-      "Agenda", "Historial"
-    ];
-    if (validTabs.includes(route)) {
-      navigation.navigate(route as never);
-    }
-    // Si es logout, aquí se implementaría la lógica de cierre de sesión
+    // No navegación real, solo interfaz
   };
+  let names = "Inicio";
 
   // Wrapper para cada tab con header personalizado y safe area
   function withSidebarHeader(Component: React.ComponentType<any>) {
@@ -160,7 +159,7 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
         {/* Tabs para Organizador */}
         {isOrganizador && (
           <>
-            <Tab.Screen name="Inicio" children={withSidebarHeader(Dashboard)} />
+            <Tab.Screen name={`${names}`} children={withSidebarHeader(Dashboard)} />
             <Tab.Screen name="Crear Evento" children={withSidebarHeader(CreateEventScreen)} />
             <Tab.Screen name="Solicitudes" children={withSidebarHeader(ShareMusician)} />
             <Tab.Screen name="Perfil" children={withSidebarHeader(Profile)} />
@@ -170,7 +169,7 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
         {/* Tabs para Músico */}
         {isMusico && (
           <>
-            <Tab.Screen name="Inicio" children={withSidebarHeader(Dashboard)} />
+            <Tab.Screen name={`${names}`} children={withSidebarHeader(Dashboard)} />
             <Tab.Screen name="Solicitudes" children={withSidebarHeader(ShareMusician)} />
             <Tab.Screen name="Agenda" children={withSidebarHeader(Maps)} />
             <Tab.Screen name="Historial" children={withSidebarHeader(Profile)} />
