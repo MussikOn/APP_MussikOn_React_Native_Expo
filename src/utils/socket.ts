@@ -3,7 +3,7 @@ import { SOCKET_URL } from "../config/environment";
 
 export const socket: Socket = io(SOCKET_URL, {
   transports: ["websocket"],
-  autoConnect: false,
+  autoConnect: false, 
   timeout: 5000,
   reconnection: true,
   reconnectionAttempts: 5,

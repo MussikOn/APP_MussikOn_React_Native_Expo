@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, View, Text, TouchableOpacity } from "react-native";
+import { Pressable, View, Text, TouchableOpacity, TextInput } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { s, bg_white, appName, bg_primary } from '@styles/Styles';
 import { saveToken } from '@utils/functions';
@@ -10,6 +10,7 @@ import { URL_API } from '@utils/ENV';
 import LoadingModal from '@components/ui/LoadingModal';
 import AlertModal from '@components/features/pages/alerts/AlertModal';
 import FormAlertModal from '@components/features/pages/alerts/FormAlert';
+import { useTranslation } from 'react-i18next';
 import {
   label1,
   label2,
@@ -43,6 +44,7 @@ export interface MainState {
 }
 
 const Register: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [next, setNext] = useState(0);
   const [mainState, setMainState] = useState<MainState>({
     icon: 0,
@@ -142,7 +144,7 @@ const Register: React.FC<Props> = ({ navigation }) => {
           ...prev,
           icon: 1,
           loading: false,
-          titleAlert: "Correo electrónico Existente!",
+          titleAlert: t('register.email_exists'),
           textAlert: data.msg,
           viewAlert: true,
         }));
@@ -342,72 +344,120 @@ const Register: React.FC<Props> = ({ navigation }) => {
                     }));
                   }}
                   key={i}
+                  style={[
+                    ss.viewCheck,
+                    stateData.roll.rol === rol.roll && { backgroundColor: bg_white },
+                  ]}
                 >
-                  <View
-                    key={i}
-                    style={[
-                      ss.viewCheck,
-                      { alignItems: "center", flexDirection: "row" },
-                    ]}
-                  >
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <MaterialIcons
-                      name={
-                        rol.roll === stateData.roll.rol
-                          ? "check-box"
-                          : "check-box-outline-blank"
-                      }
+                      name="check-box"
                       size={30}
-                      color={bg_white}
+                      color={stateData.roll.rol === rol.roll ? bg_primary : bg_white}
                     />
-                    <Text style={[s.title, { color: bg_white, fontSize: 20 }]}>
+                    <Text style={[ss.text, { color: stateData.roll.rol === rol.roll ? bg_primary : bg_white }]}>
                       {rol.name}
                     </Text>
                   </View>
                 </Pressable>
               ))}
             </ScrollView>
-          ) : null}
-          {next === 4 ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 15,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() =>
-                  setMainState((prev) => ({
-                    ...prev,
-                    viewPass: !mainState.viewPass,
-                  }))
-                }
-              >
-                <MaterialIcons
-                  name={
-                    mainState.viewPass ? "check-box-outline-blank" : "check-box"
+          ) : next === 1 ? (
+            <ScrollView>
+              <View style={ss.container}>
+                <Text style={ss.title}>{t('register.name')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.name')}
+                  value={stateData.nombres}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, nombres: text }))
                   }
-                  size={24}
-                  color={bg_primary}
                 />
-              </TouchableOpacity>
-              <Text style={{ marginLeft: 8, color: bg_primary }}>
-                {!mainState.viewPass
-                  ? "Ocultar Contraseña"
-                  : "Mostrar Contraseña"}
-              </Text>
-            </View>
+                <Text style={ss.title}>{t('register.lastname')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.lastname')}
+                  value={stateData.apellidos}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, apellidos: text }))
+                  }
+                />
+              </View>
+            </ScrollView>
+          ) : next === 2 ? (
+            <ScrollView>
+              <View style={ss.container}>
+                <Text style={ss.title}>{t('register.email')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.email')}
+                  value={stateData.email}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, email: text }))
+                  }
+                />
+                <Text style={ss.title}>{t('register.confirm_email')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.confirm_email')}
+                  value={stateData.confirmEmail}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, confirmEmail: text }))
+                  }
+                />
+              </View>
+            </ScrollView>
+          ) : next === 3 ? (
+            <ScrollView>
+              <View style={ss.container}>
+                <Text style={ss.title}>{t('register.password')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.password')}
+                  value={stateData.password}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, password: text }))
+                  }
+                  secureTextEntry={true}
+                />
+                <Text style={ss.title}>{t('register.confirm_password')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.confirm_password')}
+                  value={stateData.confirmPassword}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, confirmPassword: text }))
+                  }
+                  secureTextEntry={true}
+                />
+              </View>
+            </ScrollView>
+          ) : next === 4 ? (
+            <ScrollView>
+              <View style={ss.container}>
+                <Text style={ss.title}>{t('register.confirm_code')}</Text>
+                <TextInput
+                  style={ss.input}
+                  placeholder={t('register.confirm_code')}
+                  value={stateData.validCode}
+                  onChangeText={(text) =>
+                    setStateData((prev) => ({ ...prev, validCode: text }))
+                  }
+                />
+              </View>
+            </ScrollView>
           ) : null}
         </FormAlertModal>
+        <AlertModal
+          visible={mainState.viewAlert!}
+          icon={mainState.icon}
+          title={mainState.titleAlert}
+          message={mainState.textAlert || ''}
+          onClose={() => setMainState((prev) => ({ ...prev, viewAlert: false }))}
+          confirmText={t('register.understood')}
+        />
       </ScrollView>
-      <AlertModal
-        visible={mainState.viewAlert!}
-        icon={mainState.icon}
-        title={mainState.titleAlert}
-        message={mainState.textAlert!}
-        onClose={() => setMainState((prev) => ({ ...prev, viewAlert: false }))}
-        confirmText="¡Entendido!"
-      />
     </>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '@appTypes/DatasTypes';
 import { s, bg_primary, bg_white, color_white, btn_primary, text_white } from '@styles/Styles';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
@@ -8,6 +9,7 @@ import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 type Props = StackScreenProps<RootStackParamList, 'RequestMusician'>;
 
 const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [eventType, setEventType] = useState<string>('');
   const [eventDate, setEventDate] = useState<string>('');
   const [eventTime, setEventTime] = useState<string>('');
@@ -18,18 +20,18 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleSubmitRequest = () => {
     if (!eventType || !eventDate || !eventTime || !genre || !location || !budget) {
-      Alert.alert('Campos Incompletos', 'Por favor, rellena todos los campos obligatorios para solicitar el músico.');
+      Alert.alert(t('musician_request.incomplete_fields'), t('musician_request.incomplete_fields_message'));
       return;
     }
 
     // Aquí iría la lógica para enviar la solicitud a tu backend
     // Por ahora, solo mostraremos una alerta con los datos
     Alert.alert(
-      'Solicitud Enviada',
+      t('musician_request.success'),
       `Tipo de Evento: ${eventType}\nFecha: ${eventDate}\nHora: ${eventTime}\nGénero: ${genre}\nUbicación: ${location}\nPresupuesto: ${budget}\nNotas Adicionales: ${notes || 'N/A'}`,
       [
         {
-          text: 'OK',
+          text: t('common.ok'),
           onPress: () => {
             // Puedes navegar a otra pantalla o resetear el formulario
             navigation.goBack(); // O a una pantalla de confirmación
@@ -52,13 +54,13 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
     <>
       <AnimatedBackground />
       <ScrollView contentContainerStyle={[s.container, styles.screenPadding]}>
-        <Text style={[s.title, styles.titleOverride]}>Solicitar un Músico</Text>
+        <Text style={[s.title, styles.titleOverride]}>{t('musician_request.title')}</Text>
         <Text style={[s.subtitle, styles.subtitleOverride]}>
           Cuéntanos sobre tu evento y el tipo de músico que necesitas.
         </Text>
 
         <View style={styles.formContainer}>
-          <Text style={styles.label}>Tipo de Evento:</Text>
+          <Text style={styles.label}>{t('events.event_type')}:</Text>
           <TextInput
             style={styles.input}
             placeholder="Ej: Boda, Cumpleaños, Evento Corporativo"
@@ -67,7 +69,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
             onChangeText={setEventType}
           />
 
-          <Text style={styles.label}>Fecha del Evento (DD/MM/AAAA):</Text>
+          <Text style={styles.label}>{t('events.date')} (DD/MM/AAAA):</Text>
           <TextInput
             style={styles.input}
             placeholder="Ej: 25/12/2025"
@@ -77,7 +79,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
             keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Hora del Evento (HH:MM):</Text>
+          <Text style={styles.label}>{t('events.time')} (HH:MM):</Text>
           <TextInput
             style={styles.input}
             placeholder="Ej: 20:00"
@@ -96,7 +98,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
             onChangeText={setGenre}
           />
 
-          <Text style={styles.label}>Ubicación del Evento:</Text>
+          <Text style={styles.label}>{t('events.location')}:</Text>
           <TextInput
             style={styles.input}
             placeholder="Ej: Salón de eventos X, Ciudad Y"
@@ -105,7 +107,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
             onChangeText={setLocation}
           />
 
-          <Text style={styles.label}>Presupuesto Estimado:</Text>
+          <Text style={styles.label}>{t('events.budget')} Estimado:</Text>
           <TextInput
             style={styles.input}
             placeholder="Ej: $500, $1000-$1500"
@@ -115,7 +117,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
             keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Notas Adicionales (Opcional):</Text>
+          <Text style={styles.label}>{t('events.additional_comments')} (Opcional):</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Cualquier detalle extra sobre tu solicitud..."
@@ -131,7 +133,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.btn, styles.backButton]} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>Volver</Text>
+            <Text style={styles.backButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

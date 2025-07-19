@@ -49,7 +49,7 @@ const CreateEventScreen = () => {
           Completa el formulario para solicitar un músico para tu evento
         </Text>
       </View>
-
+      
       <View style={styles.locationContainer}>
         <Text style={styles.label}>Ubicación del Evento:</Text>
         {eventLocation ? (

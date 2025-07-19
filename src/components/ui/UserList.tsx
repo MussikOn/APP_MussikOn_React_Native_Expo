@@ -3,9 +3,10 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { User } from '@appTypes/DatasTypes';
 import { URL_API } from '@utils/ENV';
-
+import { useTranslation } from 'react-i18next';
 
 const UserList = ({children}:any) => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -25,16 +26,16 @@ const UserList = ({children}:any) => {
   return (
     <View style={styles.container}>
       {children}
-      <Text style={styles.title}>Lista de Usuarios</Text>
+      <Text style={styles.title}>{t('home.names')}</Text>
       <FlatList
         data={users}
         keyExtractor={(item) => item.name?.toString() || item.userEmail}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.text}>Nombre: {item.name} {item.name}</Text>
-            <Text style={styles.text}>Usuario: {item.lastName}</Text>
-            <Text style={styles.text}>Email: {item.userEmail}</Text>
-            <Text style={styles.text}>Roll: {item.roll}</Text>
+            <Text style={styles.text}>{t('home.names')}: {item.name} {item.name}</Text>
+            <Text style={styles.text}>{t('home.lastnames')}: {item.lastName}</Text>
+            <Text style={styles.text}>{t('home.email')}: {item.userEmail}</Text>
+            <Text style={styles.text}>{t('home.role')}: {item.roll}</Text>
             <Text style={styles.text}>Fecha de Creación: {item.create_at}</Text>
             <Text style={styles.text}>Ultima Actualización: {item.update_at}</Text>
             <Text style={styles.text}>Fecha que se eliminó: {item.delete_at}</Text>

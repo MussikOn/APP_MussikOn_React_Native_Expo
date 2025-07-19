@@ -79,7 +79,7 @@ export const useSocket = (userId: string) => {
     setSocket(newSocket);
 
     return () => {
-      newSocket.disconnect();
+      newSocket.disconnect(); 
     };
   }, [userId]);
 

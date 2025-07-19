@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { color_primary, color_secondary, color_white, border_color_primary, text_primary, text_secondary } from '@styles/Styles';
 
 interface StepBasicInfoProps {
@@ -18,24 +19,26 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
   errors,
   touched,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
         <View style={styles.header}>
           <Ionicons name="information-circle" size={32} color={color_primary} />
-          <Text style={styles.title}>Información Básica</Text>
-          <Text style={styles.subtitle}>Completa los datos principales del evento</Text>
+          <Text style={styles.title}>{t('forms.basic_info')}</Text>
+          <Text style={styles.subtitle}>{t('forms.basic_info_subtitle')}</Text>
         </View>
 
         {/* Nombre del evento */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Nombre del Evento *</Text>
+          <Text style={styles.label}>{t('events.event_name')} *</Text>
           <TextInput
             style={[
               styles.input,
               touched.eventName && errors.eventName && styles.inputError,
             ]}
-            placeholder="Ej: Boda de María y Juan"
+            placeholder={t('forms.event_name_placeholder')}
             value={values.eventName}
             onChangeText={handleChange('eventName')}
             onBlur={handleBlur('eventName')}
@@ -48,13 +51,13 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
 
         {/* Tipo de evento */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Tipo de Evento *</Text>
+          <Text style={styles.label}>{t('events.event_type')} *</Text>
           <TextInput
             style={[
               styles.input,
               touched.eventType && errors.eventType && styles.inputError,
             ]}
-            placeholder="Ej: Boda, Cumpleaños, Corporativo"
+            placeholder={t('forms.event_type_placeholder')}
             value={values.eventType}
             onChangeText={handleChange('eventType')}
             onBlur={handleBlur('eventType')}
@@ -67,13 +70,13 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
 
         {/* Instrumento requerido */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Instrumento Requerido *</Text>
+          <Text style={styles.label}>{t('events.instrument')} *</Text>
           <TextInput
             style={[
               styles.input,
               touched.instrument && errors.instrument && styles.inputError,
             ]}
-            placeholder="Ej: Guitarra, Piano, Violín"
+            placeholder={t('forms.instrument_placeholder')}
             value={values.instrument}
             onChangeText={handleChange('instrument')}
             onBlur={handleBlur('instrument')}
@@ -86,13 +89,13 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
 
         {/* Duración */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Duración (minutos) *</Text>
+          <Text style={styles.label}>{t('events.duration')} ({t('forms.minutes')}) *</Text>
           <TextInput
             style={[
               styles.input,
               touched.duration && errors.duration && styles.inputError,
             ]}
-            placeholder="Ej: 120"
+            placeholder={t('forms.duration_placeholder')}
             value={values.duration}
             onChangeText={handleChange('duration')}
             onBlur={handleBlur('duration')}
@@ -106,13 +109,13 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
 
         {/* Presupuesto */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Presupuesto (USD) *</Text>
+          <Text style={styles.label}>{t('events.budget')} ({t('forms.dollars')}) *</Text>
           <TextInput
             style={[
               styles.input,
               touched.budget && errors.budget && styles.inputError,
             ]}
-            placeholder="Ej: 500"
+            placeholder={t('forms.budget_placeholder')}
             value={values.budget}
             onChangeText={handleChange('budget')}
             onBlur={handleBlur('budget')}

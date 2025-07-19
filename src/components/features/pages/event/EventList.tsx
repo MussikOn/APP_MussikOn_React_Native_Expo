@@ -87,23 +87,23 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
 
   const handleAcceptEvent = async (eventId: string) => {
     Alert.alert(
-      'Aceptar Solicitud',
-      '¿Estás seguro de que quieres aceptar esta solicitud?',
+      t('events.accept_request'),
+      t('events.accept_confirm'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Aceptar',
+          text: t('common.confirm'),
           onPress: async () => {
             try {
               const result = await executeRequest(() => eventService.acceptEventRequest(eventId));
               if (result?.success) {
-                Alert.alert('Éxito', 'Solicitud aceptada exitosamente');
+                Alert.alert(t('alerts.success'), t('events.request_accepted'));
                 loadEvents(); // Recargar lista
               } else {
-                Alert.alert('Error', result?.message || 'Error al aceptar la solicitud');
+                Alert.alert(t('alerts.error'), result?.message || t('events.error_accepting'));
               }
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Error al aceptar la solicitud');
+              Alert.alert(t('alerts.error'), error.message || t('events.error_accepting'));
             }
           },
         },
@@ -134,13 +134,13 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending_musician':
-        return 'Pendiente';
+        return t('events.pending');
       case 'assigned':
-        return 'Asignado';
+        return t('events.assigned');
       case 'completed':
-        return 'Completado';
+        return t('events.completed');
       case 'cancelled':
-        return 'Cancelado';
+        return t('events.cancelled');
       default:
         return status;
     }
@@ -218,13 +218,13 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
           disabled={loading}
         >
           <Ionicons name="checkmark" size={16} color={color_white} />
-          <Text style={styles.actionButtonText}>Aceptar</Text>
+          <Text style={styles.actionButtonText}>{t('events.accept_request')}</Text>
         </TouchableOpacity>
       )}
 
       {item.additionalComments && (
         <View style={styles.commentsContainer}>
-          <Text style={styles.commentsLabel}>Comentarios:</Text>
+          <Text style={styles.commentsLabel}>{t('events.comments')}:</Text>
           <Text style={styles.commentsText} numberOfLines={2}>
             {item.additionalComments}
           </Text>
@@ -236,11 +236,11 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Ionicons name="list" size={64} color={color_secondary} />
-      <Text style={styles.emptyStateTitle}>No hay eventos</Text>
+      <Text style={styles.emptyStateTitle}>{t('events.no_events')}</Text>
       <Text style={styles.emptyStateText}>
         {activeTab === 'available' 
-          ? 'No hay solicitudes disponibles en este momento'
-          : 'No tienes eventos en esta categoría'
+          ? t('events.no_available_requests')
+          : t('events.no_my_events')
         }
       </Text>
     </View>
@@ -250,7 +250,7 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
     <View style={styles.container}>
       {/* Header con tabs */}
       <View style={styles.header}>
-        <Text style={styles.title}>Eventos</Text>
+        <Text style={styles.title}>{t('events.create_event')}</Text>
         <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
           <Ionicons name="refresh" size={20} color={color_primary} />
         </TouchableOpacity>
@@ -263,7 +263,7 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
           onPress={() => setActiveTab('available')}
         >
           <Text style={[styles.tabText, activeTab === 'available' && styles.activeTabText]}>
-            Disponibles
+            {t('navigation.musicians')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -271,7 +271,7 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
           onPress={() => setActiveTab('my-events')}
         >
           <Text style={[styles.tabText, activeTab === 'my-events' && styles.activeTabText]}>
-            Mis Eventos
+            {t('events.create_event')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -281,7 +281,7 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
         <Ionicons name="search" size={20} color={color_secondary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar eventos..."
+          placeholder={t('events.create_event') + '...'}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -295,9 +295,9 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
               style={[styles.filterChip, !filters.instrument && styles.filterChipActive]}
               onPress={() => setFilters({ ...filters, instrument: undefined })}
             >
-              <Text style={styles.filterChipText}>Todos</Text>
+              <Text style={styles.filterChipText}>{t('common.all')}</Text>
             </TouchableOpacity>
-            {['Guitarra', 'Piano', 'Violín', 'Saxofón', 'Batería', 'Bajo', 'Vocalista', 'DJ'].map((instrument) => (
+            {[t('events.guitar'), t('events.piano'), t('events.violin'), t('events.saxophone'), t('events.drums'), t('events.bass'), t('events.vocalist'), t('events.dj')].map((instrument) => (
               <TouchableOpacity
                 key={instrument}
                 style={[
@@ -317,7 +317,7 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
       {user?.roll === 'eventCreator' && (
         <TouchableOpacity style={styles.createButton} onPress={handleCreateEvent}>
           <Ionicons name="add" size={20} color={color_white} />
-          <Text style={styles.createButtonText}>Crear Evento</Text>
+          <Text style={styles.createButtonText}>{t('events.create_event')}</Text>
         </TouchableOpacity>
       )}
 
@@ -325,7 +325,7 @@ const EventList: React.FC<EventListProps> = ({ onEventPress, onCreateEvent }) =>
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={color_primary} />
-          <Text style={styles.loadingText}>Cargando eventos...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')} {t('events.create_event').toLowerCase()}...</Text>
         </View>
       ) : (
         <FlatList

@@ -11,11 +11,13 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from 'react-i18next';
 import { bg_primary } from '@styles/Styles';
 import axios from "axios";
 import { URL_API } from "../../../../utils/ENV";
 
 const EditProfile = () => {
+  const { t } = useTranslation();
   const [image, setImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState("Jefry Astacio");
@@ -60,11 +62,11 @@ const EditProfile = () => {
         }
       );
 
-      Alert.alert("Imagen subida", "Imagen subida con éxito");
+      Alert.alert(t('profile.image_uploaded'), t('profile.image_upload_success'));
       console.log("URL:", res.data.url);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "No se pudo subir la imagen");
+      Alert.alert(t('common.error'), t('profile.image_upload_error'));
     } finally {
       setUploading(false);
     }
@@ -72,7 +74,7 @@ const EditProfile = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Editar Perfil</Text>
+      <Text style={styles.title}>{t('profile.edit_profile')}</Text>
 
       <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
         {image ? (
@@ -80,11 +82,11 @@ const EditProfile = () => {
         ) : (
           <Ionicons name="person-circle-outline" size={120} color="#bbb" />
         )}
-        <Text style={styles.editText}>Cambiar Foto</Text>
+        <Text style={styles.editText}>{t('profile.change_photo')}</Text>
       </TouchableOpacity>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Nombre</Text>
+        <Text style={styles.label}>{t('home.names')}</Text>
         <TextInput
           value={name}
           onChangeText={setName}
@@ -101,7 +103,7 @@ const EditProfile = () => {
         {uploading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Guardar Cambios</Text>
+          <Text style={styles.buttonText}>{t('common.save')}</Text>
         )}
       </TouchableOpacity>
     </View>

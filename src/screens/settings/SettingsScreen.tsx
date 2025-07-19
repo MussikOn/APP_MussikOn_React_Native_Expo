@@ -33,7 +33,7 @@ const SettingsScreenContent = ({ navigation }:any) => {
   const getDataUser = async () => {
     const data = await getData();
     if (!data) {
-      alert("No hay data");
+      alert(t('home.no_data'));
     } else {
       setUserData(data!);
       const name = await getFirstName(data.name);
@@ -80,24 +80,24 @@ const SettingsScreenContent = ({ navigation }:any) => {
           <Text style={styles.title}>{t('settings.title')}</Text>
 
           <View style={styles.section}>
-            <TouchableOpacity style={styles.item} onPress={() => alert("Perfil")}> 
+            <TouchableOpacity style={styles.item} onPress={() => alert(t('settings.profile'))}> 
               <Ionicons name="person-outline" size={24} color={bg_primary} />
               <Text style={styles.text}>{t('settings.profile')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.item} onPress={() => alert("Notificaciones")}> 
+            <TouchableOpacity style={styles.item} onPress={() => alert(t('settings.notifications'))}> 
               <Ionicons name="notifications-outline" size={24} color={bg_primary} />
               <Text style={styles.text}>{t('settings.notifications')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
-            <TouchableOpacity style={styles.item} onPress={() => alert("Cambiar Contraseña")}> 
+            <TouchableOpacity style={styles.item} onPress={() => alert(t('settings.change_password'))}> 
               <Ionicons name="lock-closed-outline" size={24} color={bg_primary} />
               <Text style={styles.text}>{t('settings.change_password')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.item} onPress={() => alert("Tema")}> 
+            <TouchableOpacity style={styles.item} onPress={() => alert(t('settings.theme'))}> 
               <Ionicons name="color-palette-outline" size={24} color={bg_primary} />
               <Text style={styles.text}>{t('settings.theme')}</Text>
             </TouchableOpacity>

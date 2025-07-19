@@ -61,31 +61,6 @@ const validationSchema = Yup.object().shape({
     .min(1, 'El presupuesto debe ser mayor a 0'),
 });
 
-// Tipos de eventos disponibles
-const EVENT_TYPES = [
-  'Fiesta',
-  'Boda',
-  'Concierto',
-  'Evento corporativo',
-  'Cumpleaños',
-  'Graduación',
-  'Otro',
-];
-
-// Instrumentos disponibles
-const INSTRUMENTS = [
-  'Guitarra',
-  'Piano',
-  'Violín',
-  'Saxofón',
-  'Batería',
-  'Bajo',
-  'Vocalista',
-  'DJ',
-  'Banda completa',
-  'Otro',
-];
-
 interface EventRequestFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -96,6 +71,31 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
   const { loading, error, executeRequest } = useEventService();
   const [dateValue, setDateValue] = useState('');
   const [timeValue, setTimeValue] = useState('');
+
+  // Tipos de eventos disponibles
+  const EVENT_TYPES = [
+    t('events.party'),
+    t('events.wedding'),
+    t('events.concert'),
+    t('events.corporate_event'),
+    t('events.birthday'),
+    t('events.graduation'),
+    t('events.other'),
+  ];
+
+  // Instrumentos disponibles
+  const INSTRUMENTS = [
+    t('events.guitar'),
+    t('events.piano'),
+    t('events.violin'),
+    t('events.saxophone'),
+    t('events.drums'),
+    t('events.bass'),
+    t('events.vocalist'),
+    t('events.dj'),
+    t('events.full_band'),
+    t('events.other'),
+  ];
 
   const initialValues: CreateEventRequest = {
     eventName: '',
@@ -126,11 +126,11 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
       
       if (result?.success) {
         Alert.alert(
-          'Solicitud Creada',
-          'Tu solicitud de músico ha sido creada exitosamente.',
+          t('alerts.success'),
+          t('events.request_accepted'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => {
                 resetForm();
                 onSuccess?.();
@@ -139,10 +139,10 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
           ]
         );
       } else {
-        Alert.alert('Error', result?.message || 'Error al crear la solicitud');
+        Alert.alert(t('alerts.error'), result?.message || t('events.error_accepting'));
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Error al crear la solicitud');
+      Alert.alert(t('alerts.error'), error.message || t('events.error_accepting'));
     } finally {
       setSubmitting(false);
     }
@@ -152,7 +152,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Solicitar Músico</Text>
+      <Text style={styles.title}>{t('events.create_request')}</Text>
       
       {error && (
         <View style={styles.errorContainer}>
@@ -179,7 +179,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
           <View style={styles.form}>
             {/* Nombre del Evento */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Nombre del Evento *</Text>
+              <Text style={styles.label}>{t('events.event_name')} *</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -198,7 +198,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
             {/* Tipo de Evento */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Tipo de Evento *</Text>
+              <Text style={styles.label}>{t('events.event_type')} *</Text>
               <View style={styles.pickerContainer}>
                 {EVENT_TYPES.map((type) => (
                   <TouchableOpacity
@@ -229,7 +229,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
             {/* Fecha y Hora */}
             <View style={styles.row}>
               <View style={[styles.fieldContainer, styles.halfWidth]}>
-                <Text style={styles.label}>Fecha *</Text>
+                <Text style={styles.label}>{t('events.date')} *</Text>
                 <DateTimeSelector
                   value={dateValue}
                   onValueChange={(value) => {
@@ -237,7 +237,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
                     setFieldValue('date', value);
                   }}
                   mode="date"
-                  placeholder="Seleccionar fecha"
+                  placeholder={t('events.date')}
                   disabled={loading}
                 />
                 {touched.date && errors.date && (
@@ -246,7 +246,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
               </View>
 
               <View style={[styles.fieldContainer, styles.halfWidth]}>
-                <Text style={styles.label}>Hora *</Text>
+                <Text style={styles.label}>{t('events.time')} *</Text>
                 <DateTimeSelector
                   value={timeValue}
                   onValueChange={(value) => {
@@ -254,7 +254,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
                     setFieldValue('time', value);
                   }}
                   mode="time"
-                  placeholder="Seleccionar hora"
+                  placeholder={t('events.time')}
                   disabled={loading}
                 />
                 {touched.time && errors.time && (
@@ -265,7 +265,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
             {/* Duración */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Duración (minutos) *</Text>
+              <Text style={styles.label}>{t('events.duration')} ({t('forms.minutes')}) *</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -285,7 +285,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
             {/* Instrumento */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Instrumento/Músico *</Text>
+              <Text style={styles.label}>{t('events.instrument')} *</Text>
               <View style={styles.pickerContainer}>
                 {INSTRUMENTS.map((instrument) => (
                   <TouchableOpacity
@@ -315,7 +315,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
             {/* Presupuesto */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Presupuesto (USD) *</Text>
+              <Text style={styles.label}>{t('events.budget')} ({t('forms.dollars')}) *</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -335,14 +335,14 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
             {/* Dirección */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Dirección *</Text>
+              <Text style={styles.label}>{t('forms.address')} *</Text>
               <TextInput
                 style={[
                   styles.input,
                   styles.textArea,
                   touched.location?.address && errors.location?.address && styles.inputError,
                 ]}
-                placeholder="Dirección completa del evento"
+                placeholder={t('forms.address')}
                 value={values.location.address}
                 onChangeText={(text) => setFieldValue('location.address', text)}
                 onBlur={handleBlur('location.address')}
@@ -357,10 +357,10 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
 
             {/* Comentarios Adicionales */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Comentarios Adicionales</Text>
+              <Text style={styles.label}>{t('forms.additional_comments')}</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Información adicional sobre el evento..."
+                placeholder={t('forms.additional_comments_placeholder')}
                 value={values.additionalComments}
                 onChangeText={handleChange('additionalComments')}
                 onBlur={handleBlur('additionalComments')}
@@ -377,7 +377,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
                 onPress={onCancel}
                 disabled={loading}
               >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -388,7 +388,7 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
                 {loading ? (
                   <ActivityIndicator color={color_white} />
                 ) : (
-                  <Text style={styles.submitButtonText}>Crear Solicitud</Text>
+                  <Text style={styles.submitButtonText}>{t('events.create_request')}</Text>
                 )}
               </TouchableOpacity>
             </View>

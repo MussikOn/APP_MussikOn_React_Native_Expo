@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image, ScrollView, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Token } from '@appTypes/DatasTypes';
 import {
   color_primary,
@@ -24,36 +25,33 @@ interface SidebarProps {
   onNavigate?: (route: string) => void;
 }
 
-const menuItems = (role: string) =>
-  role === 'eventCreator'
-    ? [
-        { icon: 'home', label: 'Inicio', route: 'Inicio' },
-        { icon: 'add-circle', label: 'Crear Evento', route: 'Crear Evento', color: color_success },
-        // NUEVO: Opción para el wizard moderno
-        { icon: 'person-add', label: 'Solicitar Músico', route: 'SolicitarMusico', color: color_primary },
-        // NUEVO: Opción para listado de eventos
-        { icon: 'calendar-outline', label: 'Mis Eventos', route: 'MisEventos', color: color_info },
-        { icon: 'list', label: 'Solicitudes', route: 'Solicitudes', color: color_info },
-        { icon: 'person', label: 'Perfil', route: 'Perfil' },
-        { icon: 'settings', label: 'Configuración', route: 'Configuracion' },
-        { icon: 'log-out', label: 'Cerrar sesión', route: 'Logout', color: btn_danger },
-      ]
-    : [
-        { icon: 'home', label: 'Inicio', route: 'Inicio' },
-        // NUEVO: Opción para el wizard moderno
-        { icon: 'person-add', label: 'Solicitar Músico', route: 'SolicitarMusico', color: color_primary },
-        // NUEVO: Opción para listado de eventos
-        { icon: 'calendar-outline', label: 'Mis Eventos', route: 'MisEventos', color: color_info },
-        { icon: 'list', label: 'Solicitudes', route: 'Solicitudes', color: color_info },
-        { icon: 'calendar', label: 'Agenda', route: 'Agenda' },
-        { icon: 'time', label: 'Historial', route: 'Historial' },
-        { icon: 'person', label: 'Perfil', route: 'Perfil' },
-        { icon: 'settings', label: 'Configuración', route: 'Configuracion' },
-        { icon: 'log-out', label: 'Cerrar sesión', route: 'Logout', color: btn_danger },
-      ];
-
 const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavigate }) => {
+  const { t } = useTranslation();
   const slideAnim = React.useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
+
+  const menuItems = (role: string) =>
+    role === 'eventCreator'
+      ? [
+          { icon: 'home', label: t('sidebar.home'), route: 'Inicio' },
+          { icon: 'add-circle', label: t('sidebar.create_event'), route: 'Crear Evento', color: color_success },
+          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'SolicitarMusico', color: color_primary },
+          { icon: 'calendar-outline', label: t('sidebar.my_events'), route: 'MisEventos', color: color_info },
+          { icon: 'list', label: t('sidebar.requests'), route: 'Solicitudes', color: color_info },
+          { icon: 'person', label: t('sidebar.profile'), route: 'Perfil' },
+          { icon: 'settings', label: t('sidebar.configuration'), route: 'Configuracion' },
+          { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
+        ]
+      : [
+          { icon: 'home', label: t('sidebar.home'), route: 'Inicio' },
+          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'SolicitarMusico', color: color_primary },
+          { icon: 'calendar-outline', label: t('sidebar.my_events'), route: 'MisEventos', color: color_info },
+          { icon: 'list', label: t('sidebar.requests'), route: 'Solicitudes', color: color_info },
+          { icon: 'calendar', label: t('sidebar.agenda'), route: 'Agenda' },
+          { icon: 'time', label: t('sidebar.history'), route: 'Historial' },
+          { icon: 'person', label: t('sidebar.profile'), route: 'Perfil' },
+          { icon: 'settings', label: t('sidebar.configuration'), route: 'Configuracion' },
+          { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
+        ];
 
   React.useEffect(() => {
     Animated.timing(slideAnim, {
@@ -78,7 +76,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
             style={styles.avatar}
           />
         </View>
-        <Text style={styles.name}>{user?.name || 'Usuario'}</Text>
+        <Text style={styles.name}>{user?.name || t('sidebar.user')}</Text>
         <Text style={styles.email}>{user?.userEmail || ''}</Text>
       </LinearGradient>
       {/* Menú con ScrollView */}
@@ -101,7 +99,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
             {/* Badge para opciones nuevas */}
             {(item.route === 'SolicitarMusico' || item.route === 'MisEventos') && (
               <View style={styles.badgeNew}>
-                <Text style={styles.badgeNewText}>¡Nuevo!</Text>
+                <Text style={styles.badgeNewText}>{t('sidebar.new')}</Text>
               </View>
             )}
           </Pressable>
