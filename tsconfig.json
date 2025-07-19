@@ -23,7 +23,10 @@
       "@styles/*": ["src/styles/*"],
       "@assets/*": ["src/assets/*"],
       "@theme/*": ["src/theme/*"],
-      "@theme": ["src/theme/index.ts"]
+      "@theme": ["src/theme/index.ts"],
+      "@services/*": ["src/services/*"],
+      "@config/*": ["src/config/*"],
+      "@store/*": ["src/store/*"]
     }
   }
 }

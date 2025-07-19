@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { s, appName, color_primary, color_white, color_secondary, text_primary, text_secondary, btn_primary, btn_white, border_color_primary, color_info } from '@styles/Styles';
-import { URL_API } from '@utils/ENV';
+import { apiService } from '@services/api';
 import { saveToken } from '@utils/functions';
 import { RootStackParamList } from '@appTypes/DatasTypes';
 import { StackScreenProps } from '@react-navigation/stack';
@@ -59,22 +59,20 @@ const Login: React.FC<Props> = ({ navigation }) => {
     setLoading(true);
     setApiError('');
     try {
-      const response = await fetch(`${URL_API}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userEmail: email, userPassword: password }),
+      const response: any = await apiService.post('/auth/login', {
+        userEmail: email,
+        userPassword: password,
       });
-      const data = await response.json();
-      if (response.ok) {
-        await saveToken(data.token);
+      if (response.token) {
+        await saveToken(response.token);
         setLoading(false);
         navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
       } else {
-        setApiError(data.msg || t('login.error', { defaultValue: 'Error al Iniciar Sesión' }));
+        setApiError(response.message || t('login.error', { defaultValue: 'Error al Iniciar Sesión' }));
         setLoading(false);
       }
-    } catch (error) {
-      setApiError(t('login.connection_error', { defaultValue: 'No se pudo conectar. Intenta más tarde.' }));
+    } catch (error: any) {
+      setApiError(error.message || t('login.connection_error', { defaultValue: 'No se pudo conectar. Intenta más tarde.' }));
       setLoading(false);
     }
   };

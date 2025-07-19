@@ -42,7 +42,6 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   const isOrganizador = user.roll === "eventCreator";
   const isMusico = user.roll === "musico";
 
-  console.log('user:', user);
 
   if (!isOrganizador && !isMusico) {
     return (
@@ -63,10 +62,19 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
     </TouchableOpacity>
   );
 
-  // Navegación del sidebar: solo cerrar, sin navegación real
+  // Navegación real desde el sidebar
   const handleSidebarNavigate = (route: string) => {
     setSidebarVisible(false);
-    // No navegación real, solo interfaz
+    // Solo navegar si la tab existe
+    const validTabs = [
+      "Inicio", "Crear Evento", "Solicitudes", "Perfil", "Configuracion",
+      "Agenda", "Historial"
+    ];
+    if (validTabs.includes(route)) {
+      navigation.navigate(route as never);
+    }
+    // Si es logout, aquí se implementaría la lógica de cierre de sesión
+    console.info(`Navegando a: ${route}`);
   };
   let names = "Inicio";
 

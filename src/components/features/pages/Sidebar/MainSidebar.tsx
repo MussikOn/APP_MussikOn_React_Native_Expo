@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Token } from '@appTypes/DatasTypes';
 import {
@@ -13,12 +13,9 @@ import {
   color_info,
   color_success,
 } from '@styles/Styles';
-import { useNavigation } from '@react-navigation/native';
-import { deleteToken } from '@utils/functions';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// SidebarProps: props que recibe el sidebar, incluyendo visibilidad, usuario y handlers
 interface SidebarProps {
   isVisible: boolean;
   user: Token | undefined;
@@ -26,9 +23,8 @@ interface SidebarProps {
   onNavigate?: (route: string) => void;
 }
 
-// Menú dinámico según el rol
 const menuItems = (role: string) =>
-  role === 'eventCreator'
+  role === 'organizador'
     ? [
         { icon: 'home', label: 'Inicio', route: 'Inicio' },
         { icon: 'add-circle', label: 'Crear Evento', route: 'CrearEvento', color: color_success },
@@ -47,18 +43,8 @@ const menuItems = (role: string) =>
         { icon: 'log-out', label: 'Cerrar sesión', route: 'Logout', color: btn_danger },
       ];
 
-/**
- * MainSidebar: Sidebar lateral moderno y elegante
- * - Muestra avatar, nombre y email del usuario
- * - Menú dinámico según el rol
- * - Animación de entrada/salida
- * - Botón de cerrar
- * - Al pulsar un ítem, muestra un Alert con el nombre de la acción
- */
 const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavigate }) => {
-  // Animación de entrada/salida
   const slideAnim = React.useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
-  const navigation = useNavigation();
 
   React.useEffect(() => {
     Animated.timing(slideAnim, {
@@ -68,56 +54,9 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
     }).start();
   }, [isVisible]);
 
-  // Handler para cada botón del menú: muestra un Alert con el nombre de la acción o hace logout
-  const handleMenuPress = async (item: { label: string; route: string }) => {
-    if (item.route === 'Logout') {
-      Alert.alert(
-        '🚪 Cerrar sesión',
-        '¿Seguro que quieres salir de tu cuenta? No perderás tus datos y podrás volver a ingresar cuando quieras.',
-        [
-          { text: 'No, quedarme', style: 'cancel' },
-          { text: 'Sí, cerrar sesión', style: 'destructive', onPress: async () => {
-            await deleteToken();
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-          }},
-        ],
-        { cancelable: true }
-      );
-      return;
-    }
-    Alert.alert('Acción', `Has pulsado: ${item.label}`);
-    if (onNavigate) onNavigate(item.route);
-  };
-
-  // Helper para estilos de botón
-  const getButtonStyle = (item: { color?: string; route: string }) => {
-    if (item.route === 'Logout') {
-      return {
-        backgroundColor: btn_danger,
-        borderColor: btn_danger,
-        borderWidth: 1.5,
-        shadowColor: btn_danger,
-        shadowOpacity: 0.18,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 4,
-      };
-    }
-    return {
-      backgroundColor: color_white,
-      borderColor: color_info,
-      borderWidth: 1.2,
-      shadowColor: color_primary,
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 1,
-    };
-  };
-
   return (
     <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>  
-      {/* Header con avatar y datos del usuario */}
+      {/* Header con avatar y datos */}
       <View style={styles.headerContainer}>
         <View style={styles.avatarWrapper}>
           <Image
@@ -128,30 +67,21 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
         <Text style={styles.name}>{user?.name || 'Usuario'}</Text>
         <Text style={styles.email}>{user?.userEmail || ''}</Text>
       </View>
-      {/* Menú dinámico según el rol */}
+      {/* Menú */}
       <View style={styles.menuContainer}>
         {menuItems(user?.roll || '').map((item, idx) => (
           <TouchableOpacity
             key={item.label}
-            style={[styles.menuItem, getButtonStyle(item)]}
-            activeOpacity={0.85}
-            onPress={() => handleMenuPress(item)}
+            style={[styles.menuItem, item.color && { backgroundColor: item.color + '15' }]}
+            activeOpacity={0.7}
+            onPress={() => onNavigate && onNavigate(item.route)}
           >
-            {item.route !== 'Logout' ? (
-              <View style={styles.menuContent}>
-                <Ionicons name={item.icon as any} size={26} color={color_primary} style={styles.menuIcon} />
-                <Text style={styles.menuText}>{item.label}</Text>
-              </View>
-            ) : (
-              <View style={styles.menuContentLogout}>
-                <Ionicons name={item.icon as any} size={26} color={color_white} style={styles.menuIcon} />
-                <Text style={styles.menuTextLogout}>{item.label}</Text>
-              </View>
-            )}
+            <Ionicons name={item.icon as any} size={28} color={item.color || color_primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: item.color || color_primary }]}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
-      {/* Botón cerrar sidebar */}
+      {/* Botón cerrar */}
       <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
         <Ionicons name="close" size={28} color={color_secondary} />
       </TouchableOpacity>
@@ -159,7 +89,6 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
   );
 };
 
-// Estilos modernos y responsivos
 const styles = StyleSheet.create({
   sidebar: {
     position: 'absolute',
@@ -222,31 +151,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 18,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: 16,
-    overflow: 'hidden',
-    minHeight: 48,
-    marginHorizontal: 2,
-    // Fondo y borde se definen dinámicamente
-  },
-  menuContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 16,
-    backgroundColor: 'transparent',
-  },
-  menuContentLogout: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 16,
-    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,74,173,0.04)',
+    elevation: 1,
   },
   menuIcon: {
     marginRight: 18,
@@ -254,17 +163,8 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.2,
-    color: color_primary,
-    flexShrink: 1,
-  },
-  menuTextLogout: {
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    color: color_white,
-    flexShrink: 1,
   },
   closeBtn: {
     position: 'absolute',
