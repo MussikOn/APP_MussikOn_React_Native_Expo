@@ -1,30 +1,29 @@
-import React, { useState } from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import Dashboard from "../../screens/dashboard/Dashboard";
-import { Profile } from "../../screens/profile/Profile";
-import SettingsScreen from "../../screens/settings/SettingsScreen";
-import EventRequestWizard from "../../screens/events/EventRequestWizard";
-import EventListScreen from "../../screens/events/EventList";
-import {
-  color_primary,
-  color_secondary,
-  color_white,
-  color_info,
-  bg_white,
-} from "../../styles/Styles";
-import ShareMusician from "../features/pages/event/ShareMusician";
-import Maps from "../features/pages/Maps/MapsMovil";
-import CreateEventScreen from "../features/pages/Maps/CreateEventScreen";
-import MainSidebar from "../features/pages/Sidebar/MainSidebar";
-import { Token } from "@appTypes/DatasTypes";
+import { LinearGradient } from 'expo-linear-gradient';
 
-const Tab = createBottomTabNavigator();
+// Componentes
+import Dashboard from '../../screens/dashboard/Dashboard';
+import CreateEventScreen from '../features/pages/Maps/CreateEventScreen';
+import ShareMusician from '../features/pages/event/ShareMusician';
+import { Profile } from '../../screens/profile/Profile';
+import SettingsScreen from '../../screens/settings/SettingsScreen';
+import Maps from '../features/pages/Maps/MapsMovil';
+import MainSidebar from '../features/pages/Sidebar/MainSidebar';
+
+// Stack Navigator para las pantallas de eventos
+import { createStackNavigator } from '@react-navigation/stack';
+import EventListScreen from '../../screens/events/EventList';
+import EventRequestWizard from '../../screens/events/EventRequestWizard';
+
+// Tipos
+import { Token } from '../../appTypes/DatasTypes';
+
+// Estilos
+import { bg_white, color_primary, color_secondary, color_white, color_info } from '../../styles/Styles';
+
 const Stack = createStackNavigator();
 
 interface MainTabsProps {
@@ -46,9 +45,8 @@ const EventStack = () => (
 
 const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [mainTab, setMainTabs] = useState<MainTabsNavigation>();
+  const [activeScreen, setActiveScreen] = useState('Inicio');
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
 
   // Tabs y pantallas según el rol
   const isOrganizador = user.roll === "eventCreator";
@@ -79,31 +77,23 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
     
     // Navegación a las nuevas pantallas de eventos
     if (route === 'SolicitarMusico') {
-      // Navegar al EventStack y luego al wizard
-      navigation.navigate('EventList' as never);
-      // El wizard se abrirá desde el EventList cuando se presione el botón crear evento
+      setActiveScreen('EventList');
       return;
     }
     
     if (route === 'MisEventos') {
-      navigation.navigate('EventList' as never);
+      setActiveScreen('EventList');
       return;
     }
 
-    // Navegación a las tabs existentes
-    const tabRoutes = {
-      'Inicio': 'Inicio',
-      'Crear Evento': 'Crear Evento',
-      'Solicitudes': 'Solicitudes',
-      'Perfil': 'Perfil',
-      'Configuracion': 'Configuracion',
-      'Agenda': 'Agenda',
-      'Historial': 'Historial',
-    };
-
-    const targetRoute = tabRoutes[route as keyof typeof tabRoutes];
-    if (targetRoute) {
-      navigation.navigate(targetRoute as never);
+    // Navegación a las pantallas existentes
+    const validScreens = [
+      'Inicio', 'Crear Evento', 'Solicitudes', 'Perfil', 'Configuracion',
+      'Agenda', 'Historial', 'EventList'
+    ];
+    
+    if (validScreens.includes(route)) {
+      setActiveScreen(route);
     }
     
     // Si es logout, aquí se implementaría la lógica de cierre de sesión
@@ -115,7 +105,7 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
     console.info(`Navegando a: ${route}`);
   };
 
-  // Wrapper para cada tab con header personalizado y safe area
+  // Wrapper para cada pantalla con header personalizado y safe area
   function withSidebarHeader(Component: React.ComponentType<any>) {
     return (props: any) => (
       <View style={{ flex: 1 }}>
@@ -127,6 +117,50 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
     );
   }
 
+  // Renderizar la pantalla activa
+  const renderActiveScreen = () => {
+    const screenComponents: { [key: string]: React.ComponentType<any> } = {
+      'Inicio': Dashboard,
+      'Crear Evento': CreateEventScreen,
+      'Solicitudes': ShareMusician,
+      'Perfil': Profile,
+      'Configuracion': SettingsScreen,
+      'Agenda': Maps,
+      'Historial': Profile,
+      'EventList': EventStack,
+    };
+
+    const Component = screenComponents[activeScreen];
+    if (!Component) {
+      return <Dashboard />;
+    }
+
+    return withSidebarHeader(Component)({});
+  };
+
+  // Obtener las tabs disponibles según el rol
+  const getAvailableTabs = () => {
+    if (isOrganizador) {
+      return [
+        { name: 'Inicio', icon: activeScreen === 'Inicio' ? 'home' : 'home-outline' },
+        { name: 'Crear Evento', icon: activeScreen === 'Crear Evento' ? 'add-circle' : 'add-circle-outline' },
+        { name: 'Solicitudes', icon: activeScreen === 'Solicitudes' ? 'list' : 'list-outline' },
+        { name: 'EventList', icon: activeScreen === 'EventList' ? 'list' : 'list-outline' },
+        { name: 'Perfil', icon: activeScreen === 'Perfil' ? 'person' : 'person-outline' },
+        { name: 'Configuracion', icon: activeScreen === 'Configuracion' ? 'settings' : 'settings-outline' },
+      ];
+    } else {
+      return [
+        { name: 'Inicio', icon: activeScreen === 'Inicio' ? 'home' : 'home-outline' },
+        { name: 'Solicitudes', icon: activeScreen === 'Solicitudes' ? 'list' : 'list-outline' },
+        { name: 'EventList', icon: activeScreen === 'EventList' ? 'list' : 'list-outline' },
+        { name: 'Agenda', icon: activeScreen === 'Agenda' ? 'calendar' : 'calendar-outline' },
+        { name: 'Historial', icon: activeScreen === 'Historial' ? 'time' : 'time-outline' },
+        { name: 'Configuracion', icon: activeScreen === 'Configuracion' ? 'settings' : 'settings-outline' },
+      ];
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: bg_white }}>
       <MainSidebar
@@ -135,96 +169,52 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
         onClose={() => setSidebarVisible(false)}
         onNavigate={handleSidebarNavigate}
       />
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarActiveTintColor: color_primary,
-          tabBarInactiveTintColor: color_secondary,
-          tabBarStyle: {
-            position: "absolute",
-            bottom: 20,
-            left: 20,
-            right: 20,
-            borderRadius: 20,
-            backgroundColor: color_white,
-            borderTopWidth: 0,
-            elevation: 10,
-            shadowColor: color_primary,
-            shadowOpacity: 0.15,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 5 },
-            height: 70,
-          },
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName: keyof typeof Ionicons.glyphMap;
-            const iconSize = focused ? size + 4 : size;
+      
+      {/* Contenido principal */}
+      <View style={{ flex: 1 }}>
+        {renderActiveScreen()}
+      </View>
 
-            if (route.name === "Feed") {
-              return (
-                <LinearGradient
-                  colors={[color_primary, color_info]}
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    elevation: 5,
-                    shadowColor: color_primary,
-                    shadowOpacity: 0.3,
-                    shadowRadius: 5,
-                    bottom: 25,
-                  }}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="musical-notes" size={32} color={color_white} />
-                </LinearGradient>
-              );
-            }
-
-            const icons: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-              Inicio: focused ? "home" : "home-outline",
-              Musicos: focused ? "search" : "search-outline",
-              Perfil: focused ? "person" : "person-outline",
-              Configuracion: focused ? "settings" : "settings-outline",
-              Solicitudes: focused ? "list" : "list-outline",
-              Agenda: focused ? "calendar" : "calendar-outline",
-              Historial: focused ? "time" : "time-outline",
-              "Crear Evento": focused ? "add-circle" : "add-circle-outline",
-              EventList: focused ? "list" : "list-outline",
-            };
-
-            iconName = icons[route.name] || "alert-circle-outline";
-
-            return <Ionicons name={iconName} size={iconSize} color={color} />;
-          },
-        })}
-      >
-        {/* Tabs para Organizador */}
-        {isOrganizador && (
-          <>
-            <Tab.Screen name="Inicio" children={withSidebarHeader(Dashboard)} />
-            <Tab.Screen name="Crear Evento" children={withSidebarHeader(CreateEventScreen)} />
-            <Tab.Screen name="Solicitudes" children={withSidebarHeader(ShareMusician)} />
-            <Tab.Screen name="EventList" children={withSidebarHeader(EventStack)} />
-            <Tab.Screen name="Perfil" children={withSidebarHeader(Profile)} />
-            <Tab.Screen name="Configuracion" children={withSidebarHeader(SettingsScreen)} />
-          </>
-        )}
-        {/* Tabs para Músico */}
-        {isMusico && (
-          <>
-            <Tab.Screen name="Inicio" children={withSidebarHeader(Dashboard)} />
-            <Tab.Screen name="Solicitudes" children={withSidebarHeader(ShareMusician)} />
-            <Tab.Screen name="EventList" children={withSidebarHeader(EventStack)} />
-            <Tab.Screen name="Agenda" children={withSidebarHeader(Maps)} />
-            <Tab.Screen name="Historial" children={withSidebarHeader(Profile)} />
-            <Tab.Screen name="Configuracion" children={withSidebarHeader(SettingsScreen)} />
-          </>
-        )}
-      </Tab.Navigator>
+      {/* Bottom Navigation */}
+      <View style={{
+        position: "absolute",
+        bottom: 20,
+        left: 20,
+        right: 20,
+        height: 70,
+        backgroundColor: color_white,
+        borderRadius: 20,
+        elevation: 10,
+        shadowColor: color_primary,
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 5 },
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        paddingHorizontal: 10,
+      }}>
+        {getAvailableTabs().map((tab) => (
+          <TouchableOpacity
+            key={tab.name}
+            onPress={() => setActiveScreen(tab.name)}
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              borderRadius: 12,
+              backgroundColor: activeScreen === tab.name ? color_primary + '20' : 'transparent',
+            }}
+          >
+            <Ionicons
+              name={tab.icon as keyof typeof Ionicons.glyphMap}
+              size={activeScreen === tab.name ? 24 : 22}
+              color={activeScreen === tab.name ? color_primary : color_secondary}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 };
