@@ -10,6 +10,11 @@ export type RootStackParamList = {
       Seting:undefined;
       MainTabs:undefined;
       RequestMusician: undefined;
+      // Nuevas rutas para eventos
+      SolicitarMusico: undefined;
+      MisEventos: undefined;
+      EventRequestWizard: undefined;
+      EventList: undefined;
 };
 
 

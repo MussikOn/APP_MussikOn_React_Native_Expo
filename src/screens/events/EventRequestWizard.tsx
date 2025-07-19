@@ -1,27 +1,27 @@
 import React from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import EventList from '../../components/features/pages/event/EventList';
+import EventRequestFormWizard from '../../components/forms/EventRequestFormWizard';
 import { color_white, bg_white } from '../../styles/Styles';
 
-const EventListScreen: React.FC = () => {
+const EventRequestWizard: React.FC = () => {
   const navigation = useNavigation();
 
-  const handleEventPress = (eventId: string) => {
-    // Aquí se puede navegar a los detalles del evento
-    console.log('Evento seleccionado:', eventId);
+  const handleCancel = () => {
+    navigation.goBack();
   };
 
-  const handleCreateEvent = () => {
-    navigation.navigate('EventRequestWizard' as never);
+  const handleSuccess = () => {
+    // Navegar a la lista de eventos después de crear exitosamente
+    navigation.navigate('EventList' as never);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <EventList
-          onEventPress={handleEventPress}
-          onCreateEvent={handleCreateEvent}
+        <EventRequestFormWizard
+          onCancel={handleCancel}
+          onSuccess={handleSuccess}
         />
       </View>
     </SafeAreaView>
@@ -40,4 +40,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EventListScreen; 
+export default EventRequestWizard; 

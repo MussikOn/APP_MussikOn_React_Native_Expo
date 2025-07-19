@@ -25,10 +25,10 @@ interface SidebarProps {
 }
 
 const menuItems = (role: string) =>
-  role === 'organizador'
+  role === 'eventCreator'
     ? [
         { icon: 'home', label: 'Inicio', route: 'Inicio' },
-        { icon: 'add-circle', label: 'Crear Evento', route: 'CrearEvento', color: color_success },
+        { icon: 'add-circle', label: 'Crear Evento', route: 'Crear Evento', color: color_success },
         // NUEVO: Opción para el wizard moderno
         { icon: 'person-add', label: 'Solicitar Músico', route: 'SolicitarMusico', color: color_primary },
         // NUEVO: Opción para listado de eventos
@@ -100,11 +100,13 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
             <Text style={[styles.menuText, item.route === 'Logout' ? { color: btn_danger } : { color: color_primary }]}>{item.label}</Text>
             {/* Badge para opciones nuevas */}
             {(item.route === 'SolicitarMusico' || item.route === 'MisEventos') && (
-              <View style={styles.badgeNew}><Text style={styles.badgeNewText}>¡Nuevo!</Text></View>
+              <View style={styles.badgeNew}>
+                <Text style={styles.badgeNewText}>¡Nuevo!</Text>
+              </View>
             )}
           </Pressable>
         ))}
-        <View style={{ height: Platform.OS === 'ios' ? 60 : 40 }} /> {/* Espacio al final para que no se tape el último botón */}
+        <View style={{ height: Platform.OS === 'ios' ? 60 : 40 }} />
       </ScrollView>
       {/* Separador */}
       <View style={styles.separator} />

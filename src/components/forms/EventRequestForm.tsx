@@ -31,7 +31,7 @@ import {
 
 // Esquema de validación
 const validationSchema = Yup.object().shape({
-  name: Yup.string()
+  eventName: Yup.string()
     .required('El nombre del evento es requerido')
     .min(3, 'El nombre debe tener al menos 3 caracteres'),
   eventType: Yup.string()
@@ -43,6 +43,8 @@ const validationSchema = Yup.object().shape({
   location: Yup.object().shape({
     address: Yup.string()
       .required('La dirección es requerida'),
+    city: Yup.string()
+      .required('La ciudad es requerida'),
     latitude: Yup.number()
       .required('La latitud es requerida'),
     longitude: Yup.number()
@@ -96,22 +98,23 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
   const [timeValue, setTimeValue] = useState('');
 
   const initialValues: CreateEventRequest = {
-    name: '',
+    eventName: '',
     eventType: '',
     date: '',
     time: '',
     location: {
       address: '',
+      city: '',
       latitude: 0,
       longitude: 0,
       googleMapsUrl: '',
     },
     duration: 60,
     instrument: '',
-    bringInstrument: false,
     budget: 0,
     additionalComments: '',
-    songList: [],
+    minBudget: 0,
+    maxBudget: 0,
   };
 
   const handleSubmit = async (
@@ -180,16 +183,16 @@ const EventRequestForm: React.FC<EventRequestFormProps> = ({ onSuccess, onCancel
               <TextInput
                 style={[
                   styles.input,
-                  touched.name && errors.name && styles.inputError,
+                  touched.eventName && errors.eventName && styles.inputError,
                 ]}
                 placeholder="Ej: Boda de María y Juan"
-                value={values.name}
-                onChangeText={handleChange('name')}
-                onBlur={handleBlur('name')}
+                value={values.eventName}
+                onChangeText={handleChange('eventName')}
+                onBlur={handleBlur('eventName')}
                 editable={!loading}
               />
-              {touched.name && errors.name && (
-                <Text style={styles.errorText}>{errors.name}</Text>
+              {touched.eventName && errors.eventName && (
+                <Text style={styles.errorText}>{errors.eventName}</Text>
               )}
             </View>
 

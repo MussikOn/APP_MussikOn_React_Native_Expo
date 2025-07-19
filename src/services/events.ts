@@ -27,22 +27,31 @@ export interface Event {
 }
 
 export interface CreateEventRequest {
-  name: string;
+  eventName: string;
   eventType: string;
   date: string;
   time: string;
   location: {
     address: string;
+    city: string;
     latitude: number;
     longitude: number;
     googleMapsUrl?: string;
   };
   duration: number;
   instrument: string;
-  bringInstrument: boolean;
   budget: number;
+  description?: string;
+  musicGenre?: string;
+  guestCount?: number;
+  specialRequirements?: string;
   additionalComments?: string;
-  songList?: string[];
+  minBudget: number;
+  maxBudget: number;
+  paymentMethod?: string;
+  paymentTerms?: string;
+  equipmentIncluded?: string;
+  budgetNotes?: string;
 }
 
 export interface EventFilters {
@@ -89,6 +98,14 @@ export const eventService = {
    */
   async getMyCompletedEvents(): Promise<ApiResponse<Event[]>> {
     return apiService.get('/events/my-completed');
+  },
+
+  /**
+   * Obtener todos los eventos del usuario (organizador o músico)
+   * GET /events/my-events
+   */
+  async getMyEvents(): Promise<ApiResponse<Event[]>> {
+    return apiService.get('/events/my-events');
   },
 
   // ===== SERVICIOS PARA MÚSICOS =====

@@ -3,11 +3,14 @@ import { View, TouchableOpacity, Text } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Dashboard from "../../screens/dashboard/Dashboard";
 import { Profile } from "../../screens/profile/Profile";
 import SettingsScreen from "../../screens/settings/SettingsScreen";
+import EventRequestWizard from "../../screens/events/EventRequestWizard";
+import EventListScreen from "../../screens/events/EventList";
 import {
   color_primary,
   color_secondary,
@@ -22,6 +25,7 @@ import MainSidebar from "../features/pages/Sidebar/MainSidebar";
 import { Token } from "@appTypes/DatasTypes";
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 interface MainTabsProps {
   user: Token;
@@ -32,6 +36,14 @@ interface MainTabsNavigation {
   components: React.ComponentType<any>;
 }
 
+// Stack Navigator para las pantallas de eventos
+const EventStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="EventListMain" component={EventListScreen} />
+    <Stack.Screen name="EventRequestWizard" component={EventRequestWizard} />
+  </Stack.Navigator>
+);
+
 const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [mainTab, setMainTabs] = useState<MainTabsNavigation>();
@@ -41,7 +53,6 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   // Tabs y pantallas según el rol
   const isOrganizador = user.roll === "eventCreator";
   const isMusico = user.roll === "musico";
-
 
   if (!isOrganizador && !isMusico) {
     return (
@@ -65,18 +76,44 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   // Navegación real desde el sidebar
   const handleSidebarNavigate = (route: string) => {
     setSidebarVisible(false);
-    // Solo navegar si la tab existe
-    const validTabs = [
-      "Inicio", "Crear Evento", "Solicitudes", "Perfil", "Configuracion",
-      "Agenda", "Historial"
-    ];
-    if (validTabs.includes(route)) {
-      navigation.navigate(route as never);
+    
+    // Navegación a las nuevas pantallas de eventos
+    if (route === 'SolicitarMusico') {
+      // Navegar al EventStack y luego al wizard
+      navigation.navigate('EventList' as never);
+      // El wizard se abrirá desde el EventList cuando se presione el botón crear evento
+      return;
     }
+    
+    if (route === 'MisEventos') {
+      navigation.navigate('EventList' as never);
+      return;
+    }
+
+    // Navegación a las tabs existentes
+    const tabRoutes = {
+      'Inicio': 'Inicio',
+      'Crear Evento': 'Crear Evento',
+      'Solicitudes': 'Solicitudes',
+      'Perfil': 'Perfil',
+      'Configuracion': 'Configuracion',
+      'Agenda': 'Agenda',
+      'Historial': 'Historial',
+    };
+
+    const targetRoute = tabRoutes[route as keyof typeof tabRoutes];
+    if (targetRoute) {
+      navigation.navigate(targetRoute as never);
+    }
+    
     // Si es logout, aquí se implementaría la lógica de cierre de sesión
+    if (route === 'Logout') {
+      console.info('Implementar lógica de logout');
+      // Aquí iría la lógica para cerrar sesión
+    }
+    
     console.info(`Navegando a: ${route}`);
   };
-  let names = "Inicio";
 
   // Wrapper para cada tab con header personalizado y safe area
   function withSidebarHeader(Component: React.ComponentType<any>) {
@@ -156,6 +193,7 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
               Agenda: focused ? "calendar" : "calendar-outline",
               Historial: focused ? "time" : "time-outline",
               "Crear Evento": focused ? "add-circle" : "add-circle-outline",
+              EventList: focused ? "list" : "list-outline",
             };
 
             iconName = icons[route.name] || "alert-circle-outline";
@@ -167,9 +205,10 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
         {/* Tabs para Organizador */}
         {isOrganizador && (
           <>
-            <Tab.Screen name={`${names}`} children={withSidebarHeader(Dashboard)} />
+            <Tab.Screen name="Inicio" children={withSidebarHeader(Dashboard)} />
             <Tab.Screen name="Crear Evento" children={withSidebarHeader(CreateEventScreen)} />
             <Tab.Screen name="Solicitudes" children={withSidebarHeader(ShareMusician)} />
+            <Tab.Screen name="EventList" children={withSidebarHeader(EventStack)} />
             <Tab.Screen name="Perfil" children={withSidebarHeader(Profile)} />
             <Tab.Screen name="Configuracion" children={withSidebarHeader(SettingsScreen)} />
           </>
@@ -177,8 +216,9 @@ const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
         {/* Tabs para Músico */}
         {isMusico && (
           <>
-            <Tab.Screen name={`${names}`} children={withSidebarHeader(Dashboard)} />
+            <Tab.Screen name="Inicio" children={withSidebarHeader(Dashboard)} />
             <Tab.Screen name="Solicitudes" children={withSidebarHeader(ShareMusician)} />
+            <Tab.Screen name="EventList" children={withSidebarHeader(EventStack)} />
             <Tab.Screen name="Agenda" children={withSidebarHeader(Maps)} />
             <Tab.Screen name="Historial" children={withSidebarHeader(Profile)} />
             <Tab.Screen name="Configuracion" children={withSidebarHeader(SettingsScreen)} />
