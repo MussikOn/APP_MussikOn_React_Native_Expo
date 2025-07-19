@@ -4,17 +4,18 @@ export interface Environment {
   SOCKET_URL: string;
   ENVIRONMENT: 'development' | 'production' | 'staging';
 }
-
+const URL_DEV = "http://192.168.54.40:1000";
+const URL_PROD = "http://192.168.54.40:1000";
 // Configuraciones por entorno
 const environments: Record<string, Environment> = {
   development: {
-    API_URL: 'http://192.168.54.40:1000',
-    SOCKET_URL: 'http://192.168.54.40:1000', // Mismo servidor que API
+    API_URL: `${URL_DEV}`,
+    SOCKET_URL: `${URL_DEV}`, // Mismo servidor que API
     ENVIRONMENT: 'development',
   },
   production: {
-    API_URL: 'https://server2-o3im.onrender.com',
-    SOCKET_URL: 'https://server2-o3im.onrender.com',
+    API_URL: `${URL_PROD}`,
+    SOCKET_URL: `${URL_PROD}`,
     ENVIRONMENT: 'production',
   },
   staging: {
