@@ -46,6 +46,7 @@ const SettingsScreenContent = ({ navigation }:any) => {
   const closeSesion = async () => {
     deleteToken();
     navigation.replace("Home");
+    setOpens(false);
   };
 
   useEffect(() => {
