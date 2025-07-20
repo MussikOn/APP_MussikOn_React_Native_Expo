@@ -11,6 +11,9 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  PanResponder,
+  Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -227,6 +230,70 @@ const Dashboard = ({ navigation }: any) => {
   ]);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
+  const [connectedAt, setConnectedAt] = useState<Date | null>(null);
+  const bottomSheetHeight = 320;
+  const screenHeight = Dimensions.get('window').height;
+  const bottomSheetY = useRef(new Animated.Value(screenHeight)).current;
+
+  // Cronómetro de tiempo conectado
+  useEffect(() => {
+    let timer: any;
+    if (status === 'connected') {
+      setConnectedAt(new Date());
+      timer = setInterval(() => setConnectedAt((prev) => prev ? new Date(prev) : new Date()), 1000);
+    } else {
+      setConnectedAt(null);
+    }
+    return () => clearInterval(timer);
+  }, [status]);
+
+  // Animación del bottom sheet
+  useEffect(() => {
+    Animated.timing(bottomSheetY, {
+      toValue: bottomSheetOpen ? screenHeight - bottomSheetHeight : screenHeight - 60,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [bottomSheetOpen]);
+
+  // PanResponder para deslizar
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 10,
+    onPanResponderMove: (_, gestureState) => {
+      let newY = (bottomSheetOpen ? screenHeight - bottomSheetHeight : screenHeight - 60) + gestureState.dy;
+      if (newY < screenHeight - bottomSheetHeight) newY = screenHeight - bottomSheetHeight;
+      if (newY > screenHeight - 60) newY = screenHeight - 60;
+      bottomSheetY.setValue(newY);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dy < -40) setBottomSheetOpen(true);
+      else if (gestureState.dy > 40) setBottomSheetOpen(false);
+      else setBottomSheetOpen(bottomSheetOpen);
+    },
+  });
+
+  // Formato de tiempo conectado
+  const getConnectedTime = () => {
+    if (!connectedAt) return '--:--:--';
+    const diff = Math.floor((Date.now() - connectedAt.getTime()) / 1000);
+    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  // Botón seguro de desconexión
+  const handleSafeDisconnect = () => {
+    Alert.alert(
+      t('settings.logout'),
+      t('settings.logout_confirm'),
+      [
+        { text: t('settings.cancel'), style: 'cancel' },
+        { text: t('settings.logout'), style: 'destructive', onPress: () => handleConnection() },
+      ]
+    );
+  };
 
   const handleOpenNotification = (notification: any) => {
     setSelectedNotification(notification);
@@ -379,6 +446,198 @@ const Dashboard = ({ navigation }: any) => {
     }
   };
 
+  // Slide button para desconexión
+  const [slideX, setSlideX] = useState(new Animated.Value(0));
+  const slideWidth = 220;
+  const slideBtnPanResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10,
+    onPanResponderMove: (_, gestureState) => {
+      let newX = Math.max(0, Math.min(slideWidth - 56, gestureState.dx));
+      slideX.setValue(newX);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx > slideWidth - 80) {
+        // Desconectar
+        setBottomSheetOpen(false);
+        setTimeout(() => handleConnection(), 300);
+        Animated.timing(slideX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      } else {
+        Animated.timing(slideX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
+    },
+  });
+
+  // Animaciones para planeta y lupa
+  const planetOrbitAnim = useRef(new Animated.Value(0)).current;
+  const planetSpinAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    planetOrbitAnim.setValue(0);
+    planetSpinAnim.setValue(0);
+    Animated.loop(
+      Animated.timing(planetOrbitAnim, {
+        toValue: 1,
+        duration: 6000,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+    Animated.loop(
+      Animated.timing(planetSpinAnim, {
+        toValue: 1,
+        duration: 8000,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+  }, []);
+  const planetOrbitRotate = planetOrbitAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  const planetSpinRotate = planetSpinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  const planetAnimStyles = StyleSheet.create({
+    planetContainer: {
+      width: 180,
+      height: 180,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: 30,
+    },
+    orbit: {
+      position: 'absolute',
+      width: 180,
+      height: 180,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    lupa: {
+      position: 'absolute',
+      top: 0,
+      left: 72,
+    },
+    planet: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+  const slideBtnStyles = StyleSheet.create({
+    slideContainer: {
+      marginTop: 18,
+      alignItems: 'center',
+    },
+    slideText: {
+      fontSize: 15,
+      color: '#444',
+      marginBottom: 8,
+    },
+    slideTrack: {
+      width: 220,
+      height: 56,
+      backgroundColor: '#eee',
+      borderRadius: 28,
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    slideThumb: {
+      position: 'absolute',
+      left: 0,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: color_danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 4,
+      shadowColor: color_danger,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+  });
+
+  // Slide button para conexión
+  const [slideConnectX, setSlideConnectX] = useState(new Animated.Value(0));
+  const slideConnectWidth = 220;
+  const slideConnectPanResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10,
+    onPanResponderMove: (_, gestureState) => {
+      let newX = Math.max(0, Math.min(slideConnectWidth - 56, gestureState.dx));
+      slideConnectX.setValue(newX);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx > slideConnectWidth - 80) {
+        // Conectar
+        setTimeout(() => handleConnection(), 300);
+        Animated.timing(slideConnectX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      } else {
+        Animated.timing(slideConnectX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
+    },
+  });
+  const slideConnectBtnStyles = StyleSheet.create({
+    slideContainer: {
+      marginTop: 40,
+      alignItems: 'center',
+    },
+    slideText: {
+      fontSize: 16,
+      color: '#fff',
+      marginBottom: 10,
+      fontWeight: 'bold',
+      letterSpacing: 0.5,
+      textShadowColor: 'rgba(0,0,0,0.18)',
+      textShadowRadius: 4,
+    },
+    slideTrack: {
+      width: 220,
+      height: 56,
+      backgroundColor: bg_primary,
+      borderRadius: 28,
+      justifyContent: 'center',
+      overflow: 'hidden',
+      borderWidth: 2,
+      borderColor: color_info,
+      shadowColor: color_info,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    slideThumb: {
+      position: 'absolute',
+      left: 0,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: color_info,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 4,
+      shadowColor: color_info,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+  });
+
   return (
     <>
       <AnimatedBackground />
@@ -394,13 +653,42 @@ const Dashboard = ({ navigation }: any) => {
           { paddingTop: insets.top, paddingBottom: insets.bottom + 90 },
         ]}
       >
-        <ScrollView
+        {/* <ScrollView
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
-        >
+        > */}
           <View style={styles.header}>
             <Text style={styles.title}>{t('home.welcome_title', { appName })}</Text>
             <Text style={styles.subtitle}>{t('home.welcome_subtitle')}</Text>
           </View>
+          {/* --- Slide to connect button --- */}
+          {status === 'disconnected' && (
+            <View style={slideConnectBtnStyles.slideContainer}>
+              <Text style={slideConnectBtnStyles.slideText}>Desliza para conectarte</Text>
+              <View style={slideConnectBtnStyles.slideTrack}>
+                <Animated.View
+                  style={[
+                    slideConnectBtnStyles.slideThumb,
+                    { transform: [{ translateX: slideConnectX }] },
+                  ]}
+                  {...slideConnectPanResponder.panHandlers}
+                >
+                  <Ionicons name="power" size={28} color={color_white} />
+                </Animated.View>
+              </View>
+            </View>
+          )}
+          {/* --- Animación de planeta y lupa --- */}
+          {status === 'connected' && (
+            <View style={planetAnimStyles.planetContainer}>
+              <Animated.View style={[planetAnimStyles.orbit, { transform: [{ rotate: planetOrbitRotate }] }]}> 
+                <Ionicons name="search" size={36} color={color_info} style={planetAnimStyles.lupa} />
+              </Animated.View>
+              <Animated.View style={[planetAnimStyles.planet, { transform: [{ rotate: planetSpinRotate }] }]}> 
+                <Ionicons name="planet" size={120} color={bg_primary} />
+              </Animated.View>
+            </View>
+          )}
+          <View style={{ marginBottom: 40 }} />
 
           {/* --- BANNER DE NOTIFICACIONES --- */}
           <View style={styles.notificationsBanner}>
@@ -434,8 +722,44 @@ const Dashboard = ({ navigation }: any) => {
           </View>
 
           <ConnectionGlobe status={status} onPress={handleConnection} />
-        </ScrollView>
+        {/* </ScrollView> */}
         {renderNotificationModal()}
+        {/* Bottom Sheet solo si está conectado */}
+        {status === 'connected' && (
+          <Animated.View
+            style={[
+              bottomSheetStyles.sheet,
+              { transform: [{ translateY: bottomSheetY }] },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            {/* Handle visual */}
+            <View style={bottomSheetStyles.handleContainer}>
+              <View style={bottomSheetStyles.handle} />
+            </View>
+            <Text style={bottomSheetStyles.title}>{t('home.connected')}</Text>
+            <Text style={bottomSheetStyles.timeLabel}>{t('Tiempo conectado')}: {getConnectedTime()}</Text>
+            <View style={bottomSheetStyles.section}>
+              <Ionicons name="information-circle-outline" size={22} color={color_info} />
+              <Text style={bottomSheetStyles.sectionText}>Detalles del evento (próximamente)</Text>
+            </View>
+            {/* Slide button para desconexión */}
+            <View style={slideBtnStyles.slideContainer}>
+              <Text style={slideBtnStyles.slideText}>Desliza para desconectarte</Text>
+              <View style={slideBtnStyles.slideTrack}>
+                <Animated.View
+                  style={[
+                    slideBtnStyles.slideThumb,
+                    { transform: [{ translateX: slideX }] },
+                  ]}
+                  {...slideBtnPanResponder.panHandlers}
+                >
+                  <Ionicons name="log-out-outline" size={28} color={color_white} />
+                </Animated.View>
+              </View>
+            </View>
+          </Animated.View>
+        )}
       </View>
     </>
   );
@@ -668,6 +992,76 @@ const styles = StyleSheet.create({
   },
   rejectButton: {
     backgroundColor: color_danger,
+  },
+});
+
+const bottomSheetStyles = StyleSheet.create({
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 320,
+    backgroundColor: color_white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    elevation: 20,
+    shadowColor: bg_primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
+    padding: 24,
+    zIndex: 100,
+  },
+  handleContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  handle: {
+    width: 48,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ddd',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: bg_primary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  timeLabel: {
+    fontSize: 16,
+    color: color_info,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  section: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 18,
+    backgroundColor: '#f6f8fa',
+    borderRadius: 12,
+    padding: 12,
+  },
+  sectionText: {
+    marginLeft: 10,
+    fontSize: 15,
+    color: '#444',
+  },
+  disconnectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: color_danger,
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginTop: 18,
+  },
+  disconnectText: {
+    color: color_white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
 
