@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import * as Location from "expo-location";
-import { Audio } from "expo-av";
 import MapViewDirections from "react-native-maps-directions";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -87,9 +86,6 @@ export default function MapsMovil({ navigation }: any) {
   // Estado para la información de la ruta (distancia y duración).
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
-  // Estado para el objeto de sonido.
-  const [sound, setSound] = useState<Audio.Sound>();
-
   // Animación para la aparición de los marcadores.
   const markerAnim = useRef(new Animated.Value(0)).current;
 
@@ -113,36 +109,9 @@ export default function MapsMovil({ navigation }: any) {
       };
       setRegion(initialRegion);
     })();
-
-    // Cargar el sonido de feedback
-    async function loadSound() {
-      try {
-        const { sound } = await Audio.Sound.createAsync(
-          require("../../../../../assets/sounds/ping.mp3")
-        );
-        setSound(sound);
-      } catch (error) {
-        console.log(
-          "No se pudo cargar el sonido. Asegúrate de tener 'ping.mp3' en 'assets/sounds/'"
-        );
-      }
-    }
-    loadSound();
-
-    // Descargar el sonido al desmontar el componente.
-    return sound
-      ? () => {
-          sound.unloadAsync();
-        }
-      : undefined;
   }, []);
 
-  /**
-   * Reproduce un sonido de feedback.
-   */
-  const playSound = async () => {
-    await sound?.replayAsync();
-  };
+
 
   /**
    * Anima la aparición del marcador.
@@ -161,7 +130,6 @@ export default function MapsMovil({ navigation }: any) {
    */
   const handleSetLocation = async () => {
     if (!region) return;
-    await playSound();
     animateMarker();
 
     const newLocation = {
