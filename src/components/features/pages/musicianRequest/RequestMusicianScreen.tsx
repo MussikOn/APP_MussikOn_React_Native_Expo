@@ -6,7 +6,7 @@ import { RootStackParamList } from '@appTypes/DatasTypes';
 import { s, bg_primary, bg_white, color_white, btn_primary, text_white } from '@styles/Styles';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 
-type Props = StackScreenProps<RootStackParamList, 'RequestMusician'>;
+type Props = StackScreenProps<RootStackParamList, 'EventList'>;
 
 const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -34,7 +34,7 @@ const RequestMusicianScreen: React.FC<Props> = ({ navigation }) => {
           text: t('common.ok'),
           onPress: () => {
             // Puedes navegar a otra pantalla o resetear el formulario
-            navigation.goBack(); // O a una pantalla de confirmación
+            // navigation.goBack(); // O a una pantalla de confirmación
           },
         },
       ]

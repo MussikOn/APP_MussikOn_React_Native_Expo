@@ -15,6 +15,7 @@ import {
   color_success,
 } from '@styles/Styles';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useUser } from '@contexts/UserContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -27,31 +28,40 @@ interface SidebarProps {
 
 const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavigate }) => {
   const { t } = useTranslation();
+  const { user: globalUser, logout } = useUser();
   const slideAnim = React.useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
 
-  const menuItems = (role: string) =>
-    role === 'eventCreator'
+  // Menú dinámico según estado de usuario
+  // Si no hay usuario, mostrar Home, Login y Register
+  const menuItems = () => {
+    if (!globalUser) {
+      return [
+        { icon: 'home', label: t('sidebar.home'), route: 'Home' },
+        { icon: 'log-in', label: t('sidebar.login'), route: 'Login', color: color_primary },
+        { icon: 'person-add', label: t('sidebar.register'), route: 'Register', color: color_primary },
+      ];
+    }
+    // Si hay usuario, mostrar menú completo según rol
+    return globalUser.roll === 'eventCreator'
       ? [
-          { icon: 'home', label: t('sidebar.home'), route: 'Inicio' },
-          { icon: 'add-circle', label: t('sidebar.create_event'), route: 'Crear Evento', color: color_success },
-          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'SolicitarMusico', color: color_primary },
-          { icon: 'calendar-outline', label: t('sidebar.my_events'), route: 'MisEventos', color: color_info },
-          { icon: 'list', label: t('sidebar.requests'), route: 'Solicitudes', color: color_info },
-          { icon: 'person', label: t('sidebar.profile'), route: 'Perfil' },
-          { icon: 'settings', label: t('sidebar.configuration'), route: 'Configuracion' },
+          { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
+          { icon: 'add-circle', label: t('sidebar.create_event'), route: 'CreateEvent', color: color_success },
+          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
+          { icon: 'list', label: t('sidebar.events'), route: 'EventList', color: color_info },
+          { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
+          { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
           { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
         ]
       : [
-          { icon: 'home', label: t('sidebar.home'), route: 'Inicio' },
-          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'SolicitarMusico', color: color_primary },
-          { icon: 'calendar-outline', label: t('sidebar.my_events'), route: 'MisEventos', color: color_info },
-          { icon: 'list', label: t('sidebar.requests'), route: 'Solicitudes', color: color_info },
-          { icon: 'calendar', label: t('sidebar.agenda'), route: 'Agenda' },
-          { icon: 'time', label: t('sidebar.history'), route: 'Historial' },
-          { icon: 'person', label: t('sidebar.profile'), route: 'Perfil' },
-          { icon: 'settings', label: t('sidebar.configuration'), route: 'Configuracion' },
+          { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
+          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
+          { icon: 'list', label: t('sidebar.events'), route: 'EventList', color: color_info },
+          { icon: 'calendar', label: t('sidebar.agenda'), route: 'Maps' },
+          { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
+          { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
           { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
         ];
+  };
 
   React.useEffect(() => {
     Animated.timing(slideAnim, {
@@ -60,6 +70,17 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
       useNativeDriver: true,
     }).start();
   }, [isVisible]);
+
+  // Handler para Logout/Login
+  const handleMenuPress = (route: string) => {
+    if (route === 'Logout') {
+      logout();
+      if (onClose) onClose();
+      return;
+    }
+    if (onNavigate) onNavigate(route);
+    if (onClose) onClose();
+  };
 
   return (
     <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>  
@@ -76,12 +97,12 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
             style={styles.avatar}
           />
         </View>
-        <Text style={styles.name}>{user?.name || t('sidebar.user')}</Text>
-        <Text style={styles.email}>{user?.userEmail || ''}</Text>
+        <Text style={styles.name}>{globalUser?.name || t('sidebar.user')}</Text>
+        <Text style={styles.email}>{globalUser?.userEmail || ''}</Text>
       </LinearGradient>
       {/* Menú con ScrollView */}
       <ScrollView style={styles.menuScroll} contentContainerStyle={styles.menuContainer} showsVerticalScrollIndicator={false}>
-        {menuItems(user?.roll || '').map((item, idx) => (
+        {menuItems().map((item, idx) => (
           <Pressable
             key={item.label}
             style={({ pressed }) => [
@@ -89,15 +110,15 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
               item.route === 'Logout' ? styles.menuItemDanger : styles.menuItemOutline,
               pressed && styles.menuItemPressed,
               idx === 0 && styles.menuItemFirst,
-              idx === menuItems(user?.roll || '').length - 1 && styles.menuItemLast,
+              idx === menuItems().length - 1 && styles.menuItemLast,
             ]}
             android_ripple={{ color: color_primary + '11' }}
-            onPress={() => onNavigate && onNavigate(item.route)}
+            onPress={() => handleMenuPress(item.route)}
           >
             <Ionicons name={item.icon as any} size={24} color={item.route === 'Logout' ? btn_danger : color_primary} style={styles.menuIcon} />
             <Text style={[styles.menuText, item.route === 'Logout' ? { color: btn_danger } : { color: color_primary }]}>{item.label}</Text>
             {/* Badge para opciones nuevas */}
-            {(item.route === 'SolicitarMusico' || item.route === 'MisEventos') && (
+            {(item.route === 'ShareMusician' || item.route === 'EventList') && globalUser && (
               <View style={styles.badgeNew}>
                 <Text style={styles.badgeNewText}>{t('sidebar.new')}</Text>
               </View>

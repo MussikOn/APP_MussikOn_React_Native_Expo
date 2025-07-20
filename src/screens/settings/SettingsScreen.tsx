@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { LanguageProvider, useLanguage } from '../../contexts/LanguageContext';
 import LanguageSelector from '@components/ui/LanguageSelector';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useUser } from '../../contexts/UserContext';
 
 const SettingsScreenContent = ({ navigation }:any) => {
   const headerHeight = useHeaderHeight();
@@ -29,6 +30,7 @@ const SettingsScreenContent = ({ navigation }:any) => {
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const { t } = useTranslation();
   const { currentLanguage, availableLanguages } = useLanguage();
+  const { logout } = useUser();
 
   const getDataUser = async () => {
     const data = await getData();
@@ -44,7 +46,7 @@ const SettingsScreenContent = ({ navigation }:any) => {
   };
 
   const closeSesion = async () => {
-    deleteToken();
+    await logout();
     navigation.replace("Home");
     setOpens(false);
   };

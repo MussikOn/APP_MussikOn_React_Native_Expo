@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState, useRef } from 'react';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
@@ -10,8 +10,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import { UserProvider, useUser } from '../contexts/UserContext';
 import { getData, getToken } from '@utils/functions';
 import { Token } from '@appTypes/DatasTypes';
+import { SidebarProvider, useSidebar } from '@contexts/SidebarContext';
 
 import HomeScreen from '@screens/dashboard/HomeScreen';
 import { RootStackParamList } from '@appTypes/DatasTypes';
@@ -19,6 +21,7 @@ import Login from '@screens/auth/Login';
 import Register from '@screens/auth/Register';
 import { MainTabs } from '@components/navigation';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
+import MainSidebar from '@components/features/pages/Sidebar/MainSidebar';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -71,23 +74,39 @@ const screenOptions: StackNavigationOptions = {
 function AppContent() {
   const [isReady, setIsReady] = useState(false);
   const [appIsReady, setAppIsReady] = useState(false);
-  const [user, setUser] = useState<Token | null>(null);
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
   const { t } = useTranslation();
+  const { user, refreshUser } = useUser();
+  const { sidebarVisible, openSidebar, closeSidebar } = useSidebar();
+
+  // Crear un ref global para la navegación
+  const navigationRef = useRef<NavigationContainerRef<any>>(null);
+
+  // Estado global para la pantalla activa de MainTabs
+  const [mainTabsScreen, setMainTabsScreen] = useState('Dashboard');
+  // Handler global para navegación desde el sidebar
+  const handleSidebarNavigate = (route: string) => {
+    closeSidebar();
+    if (!user) {
+      // Solo permitir rutas públicas si no hay usuario
+      if (["Home", "Login", "Register"].includes(route)) {
+        navigationRef.current?.navigate(route);
+      }
+      return;
+    }
+    // Si hay usuario, permitir navegación privada
+    setMainTabsScreen(route);
+    if (navigationRef.current?.getCurrentRoute()?.name !== 'MainTabs') {
+      navigationRef.current?.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    }
+  };
 
   useEffect(() => {
     async function prepare() {
       try {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        // Obtener usuario autenticado
-        const token = await getToken();
-        if (token) {
-          const userData = await getData();
-          setUser(userData || null);
-        } else {
-          setUser(null);
-        }
+        await refreshUser();
       } catch (e) {
         console.warn(e);
       } finally {
@@ -155,7 +174,15 @@ function AppContent() {
     <>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <AnimatedBackground />
+      {/* Sidebar global, disponible en toda la app */}
+      <MainSidebar
+        isVisible={sidebarVisible}
+        user={user ?? undefined}
+        onClose={closeSidebar}
+        onNavigate={handleSidebarNavigate}
+      />
       <NavigationContainer
+        ref={navigationRef}
         theme={{
           dark: true,
           colors: {
@@ -230,7 +257,7 @@ function AppContent() {
           {user && (
             <Stack.Screen 
               name="MainTabs" 
-              children={() => <MainTabs user={user} />} 
+              children={() => <MainTabs user={user} activeScreen={mainTabsScreen} setActiveScreen={setMainTabsScreen} />} 
               options={{ 
                 headerShown: false,
                 gestureEnabled: false,
@@ -319,7 +346,11 @@ export default function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <LanguageProvider>
-        <AppContent />
+        <UserProvider>
+          <SidebarProvider>
+            <AppContent />
+          </SidebarProvider>
+        </UserProvider>
       </LanguageProvider>
     </I18nextProvider>
   );

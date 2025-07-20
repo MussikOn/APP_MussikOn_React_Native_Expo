@@ -1,20 +1,17 @@
+// RootStackParamList define los nombres de las rutas principales del stack y tabs.
+// Usa nombres en inglés y consistentes con el TabNavigator y el sidebar.
 export type RootStackParamList = {
-      Login: undefined;
-      Home: undefined;
-      HandleLogin:undefined;
-      Dashboard:undefined;
-      UseSocket:undefined;
-      Profile:undefined;
-      Register:undefined;
-      HomePage:undefined;
-      Seting:undefined;
-      MainTabs:undefined;
-      RequestMusician: undefined;
-      // Nuevas rutas para eventos
-      SolicitarMusico: undefined;
-      MisEventos: undefined;
-      EventRequestWizard: undefined;
-      EventList: undefined;
+  Login: undefined;
+  Home: undefined;
+  Register: undefined;
+  MainTabs: undefined;
+  Dashboard: undefined;
+  CreateEvent: undefined;
+  ShareMusician: undefined;
+  EventList: undefined;
+  Profile: undefined;
+  Settings: undefined;
+  Maps: undefined;
 };
 
 

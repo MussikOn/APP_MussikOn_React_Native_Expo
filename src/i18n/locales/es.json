@@ -94,11 +94,14 @@
     "request_musician": "Solicitar Músico",
     "my_events": "Mis Eventos",
     "requests": "Solicitudes",
+    "events": "Eventos",
     "agenda": "Agenda",
     "history": "Historial",
     "profile": "Perfil",
     "configuration": "Configuración",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "register": "Registrarse"
   },
   "common": {
     "loading": "Cargando...",

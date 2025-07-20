@@ -4,17 +4,17 @@ import { View,Text, ScrollView, TouchableOpacity } from "react-native";
 import { s } from '@styles/Styles';
 import { deleteToken, getData, getFirstName } from '@utils/functions';
 import { useEffect, useState } from "react";
-import BottomMenu from '@components/ui/BottomMenu';
 import AlertModal from '@components/features/pages/alerts/AlertModal';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useTranslation } from 'react-i18next';
 
-type Props = StackScreenProps<RootStackParamList, 'HomePage'>;
+// Cambiado el tipo a 'Dashboard' (o 'Home' si corresponde) según RootStackParamList
+// type Props = StackScreenProps<RootStackParamList, 'HomePage'>;
+type Props = StackScreenProps<RootStackParamList, 'Dashboard'>;
 
 const HomePage :React.FC<Props> = ({ navigation }) => {
     const headerHeight = useHeaderHeight();
     const { t } = useTranslation();
-    // alert(headerHeight)
     const [userData, setUserData] = useState<Token>();
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -35,8 +35,7 @@ const HomePage :React.FC<Props> = ({ navigation }) => {
     }
     const closeSesion = async () => { 
         deleteToken();
-        navigation.replace("Home");
-        
+        // Navegación solo a través del sidebar
     }
 
     useEffect(()=>{
@@ -46,16 +45,12 @@ const HomePage :React.FC<Props> = ({ navigation }) => {
     return (
         <>
         <ScrollView style={[s.container_child_scrollView]}>
-         {/* <Sidebar  isVisible={opens} {...userData}> */}
             <View style={[{paddingTop:headerHeight,paddingBottom:60}]} >
                 <Text style={[s.title]}>{t('home.welcome_message', { firstName: userData ? firstName : t('common.loading'), lastName: userData ? lastName : '' })}</Text>
                 <TouchableOpacity style={[s.btn, s.btn_outline_primary]} onPress={() => setAlertVisible(true)}>
                     <Text style={[s.buttonTextOutline]}>{t('home.press_here')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[s.btn, s.btn_outline_primary]} onPress={() => closeSesion()}>
-                    <Text style={[s.buttonTextOutline]}>{t('home.logout')}</Text>
-                </TouchableOpacity>
-                
+                {/* Eliminar botón de cerrar sesión directo, usar solo sidebar */}
             </View>
             <AlertModal
         visible={alertVisible}
@@ -74,10 +69,6 @@ const HomePage :React.FC<Props> = ({ navigation }) => {
         <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum veniam totam nam, libero nisi ratione magnam quidem provident in veritatis illo obcaecati atque inventore soluta sed aperiam autem vero? Suscipit. Lorem ipsum dolor sit amet consectetur adipisicing elit. At aut quisquam praesentium iste! Laudantium harum aliquid incidunt obcaecati minus eum, eos fugiat voluptates rerum rem sunt consequatur totam provident dolores.</Text>
       </AlertModal>
         </ScrollView>
-            <BottomMenu 
-            onHomePress={()=> alert(t('home.home'))} 
-            onProfilePress={()=>alert(t('home.profile'))} 
-            onSettingsPress={()=> navigation.navigate("Seting")} ></BottomMenu>
     </>
     );
 }

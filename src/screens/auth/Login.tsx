@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import { saveToken } from '@utils/functions';
 import { RootStackParamList } from '@appTypes/DatasTypes';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import { useUser } from '../../contexts/UserContext';
+import { useSidebar } from '@contexts/SidebarContext';
 
 type Props = StackScreenProps<RootStackParamList, "Login">;
 
@@ -30,6 +32,23 @@ const Login: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const { t } = useTranslation();
+  const { login: loginUser, user } = useUser();
+  const { openSidebar } = useSidebar();
+  const [shouldNavigateToMainTabs, setShouldNavigateToMainTabs] = useState(false);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Ionicons
+          name="menu"
+          size={28}
+          color={color_primary}
+          style={{ marginLeft: 18 }}
+          onPress={openSidebar}
+        />
+      ),
+    });
+  }, [navigation, openSidebar]);
 
   const validateForm = () => {
     let valid = true;
@@ -64,9 +83,9 @@ const Login: React.FC<Props> = ({ navigation }) => {
         userPassword: password,
       });
       if (response.token) {
-        await saveToken(response.token);
+        await loginUser(response.token);
         setLoading(false);
-        navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+        setShouldNavigateToMainTabs(true); // Esperar a que user esté definido
       } else {
         setApiError(response.message || t('login.error', { defaultValue: 'Error al Iniciar Sesión' }));
         setLoading(false);
@@ -76,6 +95,13 @@ const Login: React.FC<Props> = ({ navigation }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (shouldNavigateToMainTabs && user) {
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+      setShouldNavigateToMainTabs(false);
+    }
+  }, [shouldNavigateToMainTabs, user, navigation]);
 
   return (
     <KeyboardAvoidingView

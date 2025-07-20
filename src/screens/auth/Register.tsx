@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Pressable, View, Text, TouchableOpacity, TextInput } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { s, bg_white, appName, bg_primary } from '@styles/Styles';
@@ -26,6 +26,10 @@ import {
 import { ss } from '@components/features/pages/Register/components/StepStyle';
 import { Data } from '@components/features/pages/Register/components/RegisterTypes';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
+import { useUser } from '../../contexts/UserContext';
+import { useSidebar } from '@contexts/SidebarContext';
+import { Ionicons } from '@expo/vector-icons';
+import { color_primary } from '@styles/Styles';
 
 type Props = StackScreenProps<RootStackParamList, "Register">;
 
@@ -226,12 +230,8 @@ const Register: React.FC<Props> = ({ navigation }) => {
           loading: false,
           viewModal: false,
         }));
-        await saveToken(data.token);
-        console.log("Usuario registrado:", data.token);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "MainTabs" }],
-        });
+        await loginUser(data.token);
+        setShouldNavigateToMainTabs(true); // Esperar a que user esté definido
       } else {
         setMainState((prev) => ({
           ...prev,
@@ -301,6 +301,31 @@ const Register: React.FC<Props> = ({ navigation }) => {
       routes: [{ name: "Home" }],
     });
   };
+
+  const { login: loginUser, user } = useUser();
+  const { openSidebar } = useSidebar();
+  const [shouldNavigateToMainTabs, setShouldNavigateToMainTabs] = useState(false);
+
+  useEffect(() => {
+    if (shouldNavigateToMainTabs && user) {
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+      setShouldNavigateToMainTabs(false);
+    }
+  }, [shouldNavigateToMainTabs, user, navigation]);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Ionicons
+          name="menu"
+          size={28}
+          color={color_primary}
+          style={{ marginLeft: 18 }}
+          onPress={openSidebar}
+        />
+      ),
+    });
+  }, [navigation, openSidebar]);
 
   return (
     <>
