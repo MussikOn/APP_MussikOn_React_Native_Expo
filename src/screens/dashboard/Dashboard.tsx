@@ -236,6 +236,64 @@ const Dashboard = ({ navigation }: any) => {
   const screenHeight = Dimensions.get('window').height;
   const bottomSheetY = useRef(new Animated.Value(screenHeight)).current;
 
+  // Estado para alerta de notificación
+  const [eventAlert, setEventAlert] = useState<any>(null);
+  const [eventAlertVisible, setEventAlertVisible] = useState(false);
+  const [eventAlertProgress, setEventAlertProgress] = useState(0); // 0 a 1
+  const [eventAlertTimeLeft, setEventAlertTimeLeft] = useState(120); // segundos
+  const eventAlertTimer = useRef<any>(null);
+  const eventAlertInterval = useRef<any>(null);
+
+  // Mostrar alerta cuando llegue una notificación
+  useEffect(() => {
+    if (notifications.length > 0 && !eventAlertVisible) {
+      setEventAlert(notifications[0]);
+      setEventAlertVisible(true);
+      setEventAlertProgress(0);
+      setEventAlertTimeLeft(120);
+      // Cerrar automáticamente después de 2 minutos y actualizar barra
+      if (eventAlertTimer.current) clearTimeout(eventAlertTimer.current);
+      if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+      let elapsed = 0;
+      eventAlertInterval.current = setInterval(() => {
+        elapsed += 1;
+        setEventAlertProgress(elapsed / 120);
+        setEventAlertTimeLeft(120 - elapsed);
+        if (elapsed >= 120) {
+          clearInterval(eventAlertInterval.current);
+        }
+      }, 1000);
+      eventAlertTimer.current = setTimeout(() => {
+        setEventAlertVisible(false);
+        setEventAlert(null);
+        setEventAlertProgress(0);
+        setEventAlertTimeLeft(120);
+        if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+      }, 2 * 60 * 1000);
+    }
+    return () => {
+      if (eventAlertTimer.current) clearTimeout(eventAlertTimer.current);
+      if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+    };
+  }, [notifications]);
+
+  // Cerrar alerta manualmente
+  const closeEventAlert = () => {
+    setEventAlertVisible(false);
+    setEventAlert(null);
+    setEventAlertProgress(0);
+    setEventAlertTimeLeft(120);
+    if (eventAlertTimer.current) clearTimeout(eventAlertTimer.current);
+    if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+  };
+
+  // Ver detalles de la notificación
+  const handleViewDetails = () => {
+    setSelectedNotification(eventAlert);
+    setIsModalVisible(true);
+    closeEventAlert();
+  };
+
   // Cronómetro de tiempo conectado
   useEffect(() => {
     let timer: any;
@@ -446,18 +504,17 @@ const Dashboard = ({ navigation }: any) => {
     }
   };
 
-  // Slide button para desconexión
+  // Slide button para desconexión (mejor sensibilidad)
   const [slideX, setSlideX] = useState(new Animated.Value(0));
   const slideWidth = 220;
   const slideBtnPanResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10,
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 5,
     onPanResponderMove: (_, gestureState) => {
       let newX = Math.max(0, Math.min(slideWidth - 56, gestureState.dx));
       slideX.setValue(newX);
     },
     onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dx > slideWidth - 80) {
-        // Desconectar
+      if (gestureState.dx > slideWidth - 100) {
         setBottomSheetOpen(false);
         setTimeout(() => handleConnection(), 300);
         Animated.timing(slideX, {
@@ -475,7 +532,7 @@ const Dashboard = ({ navigation }: any) => {
     },
   });
 
-  // Animaciones para planeta y lupa
+  // Animaciones para planeta y lupa (fluidez mejorada)
   const planetOrbitAnim = useRef(new Animated.Value(0)).current;
   const planetSpinAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -484,7 +541,7 @@ const Dashboard = ({ navigation }: any) => {
     Animated.loop(
       Animated.timing(planetOrbitAnim, {
         toValue: 1,
-        duration: 6000,
+        duration: 4000,
         useNativeDriver: true,
         easing: Easing.linear,
       })
@@ -492,7 +549,7 @@ const Dashboard = ({ navigation }: any) => {
     Animated.loop(
       Animated.timing(planetSpinAnim, {
         toValue: 1,
-        duration: 8000,
+        duration: 6000,
         useNativeDriver: true,
         easing: Easing.linear,
       })
@@ -653,9 +710,49 @@ const Dashboard = ({ navigation }: any) => {
           { paddingTop: insets.top, paddingBottom: insets.bottom + 90 },
         ]}
       >
-        {/* <ScrollView
+        {/* --- Alerta de notificación de evento --- */}
+        {eventAlertVisible && eventAlert && (
+          <View style={eventAlertStyles.alertContainer}>
+            <View style={eventAlertStyles.alertBox}>
+              <Ionicons name="notifications" size={32} color={color_info} style={{ marginBottom: 8 }} />
+              <Text style={eventAlertStyles.alertTitle}>{eventAlert.eventName}</Text>
+              <Text style={eventAlertStyles.alertText}>{eventAlert.date}</Text>
+              {/* Barra de progreso y tiempo restante */}
+              <View style={eventAlertStyles.progressBarContainer}>
+                <View style={eventAlertStyles.progressBarBg}>
+                  <Animated.View
+                    style={[
+                      eventAlertStyles.progressBarFg,
+                      {
+                        width: `${Math.max(0, Math.min(1, eventAlertProgress)) * 100}%`,
+                        backgroundColor:
+                          eventAlertProgress < 0.8
+                            ? '#2ecc40'
+                            : eventAlertProgress < 0.95
+                            ? '#ffb300'
+                            : '#e53935',
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={eventAlertStyles.progressText}>
+                  {eventAlertTimeLeft}s
+                </Text>
+              </View>
+              <View style={eventAlertStyles.alertBtnRow}>
+                <TouchableOpacity style={eventAlertStyles.alertBtn} onPress={handleViewDetails}>
+                  <Text style={eventAlertStyles.alertBtnText}>Ver detalles</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={eventAlertStyles.alertBtn} onPress={closeEventAlert}>
+                  <Text style={eventAlertStyles.alertBtnText}>Cerrar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+        <ScrollView
           contentContainerStyle={{ alignItems: "center", width: "100%" }}
-        > */}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>{t('home.welcome_title', { appName })}</Text>
             <Text style={styles.subtitle}>{t('home.welcome_subtitle')}</Text>
@@ -689,40 +786,7 @@ const Dashboard = ({ navigation }: any) => {
             </View>
           )}
           <View style={{ marginBottom: 40 }} />
-
-          {/* --- BANNER DE NOTIFICACIONES --- */}
-          <View style={styles.notificationsBanner}>
-            <Text style={styles.bannerTitle}>{t('home.event_requests')}</Text>
-            {notifications.length > 0 ? (
-              notifications.map((notif) => (
-                <TouchableOpacity
-                  key={notif.id}
-                  style={styles.notificationItem}
-                  onPress={() => handleOpenNotification(notif)}
-                >
-                  <Ionicons name="notifications" size={24} color={bg_primary} />
-                  <View style={styles.notificationTextContainer}>
-                    <Text style={styles.notificationTitle}>
-                      {notif.eventName}
-                    </Text>
-                    <Text style={styles.notificationDate}>{notif.date}</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward-outline"
-                    size={24}
-                    color="#ccc"
-                  />
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={styles.noNotificationsText}>
-                {t('home.no_pending_requests')}
-              </Text>
-            )}
-          </View>
-
-          <ConnectionGlobe status={status} onPress={handleConnection} />
-        {/* </ScrollView> */}
+        </ScrollView>
         {renderNotificationModal()}
         {/* Bottom Sheet solo si está conectado */}
         {status === 'connected' && (
@@ -1062,6 +1126,87 @@ const bottomSheetStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+});
+
+const eventAlertStyles = StyleSheet.create({
+  alertContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 200,
+  },
+  alertBox: {
+    backgroundColor: color_white,
+    borderRadius: 18,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: color_info,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
+  },
+  alertTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: bg_primary,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  alertText: {
+    fontSize: 15,
+    color: '#444',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  progressBarContainer: {
+    width: '100%',
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressBarBg: {
+    flex: 1,
+    height: 10,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBarFg: {
+    height: 10,
+    borderRadius: 6,
+  },
+  progressText: {
+    fontSize: 13,
+    color: '#444',
+    fontWeight: 'bold',
+    minWidth: 36,
+    textAlign: 'right',
+  },
+  alertBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+  },
+  alertBtn: {
+    flex: 1,
+    marginHorizontal: 6,
+    backgroundColor: color_info,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  alertBtnText: {
+    color: color_white,
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 
