@@ -7,6 +7,7 @@ import ShareMusician from '../features/pages/event/ShareMusician';
 import RequestList from '../features/pages/event/RequestList';
 import RequestDetail from '../features/pages/event/RequestDetail';
 import { Profile } from '../../screens/profile/Profile';
+import EditProfile from '../features/Home/Profile/EditProfile';
 import SettingsScreen from '../../screens/settings/SettingsScreen';
 import Maps from '../features/pages/Maps/MapsMovil';
 import EventListScreen from '../../screens/events/EventList';
@@ -24,18 +25,15 @@ const Tab = createBottomTabNavigator();
 
 interface MainTabsProps {
   user: Token;
-  activeScreen: string;
-  setActiveScreen: (screen: string) => void;
 }
 
 /**
  * MainTabs ahora usa el BottomTabNavigator de React Navigation para una navegación más robusta y eficiente.
  * El sidebar usa el navigation del stack/tab para evitar errores y mantener el historial correctamente.
  */
-const MainTabs: React.FC<MainTabsProps> = ({ user, activeScreen, setActiveScreen }) => {
+const MainTabs: React.FC<MainTabsProps> = ({ user }) => {
   const navigation = useNavigation();
-  const { openSidebar } = useSidebar();
-  // El estado activeScreen y setActiveScreen ahora vienen de props
+  const { openSidebar, activeScreen } = useSidebar();
 
   // Definir los componentes de cada pantalla
   const screenComponents: { [key: string]: React.ComponentType<any> } = {
@@ -46,16 +44,9 @@ const MainTabs: React.FC<MainTabsProps> = ({ user, activeScreen, setActiveScreen
     'RequestDetail': RequestDetail,
     'EventList': EventListScreen,
     'Profile': Profile,
+    'EditProfile': EditProfile,
     'Settings': SettingsScreen,
     'Maps': Maps,
-  };
-
-  // Handler para navegación desde el sidebar
-  const handleSidebarNavigate = (route: string) => {
-    if (screenComponents[route]) {
-      setActiveScreen(route);
-    }
-    // Si es logout, el sidebar ya lo maneja
   };
 
   // Botón flotante para abrir el sidebar

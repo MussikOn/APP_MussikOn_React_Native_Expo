@@ -41,19 +41,25 @@ const resources = {
   es: { translation: es },
 };
 
-i18n
-  .use(LANGUAGE_DETECTOR as any)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: 'es',
-    debug: __DEV__,
-    interpolation: {
-      escapeValue: false, // React ya escapa por defecto
-    },
-    react: {
-      useSuspense: false, // Necesario para React Native
-    },
-  });
+// Solo inicializar si no está ya inicializado
+if (!i18n.isInitialized) {
+  i18n
+    .use(LANGUAGE_DETECTOR as any)
+    .use(initReactI18next)
+    .init({
+      resources,
+      fallbackLng: 'es',
+      debug: false, // Desactivar logs de debug
+      interpolation: {
+        escapeValue: false, // React ya escapa por defecto
+      },
+      react: {
+        useSuspense: false, // Necesario para React Native
+      },
+      // Configuraciones adicionales para reducir logs
+      saveMissing: false, // No guardar claves faltantes
+      missingKeyHandler: false, // No mostrar logs de claves faltantes
+    });
+}
 
 export default i18n; 

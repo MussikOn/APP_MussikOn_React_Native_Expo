@@ -78,13 +78,11 @@ function AppContent() {
   const scaleAnim = new Animated.Value(0.8);
   const { t } = useTranslation();
   const { user, refreshUser } = useUser();
-  const { sidebarVisible, openSidebar, closeSidebar } = useSidebar();
+  const { sidebarVisible, openSidebar, closeSidebar, setActiveScreen } = useSidebar();
 
   // Crear un ref global para la navegación
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
 
-  // Estado global para la pantalla activa de MainTabs
-  const [mainTabsScreen, setMainTabsScreen] = useState('Dashboard');
   // Handler global para navegación desde el sidebar
   const handleSidebarNavigate = (route: string) => {
     closeSidebar();
@@ -96,7 +94,7 @@ function AppContent() {
       return;
     }
     // Si hay usuario, permitir navegación privada
-    setMainTabsScreen(route);
+    setActiveScreen(route);
     if (navigationRef.current?.getCurrentRoute()?.name !== 'MainTabs') {
       navigationRef.current?.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     }
@@ -257,7 +255,7 @@ function AppContent() {
           {user && (
             <Stack.Screen 
               name="MainTabs" 
-              children={() => <MainTabs user={user} activeScreen={mainTabsScreen} setActiveScreen={setMainTabsScreen} />} 
+              children={() => <MainTabs user={user} />} 
               options={{ 
                 headerShown: false,
                 gestureEnabled: false,

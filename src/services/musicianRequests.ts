@@ -1,15 +1,17 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { URL_API } from '../utils/ENV';
 
 // Configurar la URL base del API
-// Para desarrollo local, usar la IP de tu máquina en lugar de localhost
-const API_BASE_URL = 'http://192.168.1.100:3000'; // Cambiar por tu IP local
+// El backend corre en puerto 10000 según ENV.ts
+// Cambiar la IP según tu configuración local
+const API_BASE_URL = 'http://192.168.100.101:1000'; // Cambiar por tu IP local
 // Alternativas comunes:
-// const API_BASE_URL = 'http://10.0.2.2:3000'; // Para Android Emulator
-// const API_BASE_URL = 'http://localhost:3000'; // Para iOS Simulator
+// const API_BASE_URL = 'http://10.0.2.2:10000'; // Para Android Emulator
+// const API_BASE_URL = 'http://localhost:10000'; // Para iOS Simulator
 
-// Modo de prueba - cambiar a true para simular el backend
-const DEMO_MODE = true;
+// Modo de prueba - cambiar a false para conectar con el backend real
+const DEMO_MODE = true; // Cambiar a false para conectar con el backend real
 
 export interface MusicianRequest {
   id: string;
@@ -96,19 +98,39 @@ const generateDemoData = () => {
         eventName: 'Boda de María y Carlos',
         eventType: 'otro',
         eventDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        startTime: '16:00',
-        endTime: '22:00',
-        location: 'Hotel Barceló, Santo Domingo',
+        startTime: '18:00',
+        endTime: '23:00',
+        location: 'Hotel Santo Domingo',
         instrumentType: 'Guitarra',
-        eventDescription: 'Ceremonia y recepción de boda',
+        eventDescription: 'Boda con música en vivo',
         calculatedPrice: 3500,
         status: 'musician_found',
         assignedMusicianId: 'musician-1',
         interestedMusicians: ['musician-1', 'musician-2'],
-        searchExpiryTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        searchExpiryTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
+      {
+        id: 'demo-3',
+        organizerId: 'user-1',
+        organizerName: 'Juan Pérez',
+        eventName: 'Cumpleaños de Ana',
+        eventType: 'otro',
+        eventDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: '20:00',
+        endTime: '02:00',
+        location: 'Casa de Ana',
+        instrumentType: 'DJ',
+        eventDescription: 'Fiesta de cumpleaños',
+        calculatedPrice: 2000,
+        status: 'completed',
+        assignedMusicianId: 'musician-3',
+        interestedMusicians: ['musician-3'],
+        searchExpiryTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      }
     ];
 
     demoResponses = [
@@ -118,40 +140,40 @@ const generateDemoData = () => {
         musicianId: 'musician-1',
         musicianName: 'Carlos Rodríguez',
         status: 'accepted',
-        message: 'Hola, estoy disponible para tocar en tu boda. Tengo experiencia en eventos similares.',
+        message: 'Me encantaría tocar en tu boda. Tengo experiencia en eventos similares.',
         proposedPrice: 3200,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       },
       {
         id: 'response-2',
         requestId: 'demo-2',
         musicianId: 'musician-2',
-        musicianName: 'Ana Martínez',
+        musicianName: 'María González',
         status: 'pending',
-        message: 'Me interesa participar en tu evento. ¿Podemos discutir los detalles?',
-        proposedPrice: 3000,
-        createdAt: new Date().toISOString(),
-      },
+        message: 'Hola, estoy disponible para tu evento. ¿Podríamos hablar sobre los detalles?',
+        proposedPrice: 3800,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      }
     ];
   }
 };
 
-// Configurar axios con interceptores para manejar tokens
+// Configurar axios con interceptores
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000, // Aumentar timeout para conexiones lentas
+  timeout: 10000,
 });
 
 // Interceptor para agregar token de autenticación
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem('userToken');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error getting token from AsyncStorage:', error);
+      console.error('Error getting token:', error);
     }
     return config;
   },
@@ -160,36 +182,27 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor para manejar errores de respuesta
+// Interceptor para manejar errores
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
     console.error('API Error:', error);
-    
-    if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-      console.error('Network Error - Backend no disponible');
-      // Puedes mostrar un mensaje más específico aquí
-    }
-    
-    if (error.response?.status === 401) {
-      // Token expirado, redirigir a login
-      console.log('Token expirado');
-    }
     return Promise.reject(error);
   }
 );
 
-export const musicianRequestsAPI = {
+const musicianRequestsAPI = {
   // Crear nueva solicitud de músico
   async createRequest(data: CreateMusicianRequestData): Promise<MusicianRequest> {
     if (DEMO_MODE) {
-      // Simular delay de red
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const newRequest: MusicianRequest = {
         id: `demo-${requestCounter++}`,
         organizerId: 'user-1',
-        organizerName: 'Usuario Demo',
+        organizerName: 'Juan Pérez',
         eventName: data.eventName,
         eventType: data.eventType as any,
         eventDate: data.eventDate.toISOString(),
@@ -199,7 +212,7 @@ export const musicianRequestsAPI = {
         instrumentType: data.instrumentType,
         eventDescription: data.eventDescription,
         flyerUrl: data.flyerImage,
-        calculatedPrice: data.eventType === 'culto' ? 2500 : data.eventType === 'campana_dentro_templo' ? 3000 : 3500,
+        calculatedPrice: Math.floor(Math.random() * 2000) + 1500, // Precio aleatorio entre 1500-3500
         status: 'searching_musician',
         interestedMusicians: [],
         searchExpiryTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -212,59 +225,20 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const formData = new FormData();
-      
-      // Agregar datos del formulario
-      formData.append('eventName', data.eventName);
-      formData.append('eventType', data.eventType);
-      formData.append('eventDate', data.eventDate.toISOString());
-      formData.append('startTime', data.startTime);
-      formData.append('endTime', data.endTime);
-      formData.append('location', data.location);
-      formData.append('instrumentType', data.instrumentType);
-      formData.append('eventDescription', data.eventDescription);
-
-      // Agregar imagen si existe
-      if (data.flyerImage) {
-        const imageUri = data.flyerImage;
-        const imageName = imageUri.split('/').pop() || 'flyer.jpg';
-        
-        formData.append('flyerImage', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: imageName,
-        } as any);
-      }
-
-      console.log('Enviando solicitud a:', `${API_BASE_URL}/api/musician-requests`);
-      console.log('Datos del formulario:', data);
-
-      const response = await api.post('/api/musician-requests', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
+      const response = await api.post('/events/request-musician', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating musician request:', error);
+      console.error('Error creating request:', error);
       
-      // Manejo específico de errores de red
       if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
-        throw new Error('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
-      }
-      
-      if (error.response) {
-        // Error del servidor
-        const message = error.response.data?.message || 'Error del servidor';
-        throw new Error(message);
+        throw new Error('No se pudo conectar con el servidor.');
       }
       
       throw error;
     }
   },
 
-  // Obtener lista de solicitudes del usuario
+  // Obtener solicitudes del usuario
   async getUserRequests(): Promise<MusicianRequest[]> {
     if (DEMO_MODE) {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -273,7 +247,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const response = await api.get('/api/musician-requests/user');
+      const response = await api.get('/events/my-pending');
       return response.data;
     } catch (error: any) {
       console.error('Error fetching user requests:', error);
@@ -299,7 +273,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const response = await api.get(`/api/musician-requests/${requestId}`);
+      const response = await api.get(`/events/${requestId}`);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching request:', error);
@@ -325,7 +299,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      await api.patch(`/api/musician-requests/${requestId}/cancel`);
+      await api.patch(`/events/${requestId}/cancel`);
     } catch (error: any) {
       console.error('Error canceling request:', error);
       
@@ -351,7 +325,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const response = await api.patch(`/api/musician-requests/${requestId}/resend`);
+      const response = await api.patch(`/events/${requestId}/resend`);
       return response.data;
     } catch (error: any) {
       console.error('Error resending request:', error);
@@ -373,10 +347,10 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const response = await api.get(`/api/musician-requests/${requestId}/responses`);
+      const response = await api.get(`/events/${requestId}/responses`);
       return response.data;
     } catch (error: any) {
-      console.error('Error fetching request responses:', error);
+      console.error('Error fetching responses:', error);
       
       if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
         throw new Error('No se pudo conectar con el servidor.');
@@ -393,18 +367,18 @@ export const musicianRequestsAPI = {
       const response = demoResponses.find(r => r.id === responseId);
       if (response) {
         response.status = 'accepted';
-        // Actualizar el estado de la solicitud
         const request = demoRequests.find(r => r.id === response.requestId);
         if (request) {
           request.status = 'musician_found';
           request.assignedMusicianId = response.musicianId;
+          request.updatedAt = new Date().toISOString();
         }
       }
       return;
     }
 
     try {
-      await api.patch(`/api/musician-requests/responses/${responseId}/accept`);
+      await api.post(`/events/responses/${responseId}/accept`);
     } catch (error: any) {
       console.error('Error accepting response:', error);
       
@@ -428,7 +402,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      await api.patch(`/api/musician-requests/responses/${responseId}/decline`);
+      await api.post(`/events/responses/${responseId}/decline`);
     } catch (error: any) {
       console.error('Error declining response:', error);
       
@@ -440,7 +414,7 @@ export const musicianRequestsAPI = {
     }
   },
 
-  // Obtener solicitudes disponibles para músicos
+  // Obtener solicitudes disponibles (para músicos)
   async getAvailableRequests(): Promise<MusicianRequest[]> {
     if (DEMO_MODE) {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -449,7 +423,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const response = await api.get('/api/musician-requests/available');
+      const response = await api.get('/events/available-requests');
       return response.data;
     } catch (error: any) {
       console.error('Error fetching available requests:', error);
@@ -486,7 +460,7 @@ export const musicianRequestsAPI = {
     }
 
     try {
-      const response = await api.post(`/api/musician-requests/${requestId}/responses`, data);
+      const response = await api.post(`/events/${requestId}/respond`, data);
       return response.data;
     } catch (error: any) {
       console.error('Error responding to request:', error);

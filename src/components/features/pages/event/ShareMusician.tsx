@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View, Alert, StyleSheet } from "react-native";
-import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
-import { bg_dark, bg_primary, bg_white, color_primary } from '@styles/Styles';
+import { LinearGradient } from 'expo-linear-gradient';
 import MusicianRequestForm from '@components/forms/MusicianRequestForm';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useSidebar } from '@contexts/SidebarContext';
 import musicianRequestsAPI, { CreateMusicianRequestData } from '@services/musicianRequests';
 
 interface MusicianRequestFormValues {
@@ -18,7 +19,9 @@ interface MusicianRequestFormValues {
   flyerImage?: string;
 }
 
-const ShareMusician = ({ navigation }: any) => {
+const ShareMusician = () => {
+  const navigation = useNavigation();
+  const { setActiveScreen } = useSidebar();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (values: MusicianRequestFormValues, calculatedPrice: number) => {
@@ -48,10 +51,8 @@ const ShareMusician = ({ navigation }: any) => {
           {
             text: 'Ver Mis Solicitudes',
             onPress: () => {
-              // Navegar a la lista de solicitudes
-              if (navigation) {
-                navigation.navigate('EventList');
-              }
+              // Usar el sistema del sidebar para navegar
+              setActiveScreen('RequestList');
             }
           },
           {
@@ -87,10 +88,13 @@ const ShareMusician = ({ navigation }: any) => {
   };
 
   return (
-    <>
-      <ScrollView style={styles.container}>
-        <AnimatedBackground />
-        
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.gradientBackground}
+      />
+      
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Solicitar Músico</Text>
@@ -101,93 +105,46 @@ const ShareMusician = ({ navigation }: any) => {
 
         {/* Formulario */}
         <View style={styles.formContainer}>
-          <MusicianRequestForm 
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
-        </View>
-
-        {/* Información adicional */}
-        <View style={styles.infoContainer}>
-          <View style={styles.infoCard}>
-            <Ionicons name="information-circle" size={24} color={color_primary} />
-            <Text style={styles.infoText}>
-              Los músicos recibirán tu solicitud y podrán responder con sus propuestas.
-            </Text>
-          </View>
-          
-          <View style={styles.infoCard}>
-            <Ionicons name="time" size={24} color={color_primary} />
-            <Text style={styles.infoText}>
-              El precio se calcula automáticamente según el tipo de evento y duración.
-            </Text>
-          </View>
-
-          <View style={styles.infoCard}>
-            <Ionicons name="shield-checkmark" size={24} color={color_primary} />
-            <Text style={styles.infoText}>
-              Todas las solicitudes son verificadas y procesadas de forma segura.
-            </Text>
-          </View>
+          <MusicianRequestForm onSubmit={handleSubmit} isLoading={isLoading} />
         </View>
       </ScrollView>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    alignItems: 'center',
   },
   title: {
-    color: bg_primary,
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#fff',
     marginBottom: 8,
   },
   subtitle: {
-    color: '#666',
     fontSize: 16,
-    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 22,
   },
   formContainer: {
-    flex: 1,
-  },
-  infoContainer: {
     padding: 20,
     paddingTop: 0,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  infoText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
   },
 });
 

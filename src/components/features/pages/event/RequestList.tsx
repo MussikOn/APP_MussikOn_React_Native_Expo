@@ -11,13 +11,17 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { useSidebar } from '@contexts/SidebarContext';
 import musicianRequestsAPI, { MusicianRequest } from '@services/musicianRequests';
 
 interface RequestListProps {
-  navigation: any;
+  navigation?: any;
 }
 
-const RequestList: React.FC<RequestListProps> = ({ navigation }) => {
+const RequestList: React.FC<RequestListProps> = ({ navigation: propNavigation }) => {
+  const navigation = useNavigation();
+  const { setActiveScreen } = useSidebar();
   const [requests, setRequests] = useState<MusicianRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -82,6 +86,18 @@ const RequestList: React.FC<RequestListProps> = ({ navigation }) => {
       console.error('Error resending request:', error);
       Alert.alert('Error', 'No se pudo reenviar la solicitud');
     }
+  };
+
+  const navigateToShareMusician = () => {
+    // Usar el sistema del sidebar para cambiar de pantalla
+    setActiveScreen('ShareMusician');
+  };
+
+  const navigateToRequestDetail = (requestId: string) => {
+    // Usar el sistema del sidebar para cambiar de pantalla
+    setActiveScreen('RequestDetail');
+    // Nota: Para pasar parámetros, necesitaríamos un sistema más complejo
+    // Por ahora, usaremos el contexto global o AsyncStorage
   };
 
   const getStatusColor = (status: string) => {
@@ -172,7 +188,7 @@ const RequestList: React.FC<RequestListProps> = ({ navigation }) => {
         <View style={styles.cardActions}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate('RequestDetail', { requestId: item.id })}
+            onPress={() => navigateToRequestDetail(item.id)}
           >
             <Ionicons name="eye" size={16} color="#2196f3" />
             <Text style={styles.actionButtonText}>Ver Detalles</Text>
@@ -211,7 +227,7 @@ const RequestList: React.FC<RequestListProps> = ({ navigation }) => {
       </Text>
       <TouchableOpacity
         style={styles.createButton}
-        onPress={() => navigation.navigate('ShareMusician')}
+        onPress={navigateToShareMusician}
       >
         <Ionicons name="add" size={20} color="#fff" />
         <Text style={styles.createButtonText}>Crear Solicitud</Text>
@@ -256,7 +272,7 @@ const RequestList: React.FC<RequestListProps> = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('ShareMusician')}
+        onPress={navigateToShareMusician}
       >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>

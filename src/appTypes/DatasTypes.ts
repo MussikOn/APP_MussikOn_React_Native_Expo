@@ -8,6 +8,8 @@ export type RootStackParamList = {
   Dashboard: undefined;
   CreateEvent: undefined;
   ShareMusician: undefined;
+  RequestList: undefined;
+  RequestDetail: { requestId: string };
   EventList: undefined;
   Profile: undefined;
   Settings: undefined;

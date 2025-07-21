@@ -92,6 +92,8 @@
     "home": "Home",
     "create_event": "Create Event",
     "request_musician": "Request Musician",
+    "my_requests": "My Requests",
+    "event_creator": "Event Creator",
     "my_events": "My Events",
     "requests": "Requests",
     "events": "Events",

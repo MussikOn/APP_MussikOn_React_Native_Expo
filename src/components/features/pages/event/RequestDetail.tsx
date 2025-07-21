@@ -11,26 +11,32 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import musicianRequestsAPI, { MusicianRequest, MusicianRequestResponse } from '@services/musicianRequests';
 
 interface RequestDetailProps {
-  route: {
+  route?: {
     params: {
       requestId: string;
     };
   };
-  navigation: any;
+  navigation?: any;
 }
 
-const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
-  const { requestId } = route.params;
+const RequestDetail: React.FC<RequestDetailProps> = ({ route: propRoute, navigation: propNavigation }) => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { requestId } = (route.params as any) || propRoute?.params || { requestId: '' };
+  
   const [request, setRequest] = useState<MusicianRequest | null>(null);
   const [responses, setResponses] = useState<MusicianRequestResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadRequestDetails();
+    if (requestId) {
+      loadRequestDetails();
+    }
   }, [requestId]);
 
   const loadRequestDetails = async () => {
@@ -213,7 +219,11 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              if (navigation) {
+                (navigation as any).goBack();
+              }
+            }}
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>

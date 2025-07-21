@@ -423,22 +423,20 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
   const totalSteps = 6;
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permisos', 'Se necesitan permisos para acceder a la galería');
-      return;
-    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setFlyerImage(result.assets[0].uri);
-      setFormData(prev => ({ ...prev, flyerImage: result.assets[0].uri }));
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setFlyerImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen');
     }
   };
 
