@@ -4,6 +4,7 @@ import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 import { bg_dark, bg_primary, bg_white, color_primary } from '@styles/Styles';
 import MusicianRequestForm from '@components/forms/MusicianRequestForm';
 import { Ionicons } from '@expo/vector-icons';
+import musicianRequestsAPI, { CreateMusicianRequestData } from '@services/musicianRequests';
 
 interface MusicianRequestFormValues {
   eventName: string;
@@ -24,18 +25,25 @@ const ShareMusician = ({ navigation }: any) => {
     setIsLoading(true);
     
     try {
-      // Aquí iría la lógica para enviar la solicitud al backend
-      console.log('Solicitud de músico:', {
-        ...values,
-        calculatedPrice,
-      });
+      // Preparar datos para el backend
+      const requestData: CreateMusicianRequestData = {
+        eventName: values.eventName,
+        eventType: values.eventType,
+        eventDate: values.eventDate,
+        startTime: values.startTime,
+        endTime: values.endTime,
+        location: values.location,
+        instrumentType: values.instrumentType,
+        eventDescription: values.eventDescription,
+        flyerImage: values.flyerImage,
+      };
 
-      // Simular envío al backend
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Enviar solicitud al backend
+      const createdRequest = await musicianRequestsAPI.createRequest(requestData);
 
       Alert.alert(
-        '¡Solicitud Creada!',
-        `Tu solicitud de músico ha sido creada exitosamente.\n\nPrecio calculado: RD$ ${calculatedPrice.toLocaleString()}`,
+        '¡Solicitud Creada Exitosamente!',
+        `Tu solicitud de músico ha sido creada y está siendo procesada.\n\nPrecio calculado: RD$ ${calculatedPrice.toLocaleString()}\n\nID de solicitud: ${createdRequest.id}`,
         [
           {
             text: 'Ver Mis Solicitudes',
@@ -48,15 +56,29 @@ const ShareMusician = ({ navigation }: any) => {
           },
           {
             text: 'Crear Otra',
-            style: 'cancel'
+            style: 'cancel',
+            onPress: () => {
+              // Resetear el formulario para crear otra solicitud
+              // Esto se manejará en el formulario
+            }
           }
         ]
       );
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error creating request:', error);
+      
+      let errorMessage = 'No se pudo crear la solicitud. Por favor, intenta de nuevo.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       Alert.alert(
-        'Error',
-        'No se pudo crear la solicitud. Por favor, intenta de nuevo.',
+        'Error al Crear Solicitud',
+        errorMessage,
         [{ text: 'OK' }]
       );
     } finally {
@@ -98,6 +120,13 @@ const ShareMusician = ({ navigation }: any) => {
             <Ionicons name="time" size={24} color={color_primary} />
             <Text style={styles.infoText}>
               El precio se calcula automáticamente según el tipo de evento y duración.
+            </Text>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Ionicons name="shield-checkmark" size={24} color={color_primary} />
+            <Text style={styles.infoText}>
+              Todas las solicitudes son verificadas y procesadas de forma segura.
             </Text>
           </View>
         </View>

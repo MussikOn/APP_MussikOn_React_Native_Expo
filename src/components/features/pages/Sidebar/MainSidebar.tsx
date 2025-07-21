@@ -47,7 +47,8 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
           { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
           { icon: 'add-circle', label: t('sidebar.create_event'), route: 'CreateEvent', color: color_success },
           { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
-          { icon: 'list', label: t('sidebar.events'), route: 'EventList', color: color_info },
+          { icon: 'list', label: t('sidebar.my_requests'), route: 'RequestList', color: color_info },
+          { icon: 'calendar', label: t('sidebar.events'), route: 'EventList', color: color_info },
           { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
           { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
           { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
@@ -55,7 +56,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
       : [
           { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
           { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
-          { icon: 'list', label: t('sidebar.events'), route: 'EventList', color: color_info },
+          { icon: 'list', label: t('sidebar.my_requests'), route: 'RequestList', color: color_info },
           { icon: 'calendar', label: t('sidebar.agenda'), route: 'Maps' },
           { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
           { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
@@ -98,41 +99,49 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
           />
         </View>
         <Text style={styles.name}>{globalUser?.name || t('sidebar.user')}</Text>
-        <Text style={styles.email}>{globalUser?.userEmail || ''}</Text>
+        <Text style={styles.email}>{globalUser?.userEmail || t('sidebar.email')}</Text>
+        <View style={styles.roleBadge}>
+          <Text style={styles.roleText}>
+            {globalUser?.roll === 'eventCreator' ? t('sidebar.event_creator') : t('sidebar.musician')}
+          </Text>
+        </View>
       </LinearGradient>
-      {/* Menú con ScrollView */}
-      <ScrollView style={styles.menuScroll} contentContainerStyle={styles.menuContainer} showsVerticalScrollIndicator={false}>
-        {menuItems().map((item, idx) => (
+
+      {/* Menú de navegación */}
+      <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
+        {menuItems().map((item, index) => (
           <Pressable
-            key={item.label}
+            key={index}
             style={({ pressed }) => [
               styles.menuItem,
-              item.route === 'Logout' ? styles.menuItemDanger : styles.menuItemOutline,
               pressed && styles.menuItemPressed,
-              idx === 0 && styles.menuItemFirst,
-              idx === menuItems().length - 1 && styles.menuItemLast,
+              item.color && { borderLeftColor: item.color, borderLeftWidth: 4 }
             ]}
-            android_ripple={{ color: color_primary + '11' }}
             onPress={() => handleMenuPress(item.route)}
           >
-            <Ionicons name={item.icon as any} size={24} color={item.route === 'Logout' ? btn_danger : color_primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, item.route === 'Logout' ? { color: btn_danger } : { color: color_primary }]}>{item.label}</Text>
-            {/* Badge para opciones nuevas */}
-            {(item.route === 'ShareMusician' || item.route === 'EventList') && globalUser && (
-              <View style={styles.badgeNew}>
-                <Text style={styles.badgeNewText}>{t('sidebar.new')}</Text>
-              </View>
-            )}
+            <View style={styles.menuItemContent}>
+              <Ionicons 
+                name={item.icon as any} 
+                size={24} 
+                color={item.color || color_secondary} 
+              />
+              <Text style={[
+                styles.menuItemText,
+                item.color && { color: item.color, fontWeight: '600' }
+              ]}>
+                {item.label}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={color_secondary} />
           </Pressable>
         ))}
-        <View style={{ height: Platform.OS === 'ios' ? 60 : 40 }} />
       </ScrollView>
-      {/* Separador */}
-      <View style={styles.separator} />
-      {/* Botón cerrar flotante */}
-      <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
-        <Ionicons name="close" size={32} color={color_secondary} />
-      </TouchableOpacity>
+
+      {/* Footer con información de la app */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>MussikOn v1.0</Text>
+        <Text style={styles.footerSubtext}>Conectando músicos y eventos</Text>
+      </View>
     </Animated.View>
   );
 };
@@ -145,165 +154,105 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: SCREEN_WIDTH * 0.8,
     backgroundColor: bg_white,
-    paddingTop: 0,
-    paddingHorizontal: 0,
-    zIndex: 99,
-    borderTopRightRadius: 36,
-    borderBottomRightRadius: 36,
-    elevation: 24,
-    shadowColor: color_primary,
-    shadowOpacity: 0.13,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 0,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1000,
   },
   headerContainer: {
+    padding: 20,
+    paddingTop: 40,
     alignItems: 'center',
-    paddingTop: 48,
-    paddingBottom: 32,
-    borderTopRightRadius: 36,
-    borderBottomLeftRadius: 60,
-    borderBottomRightRadius: 60,
-    elevation: 8,
-    shadowColor: color_primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
   },
   avatarWrapper: {
-    borderWidth: 4,
-    borderColor: color_white,
-    borderRadius: 50,
-    padding: 4,
-    marginBottom: 10,
-    backgroundColor: color_white,
-    elevation: 6,
-    shadowColor: color_primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 40,
   },
   name: {
-    color: color_white,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 6,
-    letterSpacing: 0.5,
-    textShadowColor: color_primary,
-    textShadowRadius: 8,
+    color: color_white,
+    marginBottom: 4,
   },
   email: {
-    color: color_white,
-    fontSize: 15,
-    opacity: 0.92,
-    marginTop: 2,
-    marginBottom: 2,
-    textShadowColor: color_primary,
-    textShadowRadius: 4,
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 12,
   },
-  menuScroll: {
-    flex: 1,
+  roleBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  roleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: color_white,
+    textTransform: 'uppercase',
   },
   menuContainer: {
-    paddingTop: 18,
-    paddingHorizontal: 18,
-    paddingBottom: 18,
+    flex: 1,
+    paddingTop: 20,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    minHeight: 54,
-    backgroundColor: color_white,
-    borderWidth: 2,
-    borderColor: color_primary,
-    elevation: 2,
-    shadowColor: color_primary,
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    position: 'relative',
-  },
-  menuItemOutline: {
-    backgroundColor: color_white,
-    borderColor: color_primary,
-  },
-  menuItemDanger: {
-    backgroundColor: color_white,
-    borderColor: btn_danger,
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   menuItemPressed: {
-    backgroundColor: color_info + '11',
-    shadowOpacity: 0.16,
-    transform: [{ scale: 0.98 }],
+    backgroundColor: '#f8f9fa',
   },
-  menuItemFirst: {
-    marginTop: 8,
-  },
-  menuItemLast: {
-    marginBottom: 8,
-  },
-  menuIcon: {
-    marginRight: 18,
-    opacity: 0.98,
-  },
-  menuText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 0.2,
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
-  badgeNew: {
-    backgroundColor: color_info,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    position: 'absolute',
-    top: 8,
-    right: 12,
-    zIndex: 2,
+  menuItemText: {
+    fontSize: 16,
+    color: color_secondary,
+    marginLeft: 16,
   },
-  badgeNewText: {
-    color: color_white,
-    fontSize: 10,
-    fontWeight: 'bold',
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    alignItems: 'center',
   },
-  separator: {
-    height: 1,
-    backgroundColor: color_secondary + '22',
-    marginHorizontal: 18,
-    marginVertical: 8,
-    borderRadius: 2,
+  footerText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: color_secondary,
+    marginBottom: 4,
   },
-  closeBtn: {
-    position: 'absolute',
-    top: 18,
-    right: 18,
-    backgroundColor: color_white,
-    borderRadius: 24,
-    padding: 10,
-    elevation: 8,
-    shadowColor: color_primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 2 },
+  footerSubtext: {
+    fontSize: 12,
+    color: '#999',
   },
 });
 
 export default MainSidebar;
-
-//
-// Cambios de diseño:
-// - Botones tipo outline/fill suaves, fondo blanco, borde color principal
-// - Icono a la izquierda, texto grande y legible, badge pequeño y discreto
-// - Feedback sutil, espaciado cómodo, contraste profesional
-// - ScrollView para menú
-// - Botón cerrar flotante y visible
-//

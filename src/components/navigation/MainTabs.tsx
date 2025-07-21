@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Dashboard from '../../screens/dashboard/Dashboard';
 import CreateEventScreen from '../features/pages/Maps/CreateEventScreen';
 import ShareMusician from '../features/pages/event/ShareMusician';
+import RequestList from '../features/pages/event/RequestList';
+import RequestDetail from '../features/pages/event/RequestDetail';
 import { Profile } from '../../screens/profile/Profile';
 import SettingsScreen from '../../screens/settings/SettingsScreen';
 import Maps from '../features/pages/Maps/MapsMovil';
@@ -40,6 +42,8 @@ const MainTabs: React.FC<MainTabsProps> = ({ user, activeScreen, setActiveScreen
     'Dashboard': Dashboard,
     'CreateEvent': CreateEventScreen,
     'ShareMusician': ShareMusician,
+    'RequestList': RequestList,
+    'RequestDetail': RequestDetail,
     'EventList': EventListScreen,
     'Profile': Profile,
     'Settings': SettingsScreen,
@@ -98,13 +102,16 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     width: 48,
     height: 48,
-    alignItems: 'center',
     justifyContent: 'center',
-    elevation: 8,
-    shadowColor: color_primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 
