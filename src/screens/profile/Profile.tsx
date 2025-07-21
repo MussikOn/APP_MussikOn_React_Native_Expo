@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { getData } from "@utils/functions";
+import { getData, getRoleDisplayName, getRoleIcon } from "@utils/functions";
 import { Token } from "@appTypes/DatasTypes";
 import { useTranslation } from 'react-i18next';
 import { useSidebar } from '@contexts/SidebarContext';
@@ -29,6 +29,10 @@ const Profile = () => {
 
   const handleEditProfile = () => {
     setActiveScreen('EditProfile');
+  };
+
+  const handleRequestMusician = () => {
+    setActiveScreen('ShareMusician');
   };
 
   if (!data) {
@@ -83,8 +87,8 @@ const Profile = () => {
               <Text style={styles.name}>{data.name} {data.lastName}</Text>
               <Text style={styles.email}>{data.userEmail}</Text>
               <View style={styles.roleContainer}>
-                <Ionicons name="person" size={16} color="#667eea" />
-                <Text style={styles.role}>{roll}</Text>
+                <Ionicons name={getRoleIcon(roll) as any} size={16} color="#667eea" />
+                <Text style={styles.role}>{getRoleDisplayName(roll)}</Text>
               </View>
             </View>
           </LinearGradient>
@@ -133,17 +137,7 @@ const Profile = () => {
         <View style={styles.actionsSection}>
           <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionCard}>
-              <LinearGradient
-                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
-                style={styles.actionGradient}
-              >
-                <Ionicons name="add-circle" size={24} color="#667eea" />
-                <Text style={styles.actionText}>Crear Evento</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionCard}>
+            <TouchableOpacity style={styles.actionCard} onPress={handleRequestMusician}>
               <LinearGradient
                 colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
                 style={styles.actionGradient}

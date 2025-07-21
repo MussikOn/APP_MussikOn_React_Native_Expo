@@ -16,6 +16,7 @@ import {
 } from '@styles/Styles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '@contexts/UserContext';
+import { getRoleDisplayName, canRequestMusicians, canViewEvents, canViewRequests } from '@utils/functions';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -41,27 +42,50 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
         { icon: 'person-add', label: t('sidebar.register'), route: 'Register', color: color_primary },
       ];
     }
-    // Si hay usuario, mostrar menú completo según rol
-    return globalUser.roll === 'eventCreator'
-      ? [
-          { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
-          { icon: 'add-circle', label: t('sidebar.create_event'), route: 'CreateEvent', color: color_success },
-          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
-          { icon: 'list', label: t('sidebar.my_requests'), route: 'RequestList', color: color_info },
-          { icon: 'calendar', label: t('sidebar.events'), route: 'EventList', color: color_info },
-          { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
-          { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
-          { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
-        ]
-      : [
-          { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
-          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
-          { icon: 'list', label: t('sidebar.my_requests'), route: 'RequestList', color: color_info },
-          { icon: 'calendar', label: t('sidebar.agenda'), route: 'Maps' },
-          { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
-          { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
-          { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
-        ];
+
+    // Menú base para todos los usuarios autenticados
+    const baseMenu = [
+      { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
+      { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
+      { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
+      { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
+    ];
+
+    // Agregar opciones específicas según permisos
+    const specificMenu = [];
+
+    // Solo mostrar "Solicitar Músico" si el usuario tiene permisos
+    if (canRequestMusicians(globalUser.roll)) {
+      specificMenu.push({
+        icon: 'person-add',
+        label: t('sidebar.request_musician'),
+        route: 'ShareMusician',
+        color: color_primary
+      });
+    }
+
+    // Solo mostrar "Mis Solicitudes" si el usuario tiene permisos
+    if (canViewRequests(globalUser.roll)) {
+      specificMenu.push({
+        icon: 'list',
+        label: t('sidebar.my_requests'),
+        route: 'RequestList',
+        color: color_info
+      });
+    }
+
+    // Solo mostrar "Eventos" si el usuario tiene permisos
+    if (canViewEvents(globalUser.roll)) {
+      specificMenu.push({
+        icon: 'calendar',
+        label: globalUser.roll === 'eventCreator' ? t('sidebar.events') : t('sidebar.agenda'),
+        route: globalUser.roll === 'eventCreator' ? 'EventList' : 'Maps',
+        color: color_info
+      });
+    }
+
+    // Combinar menú específico con menú base
+    return [...specificMenu, ...baseMenu];
   };
 
   React.useEffect(() => {
@@ -98,50 +122,43 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
             style={styles.avatar}
           />
         </View>
-        <Text style={styles.name}>{globalUser?.name || t('sidebar.user')}</Text>
-        <Text style={styles.email}>{globalUser?.userEmail || t('sidebar.email')}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>
-            {globalUser?.roll === 'eventCreator' ? t('sidebar.event_creator') : t('sidebar.musician')}
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>
+            {globalUser ? `${globalUser.name} ${globalUser.lastName}` : t('sidebar.user')}
+          </Text>
+          <Text style={styles.userRole}>
+            {globalUser ? getRoleDisplayName(globalUser.roll) : ''}
           </Text>
         </View>
       </LinearGradient>
 
-      {/* Menú de navegación */}
+      {/* Lista de menú */}
       <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
         {menuItems().map((item, index) => (
-          <Pressable
+          <TouchableOpacity
             key={index}
-            style={({ pressed }) => [
-              styles.menuItem,
-              pressed && styles.menuItemPressed,
-              item.color && { borderLeftColor: item.color, borderLeftWidth: 4 }
-            ]}
+            style={[styles.menuItem, item.color && { backgroundColor: item.color + '20' }]}
             onPress={() => handleMenuPress(item.route)}
+            activeOpacity={0.7}
           >
             <View style={styles.menuItemContent}>
               <Ionicons 
                 name={item.icon as any} 
                 size={24} 
-                color={item.color || color_secondary} 
+                color={item.color || color_white} 
               />
-              <Text style={[
-                styles.menuItemText,
-                item.color && { color: item.color, fontWeight: '600' }
-              ]}>
+              <Text style={[styles.menuItemText, item.color && { color: item.color }]}>
                 {item.label}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={color_secondary} />
-          </Pressable>
+            <Ionicons 
+              name="chevron-forward" 
+              size={20} 
+              color={item.color || color_white} 
+            />
+          </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Footer con información de la app */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>MussikOn v1.0</Text>
-        <Text style={styles.footerSubtext}>Conectando músicos y eventos</Text>
-      </View>
     </Animated.View>
   );
 };
@@ -149,83 +166,64 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
 const styles = StyleSheet.create({
   sidebar: {
     position: 'absolute',
-    left: 0,
     top: 0,
-    bottom: 0,
+    left: 0,
     width: SCREEN_WIDTH * 0.8,
+    height: '100%',
     backgroundColor: bg_white,
+    zIndex: 1000,
     shadowColor: '#000',
     shadowOffset: {
       width: 2,
       height: 0,
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    zIndex: 1000,
+    shadowRadius: 10,
+    elevation: 10,
   },
   headerContainer: {
-    padding: 20,
-    paddingTop: 40,
-    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
   },
   avatarWrapper: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderWidth: 3,
+    borderColor: color_white,
   },
-  avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 40,
+  userInfo: {
+    alignItems: 'center',
   },
-  name: {
-    fontSize: 20,
+  userName: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: color_white,
     marginBottom: 4,
   },
-  email: {
+  userRole: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 12,
-  },
-  roleBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  roleText: {
-    fontSize: 12,
-    fontWeight: '600',
     color: color_white,
-    textTransform: 'uppercase',
+    opacity: 0.9,
   },
   menuContainer: {
     flex: 1,
-    paddingTop: 20,
+    paddingHorizontal: 20,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  menuItemPressed: {
-    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   menuItemContent: {
     flexDirection: 'row',
@@ -234,24 +232,9 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: color_secondary,
-    marginLeft: 16,
-  },
-  footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
     fontWeight: '600',
-    color: color_secondary,
-    marginBottom: 4,
-  },
-  footerSubtext: {
-    fontSize: 12,
-    color: '#999',
+    color: color_white,
+    marginLeft: 16,
   },
 });
 
