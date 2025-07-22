@@ -4,9 +4,11 @@ import { useSocket } from '../../hooks/useSocket';
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { Token } from '@appTypes/DatasTypes';
+import { useTranslation } from 'react-i18next';
 
 
 const UseSocket = () => {
+  const { t } = useTranslation();
   const [user, setUser] = useState<Token | null>(null);
   useEffect(()=>{
     const DataUser = async () =>{
@@ -39,7 +41,7 @@ const UseSocket = () => {
   return (
     <View style={{ flex: 1, padding: 20 }}>
       <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
-        📬 Notificaciones:
+        {t('notifications.title')}
       </Text>
 
       {/* Lista de Notificaciones */}
@@ -56,8 +58,8 @@ const UseSocket = () => {
 
       {/* Botón para enviar notificación a otro usuario */}
       <Button
-        title="Enviar Notificación"
-        onPress={() => sendNotification(targetUserId, "Hola!", "¡Tienes un nuevo mensaje!")}
+        title={t('notifications.send_button')}
+        onPress={() => sendNotification(targetUserId, t('notifications.hello'), t('notifications.new_message'))}
       />
     </View>
   );

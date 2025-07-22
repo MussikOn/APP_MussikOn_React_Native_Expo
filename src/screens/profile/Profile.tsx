@@ -6,12 +6,16 @@ import { getData, getRoleDisplayName, getRoleIcon } from "@utils/functions";
 import { Token } from "@appTypes/DatasTypes";
 import { useTranslation } from 'react-i18next';
 import { useSidebar } from '@contexts/SidebarContext';
+import { useTheme } from '@contexts/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Profile = () => {
   const { t } = useTranslation();
   const { setActiveScreen } = useSidebar();
+  const { theme } = useTheme();
   const [data, setData] = useState<Token>();
   const [roll, setRoll] = useState("");
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,56 +43,59 @@ const Profile = () => {
     return (
       <View style={styles.loadingContainer}>
         <LinearGradient
-          colors={['#667eea', '#764ba2']}
+          colors={theme.gradients.primary}
           style={styles.gradientBackground}
         />
-        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+        <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>{t('common.loading')}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background.primary, paddingTop: insets.top }}>
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={theme.gradients.primary}
         style={styles.gradientBackground}
       />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Mi Perfil</Text>
-          <Text style={styles.headerSubtitle}>
-            Gestiona tu información personal
+          <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>{t('profile.my_profile')}</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.colors.text.primary }]}>
+            {t('profile.manage_personal_info')}
           </Text>
         </View>
 
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: theme.colors.background.card }]}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+            colors={[`${theme.colors.background.card}95`, `${theme.colors.background.card}90`]}
             style={styles.cardGradient}
           >
             <View style={styles.avatarSection}>
               <View style={styles.avatarContainer}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
+                <View style={[styles.avatar, { backgroundColor: theme.colors.primary[500] }]}>
+                  <Text style={[styles.avatarText, { color: theme.colors.text.inverse }]}>
                     {data.name.charAt(0).toUpperCase()}
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-                <Ionicons name="create" size={20} color="#667eea" />
-                <Text style={styles.editButtonText}>Editar</Text>
+              <TouchableOpacity 
+                style={[styles.editButton, { backgroundColor: `${theme.colors.primary[500]}10` }]} 
+                onPress={handleEditProfile}
+              >
+                <Ionicons name="create" size={20} color={theme.colors.primary[500]} />
+                <Text style={[styles.editButtonText, { color: theme.colors.primary[500] }]}>{t('profile.edit')}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.infoContainer}>
-              <Text style={styles.name}>{data.name} {data.lastName}</Text>
-              <Text style={styles.email}>{data.userEmail}</Text>
+              <Text style={[styles.name, { color: theme.colors.text.primary }]}>{data.name} {data.lastName}</Text>
+              <Text style={[styles.email, { color: theme.colors.text.secondary }]}>{data.userEmail}</Text>
               <View style={styles.roleContainer}>
-                <Ionicons name={getRoleIcon(roll) as any} size={16} color="#667eea" />
-                <Text style={styles.role}>{getRoleDisplayName(roll)}</Text>
+                <Ionicons name={getRoleIcon(roll) as any} size={16} color={theme.colors.primary[500]} />
+                <Text style={[styles.role, { color: theme.colors.primary[500] }]}>{getRoleDisplayName(roll)}</Text>
               </View>
             </View>
           </LinearGradient>
@@ -96,38 +103,38 @@ const Profile = () => {
 
         {/* Stats Section */}
         <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Estadísticas</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>{t('profile.statistics')}</Text>
           <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
               <LinearGradient
-                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+                colors={[`${theme.colors.background.card}95`, `${theme.colors.background.card}90`]}
                 style={styles.statGradient}
               >
-                <Ionicons name="calendar" size={24} color="#667eea" />
-                <Text style={styles.statNumber}>0</Text>
-                <Text style={styles.statLabel}>Eventos Creados</Text>
+                <Ionicons name="calendar" size={24} color={theme.colors.primary[500]} />
+                <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>{t('profile.created_events')}</Text>
               </LinearGradient>
             </View>
 
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
               <LinearGradient
-                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+                colors={[`${theme.colors.background.card}95`, `${theme.colors.background.card}90`]}
                 style={styles.statGradient}
               >
-                <Ionicons name="musical-notes" size={24} color="#667eea" />
-                <Text style={styles.statNumber}>0</Text>
-                <Text style={styles.statLabel}>Músicos Conectados</Text>
+                <Ionicons name="musical-notes" size={24} color={theme.colors.primary[500]} />
+                <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>{t('profile.connected_musicians')}</Text>
               </LinearGradient>
             </View>
 
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
               <LinearGradient
-                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+                colors={[`${theme.colors.background.card}95`, `${theme.colors.background.card}90`]}
                 style={styles.statGradient}
               >
-                <Ionicons name="star" size={24} color="#667eea" />
-                <Text style={styles.statNumber}>0</Text>
-                <Text style={styles.statLabel}>Calificación</Text>
+                <Ionicons name="star" size={24} color={theme.colors.primary[500]} />
+                <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>{t('profile.rating')}</Text>
               </LinearGradient>
             </View>
           </View>
@@ -135,15 +142,18 @@ const Profile = () => {
 
         {/* Quick Actions */}
         <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>{t('profile.quick_actions')}</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionCard} onPress={handleRequestMusician}>
+            <TouchableOpacity 
+              style={[styles.actionCard, { backgroundColor: theme.colors.background.card }]} 
+              onPress={handleRequestMusician}
+            >
               <LinearGradient
-                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+                colors={[`${theme.colors.background.card}95`, `${theme.colors.background.card}90`]}
                 style={styles.actionGradient}
               >
-                <Ionicons name="person-add" size={24} color="#667eea" />
-                <Text style={styles.actionText}>Solicitar Músico</Text>
+                <Ionicons name="person-add" size={24} color={theme.colors.primary[500]} />
+                <Text style={[styles.actionText, { color: theme.colors.text.primary }]}>{t('profile.request_musician')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -174,7 +184,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 18,
-    color: '#fff',
     fontWeight: '600',
   },
   header: {
@@ -185,12 +194,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    opacity: 0.8,
   },
   profileCard: {
     margin: 20,
@@ -223,7 +231,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#667eea',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -231,18 +238,15 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
   },
   editButtonText: {
-    color: '#667eea',
     marginLeft: 4,
     fontSize: 14,
     fontWeight: '600',
@@ -253,12 +257,10 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   email: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 8,
   },
   roleContainer: {
@@ -267,7 +269,6 @@ const styles = StyleSheet.create({
   },
   role: {
     fontSize: 14,
-    color: '#667eea',
     marginLeft: 4,
     fontWeight: '600',
   },
@@ -278,7 +279,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 16,
   },
   statsContainer: {
@@ -306,12 +306,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginTop: 8,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
     marginTop: 4,
   },
@@ -343,7 +341,6 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: '#333',
     fontWeight: '600',
     marginTop: 8,
     textAlign: 'center',

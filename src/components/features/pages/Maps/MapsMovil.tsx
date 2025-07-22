@@ -24,6 +24,7 @@ import {
   color_danger,
   color_info,
 } from "@styles/Styles";
+import { useTranslation } from 'react-i18next';
 
 // ¡IMPORTANTE! Reemplaza esta clave con tu propia API Key de Google Maps con la API "Directions" habilitada.
 // ¡ADVERTENCIA DE SEGURIDAD! No expongas tu API Key directamente en el código.
@@ -62,6 +63,7 @@ interface RouteInfo {
 }
 
 export default function MapsMovil({ navigation }: any) {
+  const { t } = useTranslation();
   // Hook para obtener los márgenes seguros y evitar que los controles se superpongan con la barra de navegación.
   const insets = useSafeAreaInsets();
 
@@ -95,7 +97,7 @@ export default function MapsMovil({ navigation }: any) {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setErrorMsg(
-          "Permiso para acceder a la ubicación fue denegado. Esta función es necesaria para usar el mapa."
+          t('maps.permission_denied')
         );
         return;
       }
@@ -160,8 +162,8 @@ export default function MapsMovil({ navigation }: any) {
       "Ubicaciones confirmadas:",
       JSON.stringify(locationsArray, null, 2)
     );
-    Alert.alert("Actividad Agendada", "La ruta ha sido guardada con éxito.", [
-      { text: "OK", onPress: () => navigation.goBack() },
+    Alert.alert(t('maps.activity_scheduled'), t('maps.route_saved'), [
+      { text: t('common.ok'), onPress: () => navigation.goBack() },
     ]);
   };
 
@@ -216,7 +218,7 @@ export default function MapsMovil({ navigation }: any) {
     try {
       const url = `https://www.google.com/maps/search/?api=1&query=${end.latitude},${end.longitude}`;
       await Share.share({
-        message: `¡Te comparto la ubicación del evento! Haz clic aquí para verla en el mapa: ${url}`,
+        message: t('maps.share_location_message', { url }),
       });
     } catch (error: any) {
       Alert.alert(error.message);
@@ -229,7 +231,7 @@ export default function MapsMovil({ navigation }: any) {
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={bg_primary} />
         <Text style={styles.infoText}>
-          {errorMsg || "Obteniendo tu ubicación..."}
+          {errorMsg || t('maps.getting_location')}
         </Text>
       </View>
     );
@@ -335,22 +337,22 @@ export default function MapsMovil({ navigation }: any) {
           <View style={styles.selectionPanel}>
             <Text style={styles.selectionText}>
               {step === "set_start"
-                ? "Mueve el mapa y fija el Origen"
-                : "Ahora, mueve y fija el Destino"}
+                ? t('maps.move_and_set_origin')
+                : t('maps.move_and_set_destination')}
             </Text>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
               onPress={handleSetLocation}
             >
               <Text style={styles.buttonText}>
-                {step === "set_start" ? "Fijar Origen" : "Fijar Destino"}
+                {step === "set_start" ? t('maps.set_origin') : t('maps.set_destination')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
               onPress={handleReset}
             >
-              <Text style={styles.buttonText}>Cancelar</Text>
+              <Text style={styles.buttonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -364,7 +366,7 @@ export default function MapsMovil({ navigation }: any) {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Confirmar Ruta</Text>
+              <Text style={styles.modalTitle}>{t('maps.confirm_route')}</Text>
               <View style={styles.routeInfoContainer}>
                 <View style={styles.infoBox}>
                   <Ionicons
@@ -375,27 +377,27 @@ export default function MapsMovil({ navigation }: any) {
                   <Text style={styles.infoTextBold}>
                     {routeInfo?.distance.toFixed(1)} km
                   </Text>
-                  <Text style={styles.infoTextLabel}>Distancia</Text>
+                  <Text style={styles.infoTextLabel}>{t('maps.distance')}</Text>
                 </View>
                 <View style={styles.infoBox}>
                   <Ionicons name="time-outline" size={24} color={bg_primary} />
                   <Text style={styles.infoTextBold}>
                     {routeInfo?.duration.toFixed(0)} min
                   </Text>
-                  <Text style={styles.infoTextLabel}>Tiempo Aprox.</Text>
+                  <Text style={styles.infoTextLabel}>{t('maps.estimated_time')}</Text>
                 </View>
               </View>
               <TouchableOpacity
                 style={[styles.button, styles.confirmButton]}
                 onPress={handleConfirmRoute}
               >
-                <Text style={styles.buttonText}>Agendar y Finalizar</Text>
+                <Text style={styles.buttonText}>{t('maps.schedule_and_finish')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.navigateButton]}
                 onPress={openInExternalMaps}
               >
-                <Text style={styles.buttonText}>Navegar en App Externa</Text>
+                <Text style={styles.buttonText}>{t('maps.navigate_external_app')}</Text>
                 <Ionicons
                   name="navigate-circle-outline"
                   size={24}
@@ -407,7 +409,7 @@ export default function MapsMovil({ navigation }: any) {
                 style={[styles.button, styles.shareButton]}
                 onPress={handleShareLocation}
               >
-                <Text style={styles.buttonText}>Compartir Ubicación</Text>
+                <Text style={styles.buttonText}>{t('maps.share_location')}</Text>
                 <Ionicons
                   name="share-social-outline"
                   size={24}
@@ -420,7 +422,7 @@ export default function MapsMovil({ navigation }: any) {
                 onPress={handleReset}
               >
                 <Text style={[styles.buttonText, { color: bg_primary }]}>
-                  Modificar Ruta
+                  {t('maps.modify_route')}
                 </Text>
               </TouchableOpacity>
             </View>

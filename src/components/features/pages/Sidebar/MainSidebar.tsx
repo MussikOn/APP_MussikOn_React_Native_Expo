@@ -1,21 +1,12 @@
 
-import React from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image, ScrollView, Pressable, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image, ScrollView, Pressable, Platform, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Token } from '@appTypes/DatasTypes';
-import {
-  color_primary,
-  color_white,
-  color_secondary,
-  bg_white,
-  btn_primary,
-  btn_danger,
-  color_info,
-  color_success,
-} from '@styles/Styles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '@contexts/UserContext';
+import { useTheme } from '@contexts/ThemeContext';
 import { getRoleDisplayName, canRequestMusicians, canViewEvents, canViewRequests } from '@utils/functions';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -30,61 +21,81 @@ interface SidebarProps {
 const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavigate }) => {
   const { t } = useTranslation();
   const { user: globalUser, logout } = useUser();
-  const slideAnim = React.useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
+  const { theme } = useTheme();
+  const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
+
+  // PanResponder para swipe to close
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -10,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx < 0) {
+          slideAnim.setValue(Math.max(gestureState.dx, -SCREEN_WIDTH * 0.8));
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < -60) {
+          Animated.timing(slideAnim, {
+            toValue: -SCREEN_WIDTH * 0.8,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => onClose && onClose());
+        } else {
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   // Menú dinámico según estado de usuario
-  // Si no hay usuario, mostrar Home, Login y Register
   const menuItems = () => {
     if (!globalUser) {
       return [
         { icon: 'home', label: t('sidebar.home'), route: 'Home' },
-        { icon: 'log-in', label: t('sidebar.login'), route: 'Login', color: color_primary },
-        { icon: 'person-add', label: t('sidebar.register'), route: 'Register', color: color_primary },
+        { icon: 'log-in', label: t('sidebar.login'), route: 'Login', color: theme.colors.primary[500] },
+        { icon: 'person-add', label: t('sidebar.register'), route: 'Register', color: theme.colors.primary[500] },
       ];
     }
-
-    // Menú base para todos los usuarios autenticados
     const baseMenu = [
-      { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
+      { icon: 'home', label: t('sidebar.home'), route: 'Home' },
+      // Mostrar Dashboard solo si el usuario es musico
+      ...(globalUser.roll === 'musico' ? [
+        { icon: 'speedometer', label: t('sidebar.dashboard'), route: 'Dashboard', color: theme.colors.primary[500] },
+      ] : []),
       { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
       { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
-      { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
+      { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: theme.colors.error[500] },
     ];
-
-    // Agregar opciones específicas según permisos
     const specificMenu = [];
-
-    // Solo mostrar "Solicitar Músico" si el usuario tiene permisos
     if (canRequestMusicians(globalUser.roll)) {
       specificMenu.push({
         icon: 'person-add',
         label: t('sidebar.request_musician'),
         route: 'ShareMusician',
-        color: color_primary
+        color: theme.colors.primary[500]
       });
     }
-
-    // Solo mostrar "Mis Solicitudes" si el usuario tiene permisos
     if (canViewRequests(globalUser.roll)) {
-      specificMenu.push({
-        icon: 'list',
-        label: t('sidebar.my_requests'),
-        route: 'RequestList',
-        color: color_info
-      });
+      // Eliminar la opción 'RequestList' porque no existe la pantalla
+      // specificMenu.push({
+      //   icon: 'list',
+      //   label: t('sidebar.my_requests'),
+      //   route: 'RequestList',
+      //   color: theme.colors.accent[500]
+      // });
     }
-
-    // Solo mostrar "Eventos" si el usuario tiene permisos
     if (canViewEvents(globalUser.roll)) {
       specificMenu.push({
         icon: 'calendar',
         label: globalUser.roll === 'eventCreator' ? t('sidebar.events') : t('sidebar.agenda'),
-        route: globalUser.roll === 'eventCreator' ? 'EventList' : 'Maps',
-        color: color_info
+        route: 'EventList', // Solo dejar EventList, eliminar Maps
+        color: theme.colors.accent[500]
       });
     }
-
-    // Combinar menú específico con menú base
     return [...specificMenu, ...baseMenu];
   };
 
@@ -96,7 +107,6 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
     }).start();
   }, [isVisible]);
 
-  // Handler para Logout/Login
   const handleMenuPress = (route: string) => {
     if (route === 'Logout') {
       logout();
@@ -107,70 +117,103 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
     if (onClose) onClose();
   };
 
-  return (
-    <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>  
-      {/* Header con gradiente, avatar destacado y datos */}
-      <LinearGradient
-        colors={[color_primary, color_info]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerContainer}
-      >
-        <View style={styles.avatarWrapper}>
-          <Image
-            source={require('../../../../../assets/Jefry_Astacio_perfil_example.jpg')}
-            style={styles.avatar}
-          />
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>
-            {globalUser ? `${globalUser.name} ${globalUser.lastName}` : t('sidebar.user')}
-          </Text>
-          <Text style={styles.userRole}>
-            {globalUser ? getRoleDisplayName(globalUser.roll) : ''}
-          </Text>
-        </View>
-      </LinearGradient>
+  // Overlay para cerrar tocando fuera
+  if (!isVisible) return null;
 
-      {/* Lista de menú */}
-      <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
-        {menuItems().map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.menuItem, item.color && { backgroundColor: item.color + '20' }]}
-            onPress={() => handleMenuPress(item.route)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuItemContent}>
-              <Ionicons 
-                name={item.icon as any} 
-                size={24} 
-                color={item.color || color_white} 
-              />
-              <Text style={[styles.menuItemText, item.color && { color: item.color }]}>
-                {item.label}
-              </Text>
-            </View>
-            <Ionicons 
-              name="chevron-forward" 
-              size={20} 
-              color={item.color || color_white} 
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {/* Overlay oscuro */}
+      <Pressable
+        style={[styles.overlay, { backgroundColor: theme.colors.secondary + 'CC' }]}
+        onPress={onClose}
+      />
+      {/* Sidebar animado */}
+      <Animated.View
+        style={[styles.sidebar, { backgroundColor: theme.colors.background.primary, transform: [{ translateX: slideAnim }] }]}
+        {...panResponder.panHandlers}
+      >
+        {/* Botón de cerrar */}
+        <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel="Cerrar menú">
+          <Ionicons name="close" size={28} color={theme.colors.text.inverse} />
+        </TouchableOpacity>
+        {/* Header con gradiente y avatar */}
+        <LinearGradient
+          colors={theme.gradients.primary}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerContainer}
+        >
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={require('../../../../../assets/Jefry_Astacio_perfil_example.jpg')}
+              style={styles.avatar}
             />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </Animated.View>
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.userName} numberOfLines={1}>
+              {globalUser ? `${globalUser.name} ${globalUser.lastName}` : t('sidebar.user')}
+            </Text>
+            <Text style={styles.userRole} numberOfLines={1}>
+              {globalUser ? getRoleDisplayName(globalUser.roll) : ''}
+            </Text>
+          </View>
+        </LinearGradient>
+        {/* Lista de menú */}
+        <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
+          {menuItems().map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.menuItem,
+                {
+                  backgroundColor: item.color
+                    ? `${item.color}22`
+                    : theme.colors.background.card,
+                },
+              ]}
+              onPress={() => handleMenuPress(item.route)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuItemContent}>
+                <Ionicons
+                  name={item.icon as any}
+                  size={26}
+                  color={item.color || theme.colors.text.primary}
+                />
+                <Text
+                  style={[
+                    styles.menuItemText,
+                    { color: item.color || theme.colors.text.primary },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.label}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={item.color || theme.colors.text.primary}
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+  },
   sidebar: {
     position: 'absolute',
     top: 0,
     left: 0,
     width: SCREEN_WIDTH * 0.8,
     height: '100%',
-    backgroundColor: bg_white,
     zIndex: 1000,
     shadowColor: '#000',
     shadowOffset: {
@@ -180,11 +223,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 10,
+    borderTopRightRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 48 : 24,
+    right: 16,
+    zIndex: 10,
+    backgroundColor: '#2228',
+    borderRadius: 20,
+    padding: 4,
   },
   headerContainer: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingHorizontal: 20,
     paddingBottom: 30,
+    borderTopRightRadius: 24,
   },
   avatarWrapper: {
     alignItems: 'center',
@@ -195,7 +251,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 3,
-    borderColor: color_white,
+    borderColor: '#ffffff',
   },
   userInfo: {
     alignItems: 'center',
@@ -203,27 +259,29 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: color_white,
+    color: '#ffffff',
     marginBottom: 4,
+    maxWidth: SCREEN_WIDTH * 0.6,
   },
   userRole: {
     fontSize: 14,
-    color: color_white,
+    color: '#ffffff',
     opacity: 0.9,
+    maxWidth: SCREEN_WIDTH * 0.6,
   },
   menuContainer: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 12,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 16,
-    marginVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 6,
+    borderRadius: 16,
   },
   menuItemContent: {
     flexDirection: 'row',
@@ -231,10 +289,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: color_white,
-    marginLeft: 16,
+    marginLeft: 18,
   },
 });
 

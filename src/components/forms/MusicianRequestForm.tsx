@@ -16,6 +16,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@contexts/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,7 +39,10 @@ interface Props {
 
 // Componente de progreso moderno
 const ProgressBar: React.FC<{ currentStep: number; totalSteps: number }> = ({ currentStep, totalSteps }) => {
+  const { theme } = useTheme();
   const progress = (currentStep / totalSteps) * 100;
+
+  const styles = getProgressBarStyles(theme);
   
   return (
     <View style={styles.progressContainer}>
@@ -57,6 +61,31 @@ const ProgressBar: React.FC<{ currentStep: number; totalSteps: number }> = ({ cu
   );
 };
 
+const getProgressBarStyles = (theme: any) => ({
+  progressContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: theme.colors.background.secondary,
+    borderRadius: 2,
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: 4, // Cambiado de '100%' a 4 (igual que progressBar)
+    backgroundColor: theme.colors.primary[500],
+    borderRadius: 2,
+  },
+  progressText: {
+    color: theme.colors.text.secondary,
+    fontSize: 12,
+    textAlign: 'center' as const,
+    opacity: 0.8,
+  },
+});
+
 // Componente de paso individual
 const StepContainer: React.FC<{
   title: string;
@@ -67,42 +96,103 @@ const StepContainer: React.FC<{
   isFirstStep: boolean;
   isLastStep: boolean;
   canProceed: boolean;
-}> = ({ title, subtitle, children, onNext, onBack, isFirstStep, isLastStep, canProceed }) => (
-  <View style={styles.stepContainer}>
-    <View style={styles.stepHeader}>
-      <Text style={styles.stepTitle}>{title}</Text>
-      <Text style={styles.stepSubtitle}>{subtitle}</Text>
-    </View>
-    
-    <View style={styles.stepContent}>
-      {children}
-    </View>
-    
-    <View style={styles.stepActions}>
-      {!isFirstStep && (
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Ionicons name="arrow-back" size={20} color="#666" />
-          <Text style={styles.backButtonText}>Anterior</Text>
+}> = ({ title, subtitle, children, onNext, onBack, isFirstStep, isLastStep, canProceed }) => {
+  const { theme } = useTheme();
+  const styles = getStepContainerStyles(theme);
+  return (
+    <View style={styles.stepContainer}>
+      <View style={styles.stepHeader}>
+        <Text style={styles.stepTitle}>{title}</Text>
+        <Text style={styles.stepSubtitle}>{subtitle}</Text>
+      </View>
+      <View style={styles.stepContent}>
+        {children}
+      </View>
+      <View style={styles.stepActions}>
+        {!isFirstStep && (
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Ionicons name="arrow-back" size={20} color={theme.colors.text.secondary} />
+            <Text style={styles.backButtonText}>Anterior</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity 
+          style={[styles.nextButton, { backgroundColor: canProceed ? theme.colors.primary[500] : theme.colors.primary[100], shadowColor: theme.shadows.medium.shadowColor }]} 
+          onPress={onNext}
+          disabled={!canProceed}
+        >
+          <Text style={styles.nextButtonText}>
+            {isLastStep ? 'Confirmar' : 'Siguiente'}
+          </Text>
+          <Ionicons 
+            name={isLastStep ? "checkmark" : "arrow-forward"} 
+            size={20} 
+            color={theme.colors.text.inverse} 
+          />
         </TouchableOpacity>
-      )}
-      
-      <TouchableOpacity 
-        style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]} 
-        onPress={onNext}
-        disabled={!canProceed}
-      >
-        <Text style={styles.nextButtonText}>
-          {isLastStep ? 'Confirmar' : 'Siguiente'}
-        </Text>
-        <Ionicons 
-          name={isLastStep ? "checkmark" : "arrow-forward"} 
-          size={20} 
-          color="#fff" 
-        />
-      </TouchableOpacity>
+      </View>
     </View>
-  </View>
-);
+  );
+};
+
+const getStepContainerStyles = (theme: any) => ({
+  stepContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  stepHeader: {
+    marginBottom: 30,
+  },
+  stepTitle: {
+    fontSize: 28,
+    fontWeight: 'bold' as const,
+    color: theme.colors.text.primary,
+    marginBottom: 8,
+  },
+  stepSubtitle: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    lineHeight: 22,
+  },
+  stepContent: {
+    flex: 1,
+  },
+  stepActions: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    paddingVertical: 20,
+  },
+  backButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  backButtonText: {
+    color: theme.colors.text.secondary,
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  nextButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: theme.colors.primary[500],
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  nextButtonText: {
+    color: theme.colors.text.inverse,
+    fontSize: 16,
+    fontWeight: '600' as const,
+    marginRight: 8,
+  },
+});
 
 // Componente nativo para selección de opciones
 const NativePicker: React.FC<{
@@ -111,40 +201,80 @@ const NativePicker: React.FC<{
   onSelect: (value: string) => void;
   options: { label: string; value: string }[];
   title: string;
-}> = ({ visible, onClose, onSelect, options, title }) => (
-  <Modal
-    visible={visible}
-    transparent
-    animationType="slide"
-    onRequestClose={onClose}
-  >
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>{title}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={options}
-          keyExtractor={(item) => item.value}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.optionItem}
-              onPress={() => {
-                onSelect(item.value);
-                onClose();
-              }}
-            >
-              <Text style={styles.optionText}>{item.label}</Text>
+}> = ({ visible, onClose, onSelect, options, title }) => {
+  const { theme } = useTheme();
+  const styles = getNativePickerStyles(theme);
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{title}</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
-          )}
-        />
+          </View>
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.optionItem}
+                onPress={() => {
+                  onSelect(item.value);
+                  onClose();
+                }}
+              >
+                <Text style={styles.optionText}>{item.label}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
       </View>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
+
+const getNativePickerStyles = (theme: any) => ({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end' as const,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.background.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%' as any,
+  },
+  modalHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.secondary,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: theme.colors.text.primary,
+  },
+  optionItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.secondary,
+  },
+  optionText: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+});
 
 // Componente nativo para date picker
 const NativeDatePicker: React.FC<{
@@ -153,6 +283,8 @@ const NativeDatePicker: React.FC<{
   onDateSelect: (date: Date) => void;
   currentDate: Date;
 }> = ({ visible, onClose, onDateSelect, currentDate }) => {
+  const { theme } = useTheme();
+  const styles = getNativeDatePickerStyles(theme);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedDay, setSelectedDay] = useState(currentDate.getDate());
@@ -189,10 +321,9 @@ const NativeDatePicker: React.FC<{
           <View style={styles.datePickerHeader}>
             <Text style={styles.datePickerTitle}>Seleccionar Fecha</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
-          
           <View style={styles.datePickerContent}>
             {/* Año */}
             <View style={styles.pickerSection}>
@@ -217,7 +348,6 @@ const NativeDatePicker: React.FC<{
                 ))}
               </ScrollView>
             </View>
-
             {/* Mes */}
             <View style={styles.pickerSection}>
               <Text style={styles.pickerLabel}>Mes</Text>
@@ -241,7 +371,6 @@ const NativeDatePicker: React.FC<{
                 ))}
               </ScrollView>
             </View>
-
             {/* Día */}
             <View style={styles.pickerSection}>
               <Text style={styles.pickerLabel}>Día</Text>
@@ -266,7 +395,6 @@ const NativeDatePicker: React.FC<{
               </ScrollView>
             </View>
           </View>
-
           <View style={styles.datePickerActions}>
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -281,6 +409,98 @@ const NativeDatePicker: React.FC<{
   );
 };
 
+const getNativeDatePickerStyles = (theme: any) => ({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end' as const,
+  },
+  datePickerContainer: {
+    backgroundColor: theme.colors.background.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%' as any,
+  },
+  datePickerHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: 20,
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: theme.colors.text.primary,
+  },
+  datePickerContent: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    marginBottom: 20,
+  },
+  pickerSection: {
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  pickerLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: theme.colors.text.secondary,
+    textAlign: 'center' as const,
+    marginBottom: 10,
+  },
+  pickerScroll: {
+    height: 200,
+  },
+  pickerOption: {
+    padding: 12,
+    alignItems: 'center' as const,
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  pickerOptionSelected: {
+    backgroundColor: theme.colors.primary[100],
+  },
+  pickerOptionText: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  pickerOptionTextSelected: {
+    color: theme.colors.text.inverse,
+    fontWeight: '600' as const,
+  },
+  datePickerActions: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 12,
+    marginRight: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border.secondary,
+    alignItems: 'center' as const,
+  },
+  cancelButtonText: {
+    color: theme.colors.text.secondary,
+    fontSize: 16,
+  },
+  confirmButton: {
+    flex: 1,
+    padding: 12,
+    marginLeft: 10,
+    borderRadius: 8,
+    backgroundColor: theme.colors.primary[500],
+    alignItems: 'center' as const,
+  },
+  confirmButtonText: {
+    color: theme.colors.text.inverse,
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
+});
+
 // Componente nativo para time picker
 const NativeTimePicker: React.FC<{
   visible: boolean;
@@ -288,6 +508,8 @@ const NativeTimePicker: React.FC<{
   onTimeSelect: (time: string) => void;
   currentTime?: string;
 }> = ({ visible, onClose, onTimeSelect, currentTime }) => {
+  const { theme } = useTheme();
+  const styles = getNativeTimePickerStyles(theme);
   const [selectedHour, setSelectedHour] = useState(
     currentTime ? parseInt(currentTime.split(':')[0]) : 12
   );
@@ -316,10 +538,9 @@ const NativeTimePicker: React.FC<{
           <View style={styles.timePickerHeader}>
             <Text style={styles.timePickerTitle}>Seleccionar Hora</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
-          
           <View style={styles.timePickerContent}>
             {/* Horas */}
             <View style={styles.pickerSection}>
@@ -344,7 +565,6 @@ const NativeTimePicker: React.FC<{
                 ))}
               </ScrollView>
             </View>
-
             {/* Minutos */}
             <View style={styles.pickerSection}>
               <Text style={styles.pickerLabel}>Minuto</Text>
@@ -369,7 +589,6 @@ const NativeTimePicker: React.FC<{
               </ScrollView>
             </View>
           </View>
-
           <View style={styles.timePickerActions}>
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -384,7 +603,264 @@ const NativeTimePicker: React.FC<{
   );
 };
 
+const getNativeTimePickerStyles = (theme: any) => ({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end' as const,
+  },
+  timePickerContainer: {
+    backgroundColor: theme.colors.background.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%' as any,
+  },
+  timePickerHeader: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: 20,
+  },
+  timePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: theme.colors.text.primary,
+  },
+  timePickerContent: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    marginBottom: 20,
+  },
+  pickerSection: {
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  pickerLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: theme.colors.text.secondary,
+    textAlign: 'center' as const,
+    marginBottom: 10,
+  },
+  pickerScroll: {
+    height: 200,
+  },
+  pickerOption: {
+    padding: 12,
+    alignItems: 'center' as const,
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  pickerOptionSelected: {
+    backgroundColor: theme.colors.primary[100],
+  },
+  pickerOptionText: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  pickerOptionTextSelected: {
+    color: theme.colors.text.inverse,
+    fontWeight: '600' as const,
+  },
+  timePickerActions: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 12,
+    marginRight: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border.secondary,
+    alignItems: 'center' as const,
+  },
+  cancelButtonText: {
+    color: theme.colors.text.secondary,
+    fontSize: 16,
+  },
+  confirmButton: {
+    flex: 1,
+    padding: 12,
+    marginLeft: 10,
+    borderRadius: 8,
+    backgroundColor: theme.colors.primary[500],
+    alignItems: 'center' as const,
+  },
+  confirmButtonText: {
+    color: theme.colors.text.inverse,
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
+});
+
+const getFormStyles = (theme: any) => ({
+  inputWrapper: {
+    marginBottom: 25,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: theme.colors.text.primary,
+    marginBottom: 8,
+  },
+  modernInput: {
+    backgroundColor: theme.colors.background.card,
+    borderWidth: 0,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    shadowColor: theme.shadows.small.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modernTextArea: {
+    backgroundColor: theme.colors.background.card,
+    borderWidth: 0,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    minHeight: 120,
+    textAlignVertical: 'top' as const,
+    shadowColor: theme.shadows.small.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modernPickerButton: {
+    backgroundColor: theme.colors.background.card,
+    borderWidth: 0,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    shadowColor: theme.shadows.small.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  pickerButtonText: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  inputError: {
+    borderColor: theme.colors.border.error,
+    borderWidth: 1,
+  },
+  errorText: {
+    color: theme.colors.text.error,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  timeInputsContainer: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+  },
+  timeInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  imagePickerButton: {
+    backgroundColor: theme.colors.background.card,
+    borderWidth: 0,
+    borderRadius: 12,
+    overflow: 'hidden' as const,
+    shadowColor: theme.shadows.small.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  imagePlaceholder: {
+    padding: 40,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  imagePlaceholderText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+  },
+  selectedImage: {
+    width: '100%' as any,
+    height: 200,
+    resizeMode: 'cover' as const,
+  },
+  confirmationContainer: {
+    flex: 1,
+  },
+  confirmationCard: {
+    backgroundColor: theme.colors.background.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: theme.shadows.small.shadowColor,
+    shadowOffset: { width: 0, height: 4 }, 
+    shadowOpacity: 0.1,
+    shadowRadius: 6.27,
+    elevation: 8,
+  },
+  confirmationTitle: {
+    fontSize: 20,
+    fontWeight: 'bold' as const,
+    color: theme.colors.text.primary,
+    marginBottom: 20,
+    textAlign: 'center' as const,
+  },
+  confirmationItem: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.secondary,
+  },
+  confirmationLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: theme.colors.text.secondary,
+    flex: 1,
+  },
+  confirmationValue: {
+    fontSize: 14,
+    color: theme.colors.text.primary,
+    flex: 2,
+    textAlign: 'right' as const,
+  },
+  priceCard: {
+    backgroundColor: theme.colors.background.card,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center' as const,
+    shadowColor: theme.shadows.small.shadowColor,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6.27,
+    elevation: 8,
+  },
+  priceLabel: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    marginBottom: 8,
+  },
+  priceValue: {
+    fontSize: 28,
+    fontWeight: 'bold' as const,
+    color: theme.colors.text.success,
+  },
+});
+
 const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) => {
+  const { theme } = useTheme();
+  const formStyles = getFormStyles(theme);
   const [currentStep, setCurrentStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -597,17 +1073,28 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isLastStep={false}
             canProceed={!!formData.eventName.trim()}
           >
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Nombre del Evento</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
+              {['Boda', 'Concierto', 'Cumpleaños', 'Culto', 'Evento Corporativo', 'Fiesta', 'Reunión', 'Otro'].map(suggestion => (
+                <TouchableOpacity
+                  key={suggestion}
+                  style={{ backgroundColor: theme.colors.primary[100], borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6, marginRight: 8, marginBottom: 8 }}
+                  onPress={() => updateFormData('eventName', suggestion)}
+                >
+                  <Text style={{ color: theme.colors.primary[700], fontWeight: '600' }}>{suggestion}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Nombre del Evento</Text>
               <TextInput
-                style={[styles.modernInput, errors.eventName && styles.inputError]}
+                style={[formStyles.modernInput, errors.eventName && formStyles.inputError]}
                 value={formData.eventName}
                 onChangeText={(value) => updateFormData('eventName', value)}
                 placeholder="Ej: Culto de Domingo"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.text.tertiary}
               />
               {errors.eventName && (
-                <Text style={styles.errorText}>{errors.eventName}</Text>
+                <Text style={formStyles.errorText}>{errors.eventName}</Text>
               )}
             </View>
           </StepContainer>
@@ -624,19 +1111,19 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isLastStep={false}
             canProceed={!!formData.eventType}
           >
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Tipo de Evento</Text>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Tipo de Evento</Text>
               <TouchableOpacity
-                style={[styles.modernPickerButton, errors.eventType && styles.inputError]}
+                style={[formStyles.modernPickerButton, errors.eventType && formStyles.inputError]}
                 onPress={() => setShowEventTypePicker(true)}
               >
-                <Text style={styles.pickerButtonText}>
+                <Text style={formStyles.pickerButtonText}>
                   {getEventTypeLabel(formData.eventType)}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
+                <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
               </TouchableOpacity>
               {errors.eventType && (
-                <Text style={styles.errorText}>{errors.eventType}</Text>
+                <Text style={formStyles.errorText}>{errors.eventType}</Text>
               )}
             </View>
           </StepContainer>
@@ -653,43 +1140,43 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isLastStep={false}
             canProceed={!!formData.startTime && !!formData.endTime}
           >
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Fecha del Evento</Text>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Fecha del Evento</Text>
               <TouchableOpacity
-                style={styles.modernPickerButton}
+                style={formStyles.modernPickerButton}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text style={styles.pickerButtonText}>{formatDate(formData.eventDate)}</Text>
-                <Ionicons name="calendar" size={20} color="#666" />
+                <Text style={formStyles.pickerButtonText}>{formatDate(formData.eventDate)}</Text>
+                <Ionicons name="calendar" size={20} color={theme.colors.text.secondary} />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.timeInputsContainer}>
-              <View style={styles.timeInput}>
-                <Text style={styles.inputLabel}>Hora de Inicio</Text>
+            <View style={formStyles.timeInputsContainer}>
+              <View style={formStyles.timeInput}>
+                <Text style={formStyles.inputLabel}>Hora de Inicio</Text>
                 <TouchableOpacity
-                  style={[styles.modernPickerButton, errors.startTime && styles.inputError]}
+                  style={[formStyles.modernPickerButton, errors.startTime && formStyles.inputError]}
                   onPress={() => setShowStartTimePicker(true)}
                 >
-                  <Text style={styles.pickerButtonText}>{formatTime(formData.startTime)}</Text>
-                  <Ionicons name="time" size={20} color="#666" />
+                  <Text style={formStyles.pickerButtonText}>{formatTime(formData.startTime)}</Text>
+                  <Ionicons name="time" size={20} color={theme.colors.text.secondary} />
                 </TouchableOpacity>
                 {errors.startTime && (
-                  <Text style={styles.errorText}>{errors.startTime}</Text>
+                  <Text style={formStyles.errorText}>{errors.startTime}</Text>
                 )}
               </View>
 
-              <View style={styles.timeInput}>
-                <Text style={styles.inputLabel}>Hora de Fin</Text>
+              <View style={formStyles.timeInput}>
+                <Text style={formStyles.inputLabel}>Hora de Fin</Text>
                 <TouchableOpacity
-                  style={[styles.modernPickerButton, errors.endTime && styles.inputError]}
+                  style={[formStyles.modernPickerButton, errors.endTime && formStyles.inputError]}
                   onPress={() => setShowEndTimePicker(true)}
                 >
-                  <Text style={styles.pickerButtonText}>{formatTime(formData.endTime)}</Text>
-                  <Ionicons name="time" size={20} color="#666" />
+                  <Text style={formStyles.pickerButtonText}>{formatTime(formData.endTime)}</Text>
+                  <Ionicons name="time" size={20} color={theme.colors.text.secondary} />
                 </TouchableOpacity>
                 {errors.endTime && (
-                  <Text style={styles.errorText}>{errors.endTime}</Text>
+                  <Text style={formStyles.errorText}>{errors.endTime}</Text>
                 )}
               </View>
             </View>
@@ -707,17 +1194,17 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isLastStep={false}
             canProceed={!!formData.location.trim()}
           >
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Ubicación</Text>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Ubicación</Text>
               <TextInput
-                style={[styles.modernInput, errors.location && styles.inputError]}
+                style={[formStyles.modernInput, errors.location && formStyles.inputError]}
                 value={formData.location}
                 onChangeText={(value) => updateFormData('location', value)}
                 placeholder="Ej: Iglesia Central, Santo Domingo"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.text.tertiary}
               />
               {errors.location && (
-                <Text style={styles.errorText}>{errors.location}</Text>
+                <Text style={formStyles.errorText}>{errors.location}</Text>
               )}
             </View>
           </StepContainer>
@@ -734,48 +1221,48 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isLastStep={false}
             canProceed={!!formData.instrumentType && !!formData.eventDescription.trim()}
           >
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Instrumento Requerido</Text>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Instrumento Requerido</Text>
               <TouchableOpacity
-                style={[styles.modernPickerButton, errors.instrumentType && styles.inputError]}
+                style={[formStyles.modernPickerButton, errors.instrumentType && formStyles.inputError]}
                 onPress={() => setShowInstrumentPicker(true)}
               >
-                <Text style={styles.pickerButtonText}>
+                <Text style={formStyles.pickerButtonText}>
                   {getInstrumentLabel(formData.instrumentType)}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
+                <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
               </TouchableOpacity>
               {errors.instrumentType && (
-                <Text style={styles.errorText}>{errors.instrumentType}</Text>
+                <Text style={formStyles.errorText}>{errors.instrumentType}</Text>
               )}
             </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Descripción del Evento</Text>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Descripción del Evento</Text>
               <TextInput
-                style={[styles.modernTextArea, errors.eventDescription && styles.inputError]}
+                style={[formStyles.modernTextArea, errors.eventDescription && formStyles.inputError]}
                 value={formData.eventDescription}
                 onChangeText={(value) => updateFormData('eventDescription', value)}
                 placeholder="Describe el evento, tipo de música, ambiente..."
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.text.tertiary}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
               />
               {errors.eventDescription && (
-                <Text style={styles.errorText}>{errors.eventDescription}</Text>
+                <Text style={formStyles.errorText}>{errors.eventDescription}</Text>
               )}
             </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Flyer del Evento (Opcional)</Text>
-              <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+            <View style={formStyles.inputWrapper}>
+              <Text style={formStyles.inputLabel}>Flyer del Evento (Opcional)</Text>
+              <TouchableOpacity style={formStyles.imagePickerButton} onPress={pickImage}>
                 {flyerImage ? (
-                  <Image source={{ uri: flyerImage }} style={styles.selectedImage} />
+                  <Image source={{ uri: flyerImage }} style={formStyles.selectedImage} />
                 ) : (
-                  <View style={styles.imagePlaceholder}>
-                    <Ionicons name="image-outline" size={40} color="#666" />
-                    <Text style={styles.imagePlaceholderText}>Seleccionar Flyer</Text>
+                  <View style={formStyles.imagePlaceholder}>
+                    <Ionicons name="image-outline" size={40} color={theme.colors.text.secondary} />
+                    <Text style={formStyles.imagePlaceholderText}>Seleccionar Flyer</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -794,52 +1281,52 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isLastStep={true}
             canProceed={true}
           >
-            <View style={styles.confirmationContainer}>
-              <View style={styles.confirmationCard}>
-                <Text style={styles.confirmationTitle}>Resumen de tu Solicitud</Text>
+            <View style={formStyles.confirmationContainer}>
+              <View style={formStyles.confirmationCard}>
+                <Text style={formStyles.confirmationTitle}>Resumen de tu Solicitud</Text>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Evento:</Text>
-                  <Text style={styles.confirmationValue}>{formData.eventName}</Text>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Evento:</Text>
+                  <Text style={formStyles.confirmationValue}>{formData.eventName}</Text>
                 </View>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Tipo:</Text>
-                  <Text style={styles.confirmationValue}>{getEventTypeLabel(formData.eventType)}</Text>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Tipo:</Text>
+                  <Text style={formStyles.confirmationValue}>{getEventTypeLabel(formData.eventType)}</Text>
                 </View>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Fecha:</Text>
-                  <Text style={styles.confirmationValue}>{formatDate(formData.eventDate)}</Text>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Fecha:</Text>
+                  <Text style={formStyles.confirmationValue}>{formatDate(formData.eventDate)}</Text>
                 </View>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Horario:</Text>
-                  <Text style={styles.confirmationValue}>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Horario:</Text>
+                  <Text style={formStyles.confirmationValue}>
                     {formData.startTime} - {formData.endTime}
                   </Text>
                 </View>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Ubicación:</Text>
-                  <Text style={styles.confirmationValue}>{formData.location}</Text>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Ubicación:</Text>
+                  <Text style={formStyles.confirmationValue}>{formData.location}</Text>
                 </View>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Instrumento:</Text>
-                  <Text style={styles.confirmationValue}>{formData.instrumentType}</Text>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Instrumento:</Text>
+                  <Text style={formStyles.confirmationValue}>{formData.instrumentType}</Text>
                 </View>
                 
-                <View style={styles.confirmationItem}>
-                  <Text style={styles.confirmationLabel}>Descripción:</Text>
-                  <Text style={styles.confirmationValue}>{formData.eventDescription}</Text>
+                <View style={formStyles.confirmationItem}>
+                  <Text style={formStyles.confirmationLabel}>Descripción:</Text>
+                  <Text style={formStyles.confirmationValue}>{formData.eventDescription}</Text>
                 </View>
               </View>
 
               {formData.startTime && formData.endTime && formData.eventType && (
-                <View style={styles.priceCard}>
-                  <Text style={styles.priceLabel}>Precio Calculado:</Text>
-                  <Text style={styles.priceValue}>
+                <View style={formStyles.priceCard}>
+                  <Text style={formStyles.priceLabel}>Precio Calculado:</Text>
+                  <Text style={formStyles.priceValue}>
                     RD$ {calculatePrice(formData.startTime, formData.endTime, formData.eventType).toLocaleString()}
                   </Text>
                 </View>
@@ -853,16 +1340,30 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
     }
   };
 
+  const getMainStyles = (theme: any) => ({
+    container: {
+      flex: 1,
+    },
+    gradientBackground: {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      // backgroundColor eliminado, LinearGradient ya aplica el gradiente
+    },
+    scrollContainer: {
+      flex: 1,
+    },
+  });
+
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.gradientBackground}
-      />
+    <View style={[getMainStyles(theme).container, { backgroundColor: theme.colors.background.primary }] }>
+      <Text style={{ color: theme.colors.text.primary, fontSize: 18, textAlign: 'center', marginTop: 24 }}>DEBUG: Dentro del formulario</Text>
       
       <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
       
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView style={getMainStyles(theme).scrollContainer} showsVerticalScrollIndicator={false}>
         {renderStep()}
       </ScrollView>
 
@@ -918,16 +1419,6 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
   progressContainer: {
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -940,7 +1431,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressFill: {
-    height: '100%',
+    height: 4, // Cambiado de '100%' a 4 (igual que progressBar)
     backgroundColor: '#fff',
     borderRadius: 2,
   },
@@ -949,9 +1440,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     opacity: 0.8,
-  },
-  scrollContainer: {
-    flex: 1,
   },
   stepContainer: {
     flex: 1,
@@ -1017,184 +1505,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginRight: 8,
   },
-  inputWrapper: {
-    marginBottom: 25,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  modernInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#333',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modernTextArea: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#333',
-    minHeight: 120,
-    textAlignVertical: 'top',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modernPickerButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  pickerButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  inputError: {
-    borderColor: '#ff4444',
-    borderWidth: 1,
-  },
-  errorText: {
-    color: '#ff4444',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  timeInputsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  timeInput: {
-    flex: 1,
-    marginRight: 10,
-  },
-  imagePickerButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 0,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  imagePlaceholder: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imagePlaceholderText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666',
-  },
-  selectedImage: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'cover',
-  },
-  confirmationContainer: {
-    flex: 1,
-  },
-  confirmationCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 6.27,
-    elevation: 8,
-  },
-  confirmationTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  confirmationItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  confirmationLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    flex: 1,
-  },
-  confirmationValue: {
-    fontSize: 14,
-    color: '#333',
-    flex: 2,
-    textAlign: 'right',
-  },
-  priceCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 6.27,
-    elevation: 8,
-  },
-  priceLabel: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
-  },
-  priceValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2e7d32',
-  },
   // Modal styles
   modalOverlay: {
     flex: 1,
@@ -1205,7 +1515,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '70%',
+    maxHeight: '70%' as any,
   },
   modalHeader: {
     flexDirection: 'row',

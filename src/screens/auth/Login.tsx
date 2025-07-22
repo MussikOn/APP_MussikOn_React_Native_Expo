@@ -1,179 +1,329 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   TextInput,
-  StatusBar,
-  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
-import { s, appName, color_primary, color_white, color_secondary, text_primary, text_secondary, btn_primary, btn_white, border_color_primary, color_info } from '@styles/Styles';
-import { apiService } from '@services/api';
-import { saveToken } from '@utils/functions';
-import { RootStackParamList } from '@appTypes/DatasTypes';
-import { StackScreenProps } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import { useUser } from '../../contexts/UserContext';
+import { useTheme } from '@contexts/ThemeContext';
+import { useUser } from '@contexts/UserContext';
 import { useSidebar } from '@contexts/SidebarContext';
+import { getToken, saveToken } from '@utils/functions';
+import { URL_API } from '@utils/ENV';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type Props = StackScreenProps<RootStackParamList, "Login">;
-
-const Login: React.FC<Props> = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
+const Login = ({ navigation }: any) => {
   const { t } = useTranslation();
-  const { login: loginUser, user } = useUser();
-  const { openSidebar } = useSidebar();
-  const [shouldNavigateToMainTabs, setShouldNavigateToMainTabs] = useState(false);
+  const { theme } = useTheme();
+  const { login, user } = useUser();
+  const { setActiveScreen } = useSidebar();
+  const insets = useSafeAreaInsets();
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <Ionicons
-          name="menu"
-          size={28}
-          color={color_primary}
-          style={{ marginLeft: 18 }}
-          onPress={openSidebar}
-        />
-      ),
-    });
-  }, [navigation, openSidebar]);
+  useEffect(() => {
+    checkExistingToken();
+  }, []);
 
-  const validateForm = () => {
-    let valid = true;
-    if (!email) {
-      setEmailError(t('login.email') + ' ' + t('login.required', { defaultValue: 'es requerido' }));
-      valid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError(t('login.email') + ' ' + t('login.invalid', { defaultValue: 'no es válido' }));
-      valid = false;
-    } else {
-      setEmailError('');
+  // Efecto para navegar a MainTabs cuando el usuario esté disponible
+  useEffect(() => {
+    if (user) {
+      setActiveScreen('Home');
+      navigation.replace('Home');
     }
-    if (!password) {
-      setPasswordError(t('login.password') + ' ' + t('login.required', { defaultValue: 'es requerida' }));
-      valid = false;
-    } else if (password.length < 6) {
-      setPasswordError(t('login.password') + ' ' + t('login.min_length', { defaultValue: 'debe tener al menos 6 caracteres' }));
-      valid = false;
-    } else {
-      setPasswordError('');
+  }, [user, setActiveScreen, navigation]);
+
+  const checkExistingToken = async () => {
+    const token = await getToken();
+    if (token) {
+      // No navegar aquí, dejar que el useEffect maneje la navegación
+      // cuando el contexto del usuario se actualice
     }
-    return valid;
   };
 
   const handleLogin = async () => {
-    if (!validateForm()) return;
+    if (!email || !password) {
+      Alert.alert(t('login.error'), t('login.required'));
+      return;
+    }
+
     setLoading(true);
-    setApiError('');
+
     try {
-      const response: any = await apiService.post('/auth/login', {
-        userEmail: email,
-        userPassword: password,
+      const response = await fetch(`${URL_API}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userEmail: email,
+          userPassword: password,
+        }),
       });
-      if (response.token) {
-        await loginUser(response.token);
-        setLoading(false);
-        setShouldNavigateToMainTabs(true); // Esperar a que user esté definido
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await login(data.token);
+        // No navegar aquí, dejar que el useEffect maneje la navegación
+        // cuando el contexto del usuario se actualice
       } else {
-        setApiError(response.message || t('login.error', { defaultValue: 'Error al Iniciar Sesión' }));
-        setLoading(false);
+        Alert.alert(t('login.error'), data.msg || t('login.connection_error'));
       }
-    } catch (error: any) {
-      setApiError(error.message || t('login.connection_error', { defaultValue: 'No se pudo conectar. Intenta más tarde.' }));
+    } catch (error) {
+      Alert.alert(t('login.error'), t('login.connection_error'));
+    } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (shouldNavigateToMainTabs && user) {
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-      setShouldNavigateToMainTabs(false);
-    }
-  }, [shouldNavigateToMainTabs, user, navigation]);
-
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: color_white }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <StatusBar barStyle="dark-content" backgroundColor={color_white} />
-      <LinearGradient
-        colors={[color_primary, color_info]}
-        style={{ position: 'absolute', width: '100%', height: '100%' }}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <View style={[s.header, { marginBottom: 10 }]}> 
-          <Ionicons name="musical-notes" size={80} color={color_white} style={{ marginBottom: 10, backgroundColor: color_primary, borderRadius: 40, padding: 10 }} />
-          <Text style={[s.title, { color: color_white, textShadowColor: color_primary, textShadowRadius: 8 }]}>{appName}</Text>
-          <Text style={[s.subtitle, { color: color_white, textShadowColor: color_primary, textShadowRadius: 4 }]}>{t('welcome')}</Text>
-        </View>
-        <View style={{ width: '90%', maxWidth: 400, backgroundColor: color_white, borderRadius: 18, padding: 24, elevation: 8, shadowColor: color_primary, shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, marginTop: 10 }}>
-          <Text style={[s.title_register, { color: color_primary }]}>{t('login.title')}</Text>
-          {apiError ? <Text style={{ color: 'red', textAlign: 'center', marginBottom: 8 }}>{apiError}</Text> : null}
-          <Text style={s.label_register}>{t('login.email')}</Text>
-          <TextInput
-            style={[s.input_register, emailError && { borderColor: 'red' }]}
-            placeholder={t('login.email')}
-            placeholderTextColor={color_secondary + '99'}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!loading}
-          />
-          {emailError ? <Text style={{ color: 'red', marginBottom: 8 }}>{emailError}</Text> : null}
-          <Text style={s.label_register}>{t('login.password')}</Text>
-          <View style={{ position: 'relative' }}>
-            <TextInput
-              style={[s.input_register, passwordError && { borderColor: 'red', marginBottom: 0 }]}
-              placeholder={t('login.password')}
-              placeholderTextColor={color_secondary + '99'}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={{ position: 'absolute', right: 12, top: 16 }}
-              onPress={() => setShowPassword(!showPassword)}
-              disabled={loading}
-            >
-              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color={color_primary} />
-            </TouchableOpacity>
-          </View>
-          {passwordError ? <Text style={{ color: 'red', marginBottom: 8 }}>{passwordError}</Text> : null}
-          <TouchableOpacity
-            style={[s.btn, s.btn_primary, { marginTop: 10, opacity: loading ? 0.7 : 1 }]}
-            onPress={handleLogin}
-            disabled={loading}
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
+      <AnimatedBackground />
+      
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer} 
+          showsVerticalScrollIndicator={false}
+        >
+          <LinearGradient
+            colors={theme.gradients.primary}
+            style={styles.headerGradient}
           >
-            {loading ? <ActivityIndicator color={btn_white} /> : <Text style={s.btnText}>{t('login.button')}</Text>}
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 18 }}>
-            <Text style={s.text_secondary}>{t('login.no_account')} </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
-              <Text style={[s.text_primary, { fontWeight: 'bold' }]}>{t('login.register_here')}</Text>
-            </TouchableOpacity>
+            <View style={styles.header}>
+              <View style={[styles.logoContainer, { backgroundColor: theme.colors.background.card }]}>
+                <Ionicons name="musical-notes" size={60} color={theme.colors.primary[500]} />
+              </View>
+              <Text style={[styles.title, { color: theme.colors.text.inverse }]}>
+                {t('welcome')}
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.colors.text.inverse }]}>
+                {t('app_subtitle')}
+              </Text>
+            </View>
+          </LinearGradient>
+
+          <View style={styles.formContainer}>
+            <View style={[styles.formCard, { backgroundColor: theme.colors.background.card }]}>
+              <Text style={[styles.formTitle, { color: theme.colors.text.primary }]}>
+                {t('login.title')}
+              </Text>
+
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="mail-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
+                  placeholder={t('login.email')}
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="lock-closed-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
+                  placeholder={t('login.password')}
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons 
+                    name={showPassword ? "eye-off" : "eye"} 
+                    size={20} 
+                    color={theme.colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.loginButton,
+                  { backgroundColor: theme.colors.primary[500] },
+                  loading && { opacity: 0.7 }
+                ]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Ionicons name="hourglass" size={20} color={theme.colors.text.inverse} />
+                ) : (
+                  <Text style={[styles.loginButtonText, { color: theme.colors.text.inverse }]}>
+                    {t('login.button')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.registerContainer}>
+                <Text style={[styles.registerText, { color: theme.colors.text.secondary }]}>
+                  {t('login.no_account')}
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                  <Text style={[styles.registerLink, { color: theme.colors.primary[500] }]}>
+                    {t('login.register_here')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+  },
+  header: {
+    alignItems: 'center',
+  },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.9,
+  },
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  formCard: {
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+    position: 'relative',
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: 12,
+    top: 12,
+    zIndex: 1,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    paddingLeft: 40,
+    fontSize: 16,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    zIndex: 1,
+  },
+  loginButton: {
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  loginButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  registerText: {
+    fontSize: 14,
+  },
+  registerLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+});
 
 export default Login;

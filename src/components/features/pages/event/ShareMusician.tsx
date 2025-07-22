@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSidebar } from '@contexts/SidebarContext';
 import musicianRequestsAPI, { CreateMusicianRequestData } from '@services/musicianRequests';
+import { useTheme } from '@contexts/ThemeContext';
 
 interface MusicianRequestFormValues {
   eventName: string;
@@ -22,6 +23,7 @@ interface MusicianRequestFormValues {
 const ShareMusician = () => {
   const navigation = useNavigation();
   const { setActiveScreen } = useSidebar();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (values: MusicianRequestFormValues, calculatedPrice: number) => {
@@ -88,26 +90,39 @@ const ShareMusician = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.gradientBackground}
-      />
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Solicitar Músico</Text>
-          <Text style={styles.subtitle}>
-            Completa el formulario para solicitar un músico para tu evento
+    <View style={{ flex: 1, backgroundColor: theme.colors.background.primary }}>
+      {/* Header visual moderno */}
+      <View style={{ alignItems: 'center', paddingTop: 48, paddingBottom: 16 }}>
+        <View style={{ backgroundColor: theme.colors.primary[500], borderRadius: 48, padding: 18, marginBottom: 12 }}>
+          <Ionicons name="musical-notes" size={40} color={theme.colors.text.inverse} />
+        </View>
+        <Text style={{ fontSize: 28, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 4 }}>Solicitar Músico</Text>
+        <Text style={{ fontSize: 16, color: theme.colors.text.secondary, textAlign: 'center', maxWidth: 320 }}>
+          Completa el formulario en segundos. Selecciona tus opciones y recibe tu músico ideal.
           </Text>
         </View>
 
-        {/* Formulario */}
-        <View style={styles.formContainer}>
+      {/* Card visual del formulario */}
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
+        <View style={{
+          width: '95%',
+          maxWidth: 420,
+          backgroundColor: theme.colors.background.card,
+          borderRadius: 20,
+          padding: 24,
+          marginBottom: 16,
+          borderWidth: 2,
+          borderColor: theme.colors.border.primary,
+          shadowColor: theme.shadows.medium.shadowColor,
+          shadowOffset: theme.shadows.medium.shadowOffset,
+          shadowOpacity: theme.shadows.medium.shadowOpacity,
+          shadowRadius: theme.shadows.medium.shadowRadius,
+          elevation: theme.shadows.medium.elevation,
+        }}>
+          <Text style={{ color: theme.colors.text.primary, marginBottom: 12, textAlign: 'center' }}>DEBUG: El formulario se está montando</Text>
           <MusicianRequestForm onSubmit={handleSubmit} isLoading={isLoading} />
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 };

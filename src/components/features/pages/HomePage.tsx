@@ -66,7 +66,7 @@ const HomePage :React.FC<Props> = ({ navigation }) => {
         <Text>{t('home.lastnames')}: {userData!.lastName}</Text>
         <Text>{t('home.email')}: {userData!.userEmail}</Text>
         <Text>{t('home.role')}: {userData!.roll}</Text></View> : ""}
-        <Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum veniam totam nam, libero nisi ratione magnam quidem provident in veritatis illo obcaecati atque inventore soluta sed aperiam autem vero? Suscipit. Lorem ipsum dolor sit amet consectetur adipisicing elit. At aut quisquam praesentium iste! Laudantium harum aliquid incidunt obcaecati minus eum, eos fugiat voluptates rerum rem sunt consequatur totam provident dolores.</Text>
+        <Text>{t('home.lorem_ipsum')}</Text>
       </AlertModal>
         </ScrollView>
     </>

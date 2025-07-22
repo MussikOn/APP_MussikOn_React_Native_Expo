@@ -9,10 +9,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@contexts/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Event {
   id: string;
@@ -31,6 +34,8 @@ interface EventListProps {
 
 const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,8 +46,8 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
   const mockEvents: Event[] = [
     {
       id: '1',
-      title: 'Fiesta de Cumpleaños',
-      description: 'Celebración con música en vivo',
+      title: t('events.example_birthday'),
+      description: t('events.example_birthday_desc'),
       date: '2024-01-15',
       location: 'Santo Domingo',
       status: 'active',
@@ -51,8 +56,8 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
     },
     {
       id: '2',
-      title: 'Boda en la Playa',
-      description: 'Ceremonia y recepción con música romántica',
+      title: t('events.example_wedding'),
+      description: t('events.example_wedding_desc'),
       date: '2024-02-20',
       location: 'Punta Cana',
       status: 'active',
@@ -61,8 +66,8 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
     },
     {
       id: '3',
-      title: 'Evento Corporativo',
-      description: 'Presentación de empresa con música de fondo',
+      title: t('events.example_corporate'),
+      description: t('events.example_corporate_desc'),
       date: '2024-01-30',
       location: 'Santiago',
       status: 'completed',
@@ -104,26 +109,26 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
   const getStatusColor = (status: Event['status']) => {
     switch (status) {
       case 'active':
-        return '#4CAF50';
+        return theme.colors.success[500];
       case 'completed':
-        return '#2196F3';
+        return theme.colors.accent[500]; // No usar info, usar accent
       case 'cancelled':
-        return '#F44336';
+        return theme.colors.error[500];
       default:
-        return '#757575';
+        return theme.colors.text.secondary;
     }
   };
 
   const getStatusText = (status: Event['status']) => {
     switch (status) {
       case 'active':
-        return 'Activo';
+        return t('events.status_active');
       case 'completed':
-        return 'Completado';
+        return t('events.status_completed');
       case 'cancelled':
-        return 'Cancelado';
+        return t('events.status_cancelled');
       default:
-        return 'Desconocido';
+        return t('events.status_unknown');
     }
   };
 
@@ -194,50 +199,48 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#667eea" />
-        <Text style={styles.loadingText}>Cargando eventos...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary[500]} />
+        <Text style={[styles.loadingText, { color: theme.colors.primary[500] }]}>{t('events.loading')}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={theme.gradients.primary}
         style={styles.gradientBackground}
       />
-
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Eventos</Text>
-        <Text style={styles.headerSubtitle}>
-          Gestiona tus eventos y solicitudes
+        <Text style={[styles.headerTitle, { color: theme.colors.text.inverse }]}>{t('navigation.events')}</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.colors.text.inverse }]}>
+          {t('events.manage_events')}
         </Text>
       </View>
-
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#667eea" />
+        <View style={[styles.searchBar, { backgroundColor: theme.colors.background.card }]}>
+          <Ionicons name="search" size={20} color={theme.colors.primary[500]} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar eventos..."
+            style={[styles.searchInput, { color: theme.colors.text.primary }]}
+            placeholder={t('events.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.colors.text.tertiary}
           />
         </View>
       </View>
-
-      {/* Filter Buttons */}
-      <View style={styles.filterContainer}>
-        {renderFilterButton('all', 'Todos')}
-        {renderFilterButton('active', 'Activos')}
-        {renderFilterButton('completed', 'Completados')}
-        {renderFilterButton('cancelled', 'Cancelados')}
+      {/* Filter Buttons - ahora scrollable */}
+      <View style={{ paddingHorizontal: 0, marginBottom: 16 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+          {renderFilterButton('all', t('events.filter_all'))}
+          {renderFilterButton('active', t('events.filter_active'))}
+          {renderFilterButton('completed', t('events.filter_completed'))}
+          {renderFilterButton('cancelled', t('events.filter_cancelled'))}
+        </ScrollView>
       </View>
-
       {/* Events List */}
       <FlatList
         data={filteredEvents}
@@ -250,16 +253,16 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#667eea']}
-            tintColor="#667eea"
+            colors={[theme.colors.primary[500]]}
+            tintColor={theme.colors.primary[500]}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No hay eventos disponibles</Text>
-            <Text style={styles.emptySubtext}>
-              {searchQuery ? 'Intenta con otros términos de búsqueda' : 'Los eventos aparecerán aquí'}
+            <Ionicons name="calendar-outline" size={64} color={theme.colors.text.secondary} />
+            <Text style={[styles.emptyText, { color: theme.colors.text.secondary }]}>{t('events.empty')}</Text>
+            <Text style={[styles.emptySubtext, { color: theme.colors.text.secondary }]}>
+              {searchQuery ? t('events.empty_search') : t('events.empty_hint')}
             </Text>
           </View>
         }

@@ -1,12 +1,13 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { color_primary, color_white, color_secondary, btn_primary, btn_success, btn_danger, text_primary } from '@styles/Styles';
+import { useTheme } from '@contexts/ThemeContext';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  type?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'success';
+  size?: 'small' | 'medium' | 'large';
   loading?: boolean;
   disabled?: boolean;
   icon?: string;
@@ -18,7 +19,8 @@ interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  type = 'primary',
+  variant = 'primary',
+  size = 'medium',
   loading = false,
   disabled = false,
   icon,
@@ -26,117 +28,138 @@ const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const getButtonStyle = () => {
+  const { theme } = useTheme();
+
+  const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 14,
-      paddingHorizontal: 24,
-      borderRadius: 12,
-      minHeight: 48,
-      elevation: 2,
-      shadowColor: color_primary,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
+      borderRadius: 8,
     };
-
-    switch (type) {
-      case 'primary':
-        return {
-          ...baseStyle,
-          backgroundColor: btn_primary,
-        };
-      case 'secondary':
-        return {
-          ...baseStyle,
-          backgroundColor: color_secondary,
-        };
-      case 'outline':
-        return {
-          ...baseStyle,
-          backgroundColor: 'transparent',
-          borderWidth: 2,
-          borderColor: color_primary,
-        };
-      case 'success':
-        return {
-          ...baseStyle,
-          backgroundColor: btn_success,
-        };
-      case 'danger':
-        return {
-          ...baseStyle,
-          backgroundColor: btn_danger,
-        };
-      default:
-        return baseStyle;
+    
+    // Add size styles
+    switch (size) {
+      case 'small':
+        Object.assign(baseStyle, {
+          paddingHorizontal: 12,
+          paddingVertical: 8,
+          minHeight: 36,
+        });
+        break;
+      case 'medium':
+        Object.assign(baseStyle, {
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          minHeight: 44,
+        });
+        break;
+      case 'large':
+        Object.assign(baseStyle, {
+          paddingHorizontal: 24,
+          paddingVertical: 16,
+          minHeight: 52,
+        });
+        break;
     }
+    
+    // Add variant styles
+    switch (variant) {
+      case 'primary':
+        baseStyle.backgroundColor = theme.colors.primary[500];
+        break;
+      case 'secondary':
+        baseStyle.backgroundColor = theme.colors.secondary[500];
+        break;
+      case 'outline':
+        baseStyle.backgroundColor = 'transparent';
+        baseStyle.borderWidth = 2;
+        baseStyle.borderColor = theme.colors.primary[500];
+        break;
+      case 'danger':
+        baseStyle.backgroundColor = theme.colors.error[500];
+        break;
+      case 'success':
+        baseStyle.backgroundColor = theme.colors.success[500];
+        break;
+    }
+
+    if (disabled || loading) {
+      baseStyle.opacity = 0.6;
+    }
+
+    return baseStyle;
   };
 
-  const getTextStyle = () => {
+  const getTextStyle = (): TextStyle => {
     const baseTextStyle: TextStyle = {
-      fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: '600',
       textAlign: 'center',
     };
-
-    switch (type) {
-      case 'outline':
-        return {
-          ...baseTextStyle,
-          color: color_primary,
-        };
-      default:
-        return {
-          ...baseTextStyle,
-          color: color_white,
-        };
+    
+    // Add size styles
+    switch (size) {
+      case 'small':
+        baseTextStyle.fontSize = 14;
+        break;
+      case 'medium':
+        baseTextStyle.fontSize = 16;
+        break;
+      case 'large':
+        baseTextStyle.fontSize = 18;
+        break;
     }
+    
+    // Add variant styles
+    switch (variant) {
+      case 'outline':
+        baseTextStyle.color = theme.colors.primary[500];
+        break;
+      default:
+        baseTextStyle.color = theme.colors.text.inverse;
+        break;
+    }
+
+    return baseTextStyle;
   };
 
   const getIconColor = () => {
-    switch (type) {
+    switch (variant) {
       case 'outline':
-        return color_primary;
+        return theme.colors.primary[500];
       default:
-        return color_white;
+        return theme.colors.text.inverse;
     }
   };
 
-  const isDisabled = disabled || loading;
-
   return (
     <TouchableOpacity
-      style={[
-        getButtonStyle(),
-        isDisabled && styles.disabled,
-        style,
-      ]}
+      style={[getButtonStyle(), style]}
       onPress={onPress}
-      disabled={isDisabled}
+      disabled={disabled || loading}
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={getIconColor()} />
+        <ActivityIndicator color={getIconColor()} size="small" />
       ) : (
         <>
           {icon && iconPosition === 'left' && (
             <Ionicons 
               name={icon as any} 
-              size={20} 
+              size={size === 'small' ? 16 : size === 'large' ? 24 : 20} 
               color={getIconColor()} 
-              style={styles.leftIcon} 
+              style={styles.leftIcon}
             />
           )}
-          <Text style={[getTextStyle(), textStyle]}>{title}</Text>
+          <Text style={[getTextStyle(), textStyle]}>
+            {title}
+          </Text>
           {icon && iconPosition === 'right' && (
             <Ionicons 
               name={icon as any} 
-              size={20} 
+              size={size === 'small' ? 16 : size === 'large' ? 24 : 20} 
               color={getIconColor()} 
-              style={styles.rightIcon} 
+              style={styles.rightIcon}
             />
           )}
         </>
@@ -146,9 +169,6 @@ const Button: React.FC<ButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
-  disabled: {
-    opacity: 0.6,
-  },
   leftIcon: {
     marginRight: 8,
   },

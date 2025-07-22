@@ -10,14 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import {
-  color_primary,
-  color_white,
-  color_secondary,
-  border_color_primary,
-  text_primary,
-  text_secondary,
-} from '@styles/Styles';
+import { useLegacyColors } from '@hooks/useAppTheme';
 
 interface DateTimeSelectorProps {
   value: string;
@@ -35,6 +28,7 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   disabled = false,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const colors = useLegacyColors();
 
   // Generar opciones para fecha
   const generateDateOptions = () => {
@@ -107,58 +101,82 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   return (
     <>
       <TouchableOpacity
-        style={[styles.input, disabled && styles.inputDisabled]}
+        style={[
+          styles.selector,
+          { 
+            borderColor: colors.border_color_primary,
+            backgroundColor: colors.bg_white,
+          },
+          disabled && styles.disabled
+        ]}
         onPress={() => !disabled && setModalVisible(true)}
         disabled={disabled}
       >
-        <Text style={value ? styles.valueText : styles.placeholderText}>
-          {formatDisplayValue(value)}
-        </Text>
-        <Ionicons 
-          name={mode === 'date' ? 'calendar' : 'time'} 
-          size={20} 
-          color={color_primary} 
-        />
+        <View style={styles.selectorContent}>
+          <Ionicons 
+            name={mode === 'date' ? 'calendar' : 'time'} 
+            size={20} 
+            color={colors.color_primary}
+          />
+          <Text style={[styles.selectorText, { color: colors.text_primary }]}>
+            {formatDisplayValue(value)}
+          </Text>
+        </View>
+        <Ionicons name="chevron-down" size={16} color={colors.color_primary} />
       </TouchableOpacity>
 
       <Modal
         visible={modalVisible}
-        transparent={true}
+        transparent
         animationType="slide"
-        onRequestClose={handleCancel}
+        onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.bg_white }]}>
             <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={handleCancel} style={styles.headerButton}>
-                <Text style={styles.headerButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: colors.text_primary }]}>
                 {mode === 'date' ? 'Seleccionar Fecha' : 'Seleccionar Hora'}
               </Text>
-              <TouchableOpacity onPress={handleConfirm} style={styles.headerButton}>
-                <Text style={[styles.headerButtonText, styles.confirmButtonText]}>
-                  Confirmar
-                </Text>
+              <TouchableOpacity onPress={handleCancel}>
+                <Ionicons name="close" size={24} color={colors.color_primary} />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.pickerContainer}>
+            <ScrollView style={styles.pickerContainer}>
               <Picker
                 selectedValue={value}
                 onValueChange={onValueChange}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
+                style={[styles.picker, { color: colors.text_primary }]}
               >
-                <Picker.Item label={placeholder} value="" />
-                {options.map((option) => (
+                <Picker.Item 
+                  label={placeholder} 
+                  value="" 
+                  color={colors.color_secondary}
+                />
+                {options.map((option, index) => (
                   <Picker.Item
-                    key={option.value}
+                    key={index}
                     label={option.label}
                     value={option.value}
+                    color={colors.text_primary}
                   />
                 ))}
               </Picker>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton, { borderColor: colors.border_color_primary }]}
+                onPress={handleCancel}
+              >
+                <Text style={[styles.buttonText, { color: colors.text_primary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.confirmButton, { backgroundColor: colors.color_primary }]}
+                onPress={handleConfirm}
+              >
+                <Text style={[styles.buttonText, { color: colors.text_white }]}>Confirmar</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -168,62 +186,47 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
 };
 
 const styles = StyleSheet.create({
-  input: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  selector: {
     borderWidth: 1,
-    borderColor: border_color_primary,
     borderRadius: 8,
     padding: 12,
-    backgroundColor: color_white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  inputDisabled: {
-    opacity: 0.6,
+  selectorContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  valueText: {
-    color: text_primary,
+  selectorText: {
     fontSize: 16,
+    marginLeft: 8,
   },
-  placeholderText: {
-    color: text_secondary,
-    fontSize: 16,
+  disabled: {
+    opacity: 0.5,
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: color_white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    width: '90%',
+    maxHeight: '80%',
+    borderRadius: 12,
+    padding: 20,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: border_color_primary,
-  },
-  headerButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  headerButtonText: {
-    fontSize: 16,
-    color: text_secondary,
-  },
-  confirmButtonText: {
-    color: color_primary,
-    fontWeight: '600',
+    marginBottom: 20,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: text_primary,
   },
   pickerContainer: {
     maxHeight: 300,
@@ -231,8 +234,28 @@ const styles = StyleSheet.create({
   picker: {
     height: 200,
   },
-  pickerItem: {
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  button: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  confirmButton: {
+    borderWidth: 0,
+  },
+  buttonText: {
     fontSize: 16,
+    fontWeight: '600',
   },
 });
 
