@@ -43,7 +43,7 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ colors }) => {
         }}
       >
         <LinearGradient
-          colors={gradientColors}
+          colors={gradientColors as [string, string, ...string[]]}
           start={{ x: 0.1, y: 2 }}
           end={{ x: 0.7, y: 0 }}
           style={{ width: width * 4, height: height * 1.4 }}

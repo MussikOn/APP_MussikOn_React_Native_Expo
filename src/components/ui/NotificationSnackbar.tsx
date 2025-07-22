@@ -54,9 +54,9 @@ const NotificationSnackbar: React.FC = () => {
   if (!current) return null;
 
   let bgColor = theme.colors.primary[500];
-  if (current.type === 'success') bgColor = theme.colors.success;
-  if (current.type === 'error') bgColor = theme.colors.danger;
-  if (current.type === 'info') bgColor = theme.colors.info || theme.colors.primary[500];
+  if (current.type === 'success') bgColor = theme.colors.success[500];
+  if (current.type === 'error') bgColor = theme.colors.error[500];
+  if (current.type === 'info') bgColor = theme.colors.info[500] || theme.colors.primary[500];
 
   return (
     <Animated.View

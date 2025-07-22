@@ -34,7 +34,9 @@ const UseSocket = () => {
   },[]);
 
 
-  const { notifications, sendNotification } = useSocket(`1`);// ID de usuario emisor
+  const socketResult = useSocket(user ? user.userEmail : undefined);
+  const notifications = socketResult?.notifications || [];
+  const sendNotification = socketResult?.sendNotification || (() => {});
   console.info(`Valor del user.id: ${user}`)
   const [targetUserId, setTargetUserId] = useState("1"); // ID de usuario receptor
   
