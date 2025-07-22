@@ -94,9 +94,7 @@ const AlertModal: React.FC<Props> = ({
                   {btnTxtConfirm}
                 </Text>
               </TouchableOpacity>
-            ) : (
-              ""
-            )}
+            ) : null}
           </View>
         </View>
       </View>

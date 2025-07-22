@@ -17,6 +17,8 @@ import { Token } from '@appTypes/DatasTypes';
 import { SidebarProvider, useSidebar } from '@contexts/SidebarContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
+import { store } from '../store/store';
 
 import HomeScreen from '@screens/dashboard/HomeScreen';
 import { RootStackParamList } from '@appTypes/DatasTypes';
@@ -29,6 +31,7 @@ import SettingsScreen from '@screens/settings/SettingsScreen';
 import ShareMusician from '@components/features/pages/event/ShareMusician';
 import EventList from '@screens/events/EventList';
 import Dashboard from '@screens/dashboard/Dashboard';
+import NotificationSnackbar from '@components/ui/NotificationSnackbar';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -180,6 +183,7 @@ function AppContent() {
         onClose={closeSidebar}
         onNavigate={handleSidebarNavigate}
       />
+      <NotificationSnackbar />
       <NavigationContainer
         ref={navigationRef}
         theme={{
@@ -216,7 +220,7 @@ function AppContent() {
           screenOptions={({ navigation, route }) => ({
             ...screenOptions,
             headerLeft: () =>
-              route.name === 'Home' ? (
+              route.name === 'Home' || route.name === 'Dashboard' ? (
                 <View style={{ marginLeft: 16 }}>
                   <TouchableOpacity
                     onPress={openSidebar}
@@ -240,7 +244,7 @@ function AppContent() {
             headerRight: () => null,
             headerTitle: '',
           })}
-          initialRouteName="Home"
+          initialRouteName={user ? 'Dashboard' : 'Login'}
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           {/* Solo registrar Dashboard si el usuario es musico */}
@@ -329,17 +333,19 @@ const styles = StyleSheet.create({
 export default function App() {
   return (
     <SafeAreaProvider>
-      <I18nextProvider i18n={i18n}>
-        <LanguageProvider>
-          <ThemeProvider>
-            <UserProvider>
-              <SidebarProvider>
-                <AppContent />
-              </SidebarProvider>
-            </UserProvider>
-          </ThemeProvider>
-        </LanguageProvider>
-      </I18nextProvider>
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <LanguageProvider>
+            <ThemeProvider>
+              <UserProvider>
+                <SidebarProvider>
+                  <AppContent />
+                </SidebarProvider>
+              </UserProvider>
+            </ThemeProvider>
+          </LanguageProvider>
+        </I18nextProvider>
+      </Provider>
     </SafeAreaProvider>
   );
 }

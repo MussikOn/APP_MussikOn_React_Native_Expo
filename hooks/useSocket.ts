@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import { SOCKET_URL } from "../src/config/environment";
+import { useAppDispatch } from '../src/store/store';
+import { addNotification } from '../src/store/slices/notificationsSlice';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface SocketNotification {
   title: string;
@@ -11,12 +14,9 @@ export interface SocketNotification {
 }
 
 export const useSocket = (userId: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [notifications, setNotifications] = useState<SocketNotification[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-
+  const dispatch = useAppDispatch();
   useEffect(() => {
-    const newSocket = io(SOCKET_URL, { 
+    const newSocket: Socket = io(SOCKET_URL, {
       transports: ["websocket"],
       timeout: 5000,
       reconnection: true,
@@ -26,81 +26,50 @@ export const useSocket = (userId: string) => {
 
     newSocket.on("connect", () => {
       console.log("🔌 Conectado al servidor Socket.IO:", newSocket.id);
-      setIsConnected(true);
       newSocket.emit("register", userId);
     });
 
     newSocket.on("disconnect", () => {
       console.log("🔌 Desconectado del servidor Socket.IO");
-      setIsConnected(false);
     });
 
     newSocket.on("connect_error", (error) => {
       console.error("❌ Error de conexión Socket.IO:", error);
-      setIsConnected(false);
     });
 
     // Eventos específicos de MusikOn
     newSocket.on("new_event_request", (data) => {
       console.log("🎵 Nueva solicitud de evento recibida:", data);
-      const notification: SocketNotification = {
-        title: "Nueva Solicitud de Evento",
-        message: `Hay una nueva solicitud de ${data.instrument} para ${data.eventType}`,
-        type: 'new_event_request',
-        eventId: data.eventId,
-        timestamp: new Date().toISOString(),
-      };
-      setNotifications((prev) => [...prev, notification]);
+      dispatch(addNotification({
+        id: uuidv4(),
+        message: 'notifications.new_event_request',
+        type: 'info',
+      }));
     });
 
     newSocket.on("musician_accepted", (data) => {
       console.log("✅ Músico aceptó solicitud:", data);
-      const notification: SocketNotification = {
-        title: "Músico Aceptó tu Solicitud",
-        message: `Un músico ha aceptado tu solicitud para ${data.eventName}`,
-        type: 'musician_accepted',
-        eventId: data.eventId,
-        timestamp: new Date().toISOString(),
-      };
-      setNotifications((prev) => [...prev, notification]);
+      dispatch(addNotification({
+        id: uuidv4(),
+        message: 'notifications.musician_accepted',
+        type: 'success',
+      }));
     });
 
     newSocket.on("notification", (data) => {
       console.log("📢 Notificación general recibida:", data);
-      const notification: SocketNotification = {
-        title: data.title || "Notificación",
-        message: data.message || "Tienes una nueva notificación",
-        type: 'general',
-        timestamp: new Date().toISOString(),
-      };
-      setNotifications((prev) => [...prev, notification]);
+      dispatch(addNotification({
+        id: uuidv4(),
+        message: data.message || 'notifications.general',
+        type: 'info',
+      }));
     });
 
-    setSocket(newSocket);
-
     return () => {
-      newSocket.disconnect(); 
+      newSocket.disconnect();
     };
-  }, [userId]);
+  }, [userId, dispatch]);
 
-  const sendNotification = (targetUserId: string, title: string, message: string) => {
-    if (socket && isConnected) {
-      socket.emit("sendNotification", { userId: targetUserId, title, message });
-      console.log(`📤 Notificación enviada a ${targetUserId}: ${title}`);
-    } else {
-      console.warn("⚠️ Socket no conectado, no se puede enviar notificación");
-    }
-  };
-
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
-
-  return { 
-    socket, 
-    notifications, 
-    isConnected,
-    sendNotification, 
-    clearNotifications 
-  };
+  // No retorna notificaciones locales, solo integra con Redux
+  return null;
 };

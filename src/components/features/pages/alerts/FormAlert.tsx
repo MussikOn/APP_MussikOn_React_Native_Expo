@@ -166,9 +166,7 @@ const FormAlertModal: React.FC<Props> = ({
                     icon="arrow-back"
                     onPress={onBack}
                   />
-                ) : (
-                  ""
-                )}
+                ) : null}
 
                 {onCancel ? (
                   <OutlineButton
@@ -177,9 +175,7 @@ const FormAlertModal: React.FC<Props> = ({
                     icon="close"
                     onPress={onCancel}
                   />
-                ) : (
-                  ""
-                )}
+                ) : null}
 
                 {onNext ? (
                   <OutlineButton

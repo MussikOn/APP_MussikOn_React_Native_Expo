@@ -183,5 +183,10 @@ export const apiService = {
   },
 };
 
+// Crear solicitud de evento (request musician)
+export const requestMusician = async (data: any) => {
+  return apiService.post('/events/request-musician', data);
+};
+
 // Exportar tipos útiles
 export type { AxiosRequestConfig, AxiosResponse, AxiosError }; 

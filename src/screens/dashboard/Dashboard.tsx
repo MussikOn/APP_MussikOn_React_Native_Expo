@@ -29,6 +29,7 @@ import {
 import AnimatedBackground from "@components/ui/styles/AnimatedBackground";
 import { socket } from "@utils/socket";
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@contexts/ThemeContext';
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
@@ -193,6 +194,7 @@ const Dashboard = ({ navigation }: any) => {
   // Hook para obtener los márgenes seguros del dispositivo (notch, barra inferior, etc.)
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { theme } = useTheme();
 
   const [status, setStatus] = useState<ConnectionStatus>(
     socket.connected ? "connected" : "disconnected"
@@ -299,17 +301,21 @@ const Dashboard = ({ navigation }: any) => {
     let timer: any;
     if (status === 'connected') {
       setConnectedAt(new Date());
+      setBottomSheetOpen(true); // Abrir Bottom Sheet automáticamente al conectar
       timer = setInterval(() => setConnectedAt((prev) => prev ? new Date(prev) : new Date()), 1000);
     } else {
       setConnectedAt(null);
+      setBottomSheetOpen(false); // Cerrar Bottom Sheet al desconectar
     }
     return () => clearInterval(timer);
   }, [status]);
 
   // Animación del bottom sheet
   useEffect(() => {
+    // Dejar siempre visible el handle (20px)
+    const closedPosition = screenHeight - 60 + 20; // 20px del handle visible
     Animated.timing(bottomSheetY, {
-      toValue: bottomSheetOpen ? screenHeight - bottomSheetHeight : screenHeight - 60,
+      toValue: bottomSheetOpen ? screenHeight - bottomSheetHeight : closedPosition,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -695,132 +701,112 @@ const Dashboard = ({ navigation }: any) => {
     },
   });
 
+  // --- NUEVO RENDER DINÁMICO AL ESTILO UBER DRIVER ---
   return (
-    <>
+    <View style={[styles.container, { backgroundColor: status === 'connected' ? color_success : bg_primary }]}> 
       <AnimatedBackground />
-      {/* 
-        Aplicamos los márgenes seguros como padding.
-        - paddingTop: insets.top asegura que no quede debajo de la barra de estado.
-        - paddingBottom: insets.bottom + 90 asegura que no quede debajo de la barra de pestañas.
-          (90 = 70 de altura de la barra + 20 de margen inferior)
-      */}
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        {/* --- Alerta de notificación de evento --- */}
-        {eventAlertVisible && eventAlert && (
-          <View style={eventAlertStyles.alertContainer}>
-            <View style={eventAlertStyles.alertBox}>
-              <Ionicons name="notifications" size={32} color={color_info} style={{ marginBottom: 8 }} />
-              <Text style={eventAlertStyles.alertTitle}>{eventAlert.eventName}</Text>
-              <Text style={eventAlertStyles.alertText}>{eventAlert.date}</Text>
-              {/* Barra de progreso y tiempo restante */}
-              <View style={eventAlertStyles.progressBarContainer}>
-                <View style={eventAlertStyles.progressBarBg}>
-                  <Animated.View
-                    style={[
-                      eventAlertStyles.progressBarFg,
-                      {
-                        width: `${Math.max(0, Math.min(1, eventAlertProgress)) * 100}%`,
-                        backgroundColor:
-                          eventAlertProgress < 0.8
-                            ? '#2ecc40'
-                            : eventAlertProgress < 0.95
-                            ? '#ffb300'
-                            : '#e53935',
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={eventAlertStyles.progressText}>
-                  {eventAlertTimeLeft}s
-                </Text>
-              </View>
-              <View style={eventAlertStyles.alertBtnRow}>
-                <TouchableOpacity style={eventAlertStyles.alertBtn} onPress={handleViewDetails}>
-                  <Text style={eventAlertStyles.alertBtnText}>Ver detalles</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={eventAlertStyles.alertBtn} onPress={closeEventAlert}>
-                  <Text style={eventAlertStyles.alertBtnText}>Cerrar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        {/* Estado: Desconectado */}
+        {status === 'disconnected' && (
+          <>
+            <Animated.View style={{
+              marginBottom: 32,
+              transform: [{ scale: slideConnectX.interpolate({ inputRange: [0, 40], outputRange: [1, 1.05] }) }],
+              shadowColor: color_info,
+              shadowOpacity: 0.18,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 10,
+            }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: color_info,
+                  borderRadius: 100,
+                  width: 120,
+                  height: 120,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: color_info,
+                  shadowOpacity: 0.18,
+                  shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 10,
+                }}
+                activeOpacity={0.8}
+                onPress={handleConnection}
+              >
+                <Ionicons name="power" size={60} color={color_white} />
+              </TouchableOpacity>
+            </Animated.View>
+            <Text style={{ fontSize: 22, color: color_white, fontWeight: 'bold', marginBottom: 8 }}>{t('dashboard.disconnected')}</Text>
+            <Text style={{ fontSize: 16, color: color_white, opacity: 0.8 }}>{t('dashboard.tap_to_connect')}</Text>
+          </>
         )}
-        <ScrollView
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
-        >
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('home.welcome_title', { appName })}</Text>
-            <Text style={styles.subtitle}>{t('home.welcome_subtitle')}</Text>
-          </View>
-          {/* --- Slide to connect button --- */}
-          {status === 'disconnected' && (
-            <View style={slideConnectBtnStyles.slideContainer}>
-              <Text style={slideConnectBtnStyles.slideText}>{t('dashboard.slide_to_connect')}</Text>
-              <View style={slideConnectBtnStyles.slideTrack}>
-                <Animated.View
-                  style={[
-                    slideConnectBtnStyles.slideThumb,
-                    { transform: [{ translateX: slideConnectX }] },
-                  ]}
-                  {...slideConnectPanResponder.panHandlers}
-                >
-                  <Ionicons name="power" size={28} color={color_white} />
-                </Animated.View>
+        {/* Estado: Conectando */}
+        {status === 'connecting' && (
+          <>
+            <View style={{ marginBottom: 32 }}>
+              <Animated.View style={{
+                width: 120, height: 120, borderRadius: 60, backgroundColor: color_info, alignItems: 'center', justifyContent: 'center', opacity: 0.7,
+              }}>
+                <Animated.View style={{
+                  position: 'absolute', width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderColor: color_white, opacity: 0.3,
+                  transform: [{ scale: slideConnectX.interpolate({ inputRange: [0, 40], outputRange: [1, 1.2] }) }],
+                }} />
+                <Ionicons name="sync" size={60} color={color_white} />
+              </Animated.View>
+            </View>
+            <Text style={{ fontSize: 22, color: color_white, fontWeight: 'bold', marginBottom: 8 }}>{t('dashboard.connecting')}</Text>
+            <Text style={{ fontSize: 16, color: color_white, opacity: 0.8 }}>{t('dashboard.please_wait')}</Text>
+          </>
+        )}
+        {/* Estado: Conectado */}
+        {status === 'connected' && (
+          <>
+            {/* Radar animado */}
+            <View style={{ marginBottom: 32 }}>
+              <Animated.View style={{
+                width: 160, height: 160, borderRadius: 80, backgroundColor: color_success, alignItems: 'center', justifyContent: 'center', opacity: 0.15,
+                position: 'absolute', top: -20, left: -20,
+                transform: [{ scale: planetOrbitAnim }],
+              }} />
+              <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: color_success, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="wifi" size={60} color={color_white} />
               </View>
             </View>
-          )}
-          {/* --- Animación de planeta y lupa --- */}
-          {status === 'connected' && (
-            <View style={planetAnimStyles.planetContainer}>
-              <Animated.View style={[planetAnimStyles.orbit, { transform: [{ rotate: planetOrbitRotate }] }]}> 
-                <Ionicons name="search" size={36} color={color_info} style={planetAnimStyles.lupa} />
-              </Animated.View>
-              <Animated.View style={[planetAnimStyles.planet, { transform: [{ rotate: planetSpinRotate }] }]}> 
-                <Ionicons name="planet" size={120} color={bg_primary} />
-              </Animated.View>
-            </View>
-          )}
-          <View style={{ marginBottom: 40 }} />
-        </ScrollView>
-        {renderNotificationModal()}
-        {/* Bottom Sheet solo si está conectado */}
-        {status === 'connected' && (
-          <Animated.View
-            style={[
-              bottomSheetStyles.sheet,
-              { transform: [{ translateY: bottomSheetY }] },
-            ]}
-            {...panResponder.panHandlers}
-          >
-            {/* Handle visual */}
-            <View style={bottomSheetStyles.handleContainer}>
-              <View style={bottomSheetStyles.handle} />
-            </View>
-            <Text style={bottomSheetStyles.title}>{t('home.connected')}</Text>
-            <Text style={bottomSheetStyles.timeLabel}>{t('Tiempo conectado')}: {getConnectedTime()}</Text>
-            <View style={bottomSheetStyles.section}>
-              <Ionicons name="information-circle-outline" size={22} color={color_info} />
-              <Text style={bottomSheetStyles.sectionText}>{t('home.event_details_coming_soon')}</Text>
-            </View>
-            {/* Slide button para desconexión */}
-            <View style={slideBtnStyles.slideContainer}>
-              <Text style={slideBtnStyles.slideText}>{t('dashboard.slide_to_disconnect')}</Text>
-              <View style={slideBtnStyles.slideTrack}>
+            <Text style={{ fontSize: 22, color: color_white, fontWeight: 'bold', marginBottom: 8 }}>{t('dashboard.connected')}</Text>
+            <Text style={{ fontSize: 16, color: color_white, opacity: 0.8 }}>{t('dashboard.connected_time')}: {getConnectedTime()}</Text>
+            {/* Slide para desconexión */}
+            <View style={{ marginTop: 32, alignItems: 'center' }}>
+              <Text style={{ color: color_white, fontSize: 15, marginBottom: 8 }}>{t('dashboard.slide_to_disconnect')}</Text>
+              <View style={{ width: 220, height: 56, backgroundColor: '#eee', borderRadius: 28, justifyContent: 'center', overflow: 'hidden' }}>
                 <Animated.View
-                  style={[
-                    slideBtnStyles.slideThumb,
-                    { transform: [{ translateX: slideX }] },
-                  ]}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: color_danger,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    elevation: 4,
+                    shadowColor: color_danger,
+                    shadowOpacity: 0.18,
+                    shadowRadius: 8,
+                    shadowOffset: { width: 0, height: 2 },
+                    transform: [{ translateX: slideX }],
+                  }}
                   {...slideBtnPanResponder.panHandlers}
                 >
                   <Ionicons name="log-out-outline" size={28} color={color_white} />
                 </Animated.View>
               </View>
             </View>
-          </Animated.View>
+          </>
         )}
       </View>
-    </>
+    </View>
   );
 };
 

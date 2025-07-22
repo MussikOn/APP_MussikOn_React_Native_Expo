@@ -79,7 +79,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
         color: theme.colors.accent[500]
       });
     }
-    if (globalUser.roll === 'musico') {
+    if (globalUser.roll === 'eventCreator') {
       specificMenu.push({
         icon: 'person-add',
         label: t('sidebar.request_musician'),
