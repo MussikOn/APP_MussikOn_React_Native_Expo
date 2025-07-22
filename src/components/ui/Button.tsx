@@ -1,25 +1,15 @@
-import React, { useRef } from 'react';
-import { 
-  Text, 
-  StyleSheet, 
-  Pressable, 
-  ViewStyle, 
-  TextStyle,
-  Animated,
-  ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, gradients, shadows, textStyles, borderRadius } from '../../theme';
+import { color_primary, color_white, color_secondary, btn_primary, btn_success, btn_danger, text_primary } from '@styles/Styles';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'gradient';
-  size?: 'small' | 'medium' | 'large';
-  disabled?: boolean;
+  type?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger';
   loading?: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
+  disabled?: boolean;
+  icon?: string;
   iconPosition?: 'left' | 'right';
   style?: ViewStyle;
   textStyle?: TextStyle;
@@ -28,240 +18,142 @@ interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = 'primary',
-  size = 'medium',
-  disabled = false,
+  type = 'primary',
   loading = false,
+  disabled = false,
   icon,
   iconPosition = 'left',
   style,
   textStyle,
 }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const getButtonStyle = () => {
+    const baseStyle: ViewStyle = {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      minHeight: 48,
+      elevation: 2,
+      shadowColor: color_primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    };
 
-  const handlePressIn = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0.8,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const getButtonStyle = (): ViewStyle => {
-    const baseStyle = [styles.button, styles[size]];
-    
-    switch (variant) {
+    switch (type) {
       case 'primary':
-        return { ...styles.button, ...styles[size], ...styles.primary };
+        return {
+          ...baseStyle,
+          backgroundColor: btn_primary,
+        };
       case 'secondary':
-        return { ...styles.button, ...styles[size], ...styles.secondary };
+        return {
+          ...baseStyle,
+          backgroundColor: color_secondary,
+        };
       case 'outline':
-        return { ...styles.button, ...styles[size], ...styles.outline };
-      case 'ghost':
-        return { ...styles.button, ...styles[size], ...styles.ghost };
-      case 'gradient':
-        return { ...styles.button, ...styles[size], ...styles.gradient };
+        return {
+          ...baseStyle,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          borderColor: color_primary,
+        };
+      case 'success':
+        return {
+          ...baseStyle,
+          backgroundColor: btn_success,
+        };
+      case 'danger':
+        return {
+          ...baseStyle,
+          backgroundColor: btn_danger,
+        };
       default:
-        return { ...styles.button, ...styles[size], ...styles.primary };
+        return baseStyle;
     }
   };
 
-  const getTextStyle = (): TextStyle => {
-    const baseStyle = { ...styles.text, ...textStyles.button, ...styles[`${size}Text`] };
-    
-    switch (variant) {
+  const getTextStyle = () => {
+    const baseTextStyle: TextStyle = {
+      fontSize: 16,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    };
+
+    switch (type) {
       case 'outline':
-      case 'ghost':
-        return { ...baseStyle, ...styles.outlineText };
+        return {
+          ...baseTextStyle,
+          color: color_primary,
+        };
       default:
-        return { ...baseStyle, ...styles.primaryText };
+        return {
+          ...baseTextStyle,
+          color: color_white,
+        };
     }
   };
 
-  const renderContent = () => {
-    const iconSize = size === 'large' ? 20 : size === 'small' ? 14 : 18;
-    
-    return (
-      <>
-        {loading ? (
-          <ActivityIndicator 
-            color={variant === 'outline' || variant === 'ghost' ? colors.primary[500] : '#ffffff'} 
-            size="small" 
-          />
-        ) : (
-          <>
-            {icon && iconPosition === 'left' && (
-              <Ionicons 
-                name={icon} 
-                size={iconSize} 
-                color={variant === 'outline' || variant === 'ghost' ? colors.primary[500] : '#ffffff'} 
-                style={styles.leftIcon} 
-              />
-            )}
-            <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-            {icon && iconPosition === 'right' && (
-              <Ionicons 
-                name={icon} 
-                size={iconSize} 
-                color={variant === 'outline' || variant === 'ghost' ? colors.primary[500] : '#ffffff'} 
-                style={styles.rightIcon} 
-              />
-            )}
-          </>
-        )}
-      </>
-    );
+  const getIconColor = () => {
+    switch (type) {
+      case 'outline':
+        return color_primary;
+      default:
+        return color_white;
+    }
   };
 
-  const buttonContent = (
-    <Animated.View
-      style={[
-        getButtonStyle(),
-        {
-          transform: [{ scale: scaleAnim }],
-          opacity: opacityAnim,
-        },
-        style,
-      ]}
-    >
-      {variant === 'gradient' ? (
-        <LinearGradient
-          colors={gradients.primary as [string, string, ...string[]]}
-          style={styles.gradientContainer}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          {renderContent()}
-        </LinearGradient>
-      ) : (
-        renderContent()
-      )}
-    </Animated.View>
-  );
+  const isDisabled = disabled || loading;
 
   return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.pressable,
-        disabled && styles.disabled,
+    <TouchableOpacity
+      style={[
+        getButtonStyle(),
+        isDisabled && styles.disabled,
+        style,
       ]}
+      onPress={onPress}
+      disabled={isDisabled}
+      activeOpacity={0.8}
     >
-      {buttonContent}
-    </Pressable>
+      {loading ? (
+        <ActivityIndicator size="small" color={getIconColor()} />
+      ) : (
+        <>
+          {icon && iconPosition === 'left' && (
+            <Ionicons 
+              name={icon as any} 
+              size={20} 
+              color={getIconColor()} 
+              style={styles.leftIcon} 
+            />
+          )}
+          <Text style={[getTextStyle(), textStyle]}>{title}</Text>
+          {icon && iconPosition === 'right' && (
+            <Ionicons 
+              name={icon as any} 
+              size={20} 
+              color={getIconColor()} 
+              style={styles.rightIcon} 
+            />
+          )}
+        </>
+      )}
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  pressable: {
-    borderRadius: borderRadius.lg,
+  disabled: {
+    opacity: 0.6,
   },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-  },
-  // Size variants
-  small: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    minHeight: 36,
-  },
-  medium: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    minHeight: 48,
-  },
-  large: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    minHeight: 56,
-  },
-  // Variant styles
-  primary: {
-    backgroundColor: colors.primary[500],
-    borderColor: colors.primary[500],
-  },
-  secondary: {
-    backgroundColor: colors.neutral[600],
-    borderColor: colors.neutral[600],
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderColor: colors.primary[500],
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-  },
-  gradient: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-  },
-  // Text styles
-  text: {
-    textAlign: 'center',
-  },
-  smallText: {
-    fontSize: 14,
-  },
-  mediumText: {
-    fontSize: 16,
-  },
-  largeText: {
-    fontSize: 18,
-  },
-  primaryText: {
-    color: '#ffffff',
-  },
-  outlineText: {
-    color: colors.primary[500],
-  },
-  // Icon styles
   leftIcon: {
     marginRight: 8,
   },
   rightIcon: {
     marginLeft: 8,
-  },
-  // States
-  disabled: {
-    opacity: 0.5,
-  },
-  gradientContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: borderRadius.lg,
   },
 });
 

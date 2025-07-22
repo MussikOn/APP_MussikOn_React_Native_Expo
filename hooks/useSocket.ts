@@ -1,45 +1,75 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
+import { SOCKET_URL } from "../src/config/environment";
+import { useAppDispatch } from '../src/store/store';
+import { addNotification } from '../src/store/slices/notificationsSlice';
+import { v4 as uuidv4 } from 'uuid';
 
-
- const SOCKET_URL = "http://172.21.50.241:3001"; 
+export interface SocketNotification {
+  title: string;
+  message: string;
+  type: 'new_event_request' | 'musician_accepted' | 'general';
+  eventId?: string;
+  timestamp: string;
+}
 
 export const useSocket = (userId: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [notifications, setNotifications] = useState<{ title: string; message: string }[]>([]);
-
+  const dispatch = useAppDispatch();
   useEffect(() => {
-
-    const newSocket = io(SOCKET_URL, { transports: ["websocket"] });
+    const newSocket: Socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      timeout: 5000,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
 
     newSocket.on("connect", () => {
-      console.log("Conectado al servidor Socket.IO:", newSocket.id);
-      
-
+      console.log("🔌 Conectado al servidor Socket.IO:", newSocket.id);
       newSocket.emit("register", userId);
     });
 
-
-    newSocket.on("notification", (data) => {
-      console.log("Notificación recibida:", data);
-      setNotifications((prev) => [...prev, data]); 
+    newSocket.on("disconnect", () => {
+      console.log("🔌 Desconectado del servidor Socket.IO");
     });
 
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Error de conexión Socket.IO:", error);
+    });
 
-    setSocket(newSocket);
+    // Eventos específicos de MusikOn
+    newSocket.on("new_event_request", (data) => {
+      console.log("🎵 Nueva solicitud de evento recibida:", data);
+      dispatch(addNotification({
+        id: uuidv4(),
+        message: 'notifications.new_event_request',
+        type: 'info',
+      }));
+    });
+
+    newSocket.on("musician_accepted", (data) => {
+      console.log("✅ Músico aceptó solicitud:", data);
+      dispatch(addNotification({
+        id: uuidv4(),
+        message: 'notifications.musician_accepted',
+        type: 'success',
+      }));
+    });
+
+    newSocket.on("notification", (data) => {
+      console.log("📢 Notificación general recibida:", data);
+      dispatch(addNotification({
+        id: uuidv4(),
+        message: data.message || 'notifications.general',
+        type: 'info',
+      }));
+    });
 
     return () => {
-      newSocket.disconnect(); 
+      newSocket.disconnect();
     };
-  }, [userId]);
+  }, [userId, dispatch]);
 
-
-  const sendNotification = (targetUserId: string, title: string, message: string) => {
-    if (socket) {
-      socket.emit("sendNotification", { userId: targetUserId, title, message });
-      console.log(`Notificación enviada a ${targetUserId}: ${title}`);
-    }
-  };
-
-  return { socket, notifications, sendNotification };
+  // No retorna notificaciones locales, solo integra con Redux
+  return null;
 };

@@ -16,6 +16,7 @@ import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 import {
   bg_primary,
   color_white,
@@ -44,6 +45,7 @@ const LocationPickerModal: React.FC<Props> = ({
   onClose,
   onLocationSelect,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [region, setRegion] = useState<Region | undefined>(undefined);
@@ -158,7 +160,7 @@ const LocationPickerModal: React.FC<Props> = ({
                 size={20}
                 color={color_white}
               />
-              <Text style={styles.buttonText}>Compartir</Text>
+              <Text style={styles.buttonText}>{t('common.share')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
@@ -169,7 +171,7 @@ const LocationPickerModal: React.FC<Props> = ({
                 size={20}
                 color={color_white}
               />
-              <Text style={styles.buttonText}>Confirmar</Text>
+              <Text style={styles.buttonText}>{t('common.confirm')}</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
@@ -177,7 +179,7 @@ const LocationPickerModal: React.FC<Props> = ({
             onPress={onClose}
           >
             <Text style={[styles.buttonText, { color: bg_primary }]}>
-              Cancelar
+              {t('common.cancel')}
             </Text>
           </TouchableOpacity>
         </View>

@@ -1,97 +1,108 @@
-import React from "react";
-import { View } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import Dashboard from "../../screens/dashboard/Dashboard";
-import { Profile } from "../../screens/profile/Profile";
-import SettingsScreen from "../../screens/settings/SettingsScreen";
-import {
-  color_primary,
-  color_secondary,
-  color_white,
-  color_info,
-} from "../../styles/Styles";
-import ShareMusician from "../features/pages/event/ShareMusician";
-import Maps from "../features/pages/Maps/MapsMovil";
-import CreateEventScreen from "../features/pages/Maps/CreateEventScreen";
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import Dashboard from '../../screens/dashboard/Dashboard';
+import ShareMusician from '../features/pages/event/ShareMusician';
+import { Profile } from '../../screens/profile/Profile';
+import SettingsScreen from '../../screens/settings/SettingsScreen';
+import Maps from '../features/pages/Maps/MapsMovil';
+import EventListScreen from '../../screens/events/EventList';
+import MainSidebar from '../features/pages/Sidebar/MainSidebar';
+import { Token } from '../../appTypes/DatasTypes';
+import { bg_white, color_primary, color_secondary } from '../../styles/Styles';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useUser } from '../../contexts/UserContext';
+import { useSidebar } from '../../contexts/SidebarContext';
 
+// Creamos el BottomTabNavigator de React Navigation
 const Tab = createBottomTabNavigator();
 
-const MainTabs = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarShowLabel: false, // Oculta las etiquetas para un look más limpio
-        tabBarActiveTintColor: color_primary,
-        tabBarInactiveTintColor: color_secondary,
-        tabBarStyle: {
-          position: "absolute",
-          bottom: 20,
-          left: 20,
-          right: 20,
-          borderRadius: 20,
-          backgroundColor: color_white,
-          borderTopWidth: 0,
-          elevation: 10,
-          shadowColor: color_primary,
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 5 },
-          height: 70,
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-          const iconSize = focused ? size + 4 : size;
+interface MainTabsProps {
+  user: Token;
+  activeScreen: string;
+  setActiveScreen: (screen: string) => void;
+}
 
-          // Estilo especial para el botón central 'Feed'
-          if (route.name === "Feed") {
-            return (
-              <LinearGradient
-                colors={[color_primary, color_info]}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  elevation: 5,
-                  shadowColor: color_primary,
-                  shadowOpacity: 0.3,
-                  shadowRadius: 5,
-                  bottom: 25, // Eleva el botón
-                }}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name="musical-notes" size={32} color={color_white} />
-              </LinearGradient>
-            );
-          }
+/**
+ * MainTabs ahora usa el BottomTabNavigator de React Navigation para una navegación más robusta y eficiente.
+ * El sidebar usa el navigation del stack/tab para evitar errores y mantener el historial correctamente.
+ */
+const MainTabs: React.FC<MainTabsProps> = ({ user, activeScreen, setActiveScreen }) => {
+  const navigation = useNavigation();
+  const { openSidebar } = useSidebar();
+  // El estado activeScreen y setActiveScreen ahora vienen de props
 
-          // Iconos estándar para las otras pestañas
-          const icons: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-            Inicio: focused ? "home" : "home-outline",
-            Musicos: focused ? "search" : "search-outline",
-            Perfil: focused ? "person" : "person-outline",
-            Configuracion: focused ? "settings" : "settings-outline",
-          };
+  // Definir los componentes de cada pantalla
+  const screenComponents: { [key: string]: React.ComponentType<any> } = {
+    'Dashboard': Dashboard,
+    'ShareMusician': ShareMusician,
+    'EventList': EventListScreen,
+    'Profile': Profile,
+    'Settings': SettingsScreen,
+    'Maps': Maps,
+  };
 
-          iconName = icons[route.name] || "alert-circle-outline";
+  // Handler para navegación desde el sidebar
+  const handleSidebarNavigate = (route: string) => {
+    if (screenComponents[route]) {
+      setActiveScreen(route);
+    }
+    // Si es logout, el sidebar ya lo maneja
+  };
 
-          return <Ionicons name={iconName} size={iconSize} color={color} />;
-        },
-      })}
+  // Botón flotante para abrir el sidebar
+  const FloatingMenuButton = () => (
+    <TouchableOpacity
+      style={styles.fab}
+      onPress={openSidebar}
+      activeOpacity={0.8}
     >
-      <Tab.Screen name="Inicio" component={Dashboard} />
-      <Tab.Screen name="CreateEvent" component={CreateEventScreen} />
-      <Tab.Screen name="Musicos" component={ShareMusician} />
-      <Tab.Screen name="Feed" component={Maps} options={{ tabBarLabel: "" }} />
-      <Tab.Screen name="Perfil" component={Profile} />
-      <Tab.Screen name="Configuracion" component={SettingsScreen} />
-    </Tab.Navigator>
+      <Ionicons name="menu" size={28} color={color_primary} />
+    </TouchableOpacity>
+  );
+
+  // Renderizar la pantalla activa
+  const ActiveComponent = screenComponents[activeScreen] || Dashboard;
+
+  return (
+    <>
+      {/* Botón flotante de menú siempre visible */}
+      <FloatingMenuButton />
+      {/* Sidebar global, navegación solo desde aquí */}
+      {/* El sidebar debe recibir handleSidebarNavigate como onNavigate */}
+      {/* El prop user sigue siendo necesario para el menú dinámico */}
+      {/* El sidebar se renderiza globalmente en AppContent, así que aquí solo manejamos la pantalla activa */}
+      <View style={{ flex: 1 }}>
+        {/* Header con botón de menú */}
+        <View style={{ height: 56, flexDirection: 'row', alignItems: 'center', backgroundColor: bg_white, elevation: 2 }}>
+          {/* El botón de menú ahora está en el FAB, no en el header */}
+        </View>
+        {/* Renderizar la pantalla activa */}
+        <ActiveComponent />
+      </View>
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  fab: {
+    position: 'absolute',
+    top: 24,
+    left: 18,
+    zIndex: 100,
+    backgroundColor: bg_white,
+    borderRadius: 24,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: color_primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+});
 
 export default MainTabs;

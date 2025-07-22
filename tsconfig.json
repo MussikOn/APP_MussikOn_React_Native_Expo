@@ -21,7 +21,13 @@
       "@utils/*": ["src/utils/*"],
       "@appTypes/*": ["src/appTypes/*"],
       "@styles/*": ["src/styles/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+      "@theme/*": ["src/theme/*"],
+      "@theme": ["src/theme/index.ts"],
+      "@services/*": ["src/services/*"],
+      "@config/*": ["src/config/*"],
+      "@store/*": ["src/store/*"],
+      "@contexts/*": ["src/contexts/*"]
     }
   }
 }

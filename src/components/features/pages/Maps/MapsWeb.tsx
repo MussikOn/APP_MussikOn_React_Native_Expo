@@ -1,10 +1,11 @@
 // import MapView from "react-native-maps";
 import { View,StyleSheet, Text } from "react-native";
 import { Platform } from 'react-native';
-
+import { useTranslation } from 'react-i18next';
 
 
 export default function Maps() {
+    const { t } = useTranslation();
     let MapView;
     try {
             if(Platform.OS !== 'web'){
@@ -13,7 +14,7 @@ export default function Maps() {
             }
 
     } catch (error) {
-         MapView = () =><Text>Mapa no disponible Para la Web</Text>
+         MapView = () =><Text>{t('maps.not_available_web')}</Text>
     }
             
             

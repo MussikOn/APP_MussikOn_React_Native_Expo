@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from 'react-i18next';
 
 const Datos: Record<string, { "iconName": string; "nombre": string }> = {
   0: { "iconName": "musical-notes-outline", "nombre": "Batería" ,},
@@ -10,6 +11,7 @@ const Datos: Record<string, { "iconName": string; "nombre": string }> = {
 };
 
 const ListInstruments = () => {
+  const { t } = useTranslation();
   const renderItems = () => {
     const items = [];
     for (const key in Datos) {
@@ -17,7 +19,7 @@ const ListInstruments = () => {
         items.push(
           <View key={key} style={{ marginBottom: 15, flexDirection: "row", alignItems: "center" }}>
             <Ionicons name={Datos[key].iconName as any} size={24} color="#004aad" />
-            <Text style={{ fontSize: 18, marginLeft: 12 }}>{Datos[key].nombre}</Text>
+            <Text style={{ fontSize: 18, marginLeft: 12 }}>{t(`instrument_types.${Datos[key].nombre.toLowerCase()}`) || Datos[key].nombre}</Text>
           </View>
         );
       }

@@ -11,6 +11,9 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  PanResponder,
+  Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +28,17 @@ import {
 } from "@styles/Styles";
 import AnimatedBackground from "@components/ui/styles/AnimatedBackground";
 import { socket } from "@utils/socket";
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@contexts/ThemeContext';
+import LottieView from 'lottie-react-native';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+import { typography, spacing, borderRadius } from '../../theme';
+
+// Animaciones Lottie (puedes reemplazar los paths por los tuyos propios)
+const lottiePower = require('../../../assets/lottie/Power.json');
+const lottieRadar = require('../../../assets/lottie/Connected_world.json');
+const lottieLoading = require('../../../assets/lottie/Loading.json');
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
@@ -37,6 +51,7 @@ const ConnectionGlobe = ({
 }) => {
   const rotationAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const { t } = useTranslation();
 
   useEffect(() => {
     const orbitAnimation = Animated.loop(
@@ -99,32 +114,32 @@ const ConnectionGlobe = ({
     iconColor,
   }:{
     globeColor: string;
-    iconName: string;
+    iconName: 'wifi' | 'sync' | 'power' | 'wifi-off';
     statusText: string;
     iconColor: string;
   } = {
     disconnected: {
       globeColor: bg_primary,
-      iconName: "power",
-      statusText: "Conectar",
+      iconName: 'power' as 'power',
+      statusText: t('home.connect'),
       iconColor: color_white,
     },
     connecting: {
       globeColor: color_info,
-      iconName: "sync",
-      statusText: "Conectando...",
+      iconName: 'sync' as 'sync',
+      statusText: t('home.connecting'),
       iconColor: color_white,
     },
     connected: {
       globeColor: color_success,
-      iconName: "wifi",
-      statusText: "Conectado",
+      iconName: 'wifi' as 'wifi',
+      statusText: t('home.connected'),
       iconColor: color_white,
     },
     error: {
       globeColor: color_danger,
-      iconName: "wifi-off",
-      statusText: "Error de Conexión",
+      iconName: 'wifi-off' as 'wifi-off',
+      statusText: t('home.connection_error'),
       iconColor: color_white,
     },
   }[status];
@@ -187,6 +202,8 @@ const InfoRow = ({
 const Dashboard = ({ navigation }: any) => {
   // Hook para obtener los márgenes seguros del dispositivo (notch, barra inferior, etc.)
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const { theme } = useTheme();
 
   const [status, setStatus] = useState<ConnectionStatus>(
     socket.connected ? "connected" : "disconnected"
@@ -224,6 +241,132 @@ const Dashboard = ({ navigation }: any) => {
   ]);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
+  const [connectedAt, setConnectedAt] = useState<Date | null>(null);
+  const bottomSheetHeight = 320;
+  const screenHeight = Dimensions.get('window').height;
+  const bottomSheetY = useRef(new Animated.Value(screenHeight)).current;
+
+  // Estado para alerta de notificación
+  const [eventAlert, setEventAlert] = useState<any>(null);
+  const [eventAlertVisible, setEventAlertVisible] = useState(false);
+  const [eventAlertProgress, setEventAlertProgress] = useState(0); // 0 a 1
+  const [eventAlertTimeLeft, setEventAlertTimeLeft] = useState(120); // segundos
+  const eventAlertTimer = useRef<any>(null);
+  const eventAlertInterval = useRef<any>(null);
+
+  // Mostrar alerta cuando llegue una notificación
+  useEffect(() => {
+    if (notifications.length > 0 && !eventAlertVisible) {
+      setEventAlert(notifications[0]);
+      setEventAlertVisible(true);
+      setEventAlertProgress(0);
+      setEventAlertTimeLeft(120);
+      // Cerrar automáticamente después de 2 minutos y actualizar barra
+      if (eventAlertTimer.current) clearTimeout(eventAlertTimer.current);
+      if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+      let elapsed = 0;
+      eventAlertInterval.current = setInterval(() => {
+        elapsed += 1;
+        setEventAlertProgress(elapsed / 120);
+        setEventAlertTimeLeft(120 - elapsed);
+        if (elapsed >= 120) {
+          clearInterval(eventAlertInterval.current);
+        }
+      }, 1000);
+      eventAlertTimer.current = setTimeout(() => {
+        setEventAlertVisible(false);
+        setEventAlert(null);
+        setEventAlertProgress(0);
+        setEventAlertTimeLeft(120);
+        if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+      }, 2 * 60 * 1000);
+    }
+    return () => {
+      if (eventAlertTimer.current) clearTimeout(eventAlertTimer.current);
+      if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+    };
+  }, [notifications]);
+
+  // Cerrar alerta manualmente
+  const closeEventAlert = () => {
+    setEventAlertVisible(false);
+    setEventAlert(null);
+    setEventAlertProgress(0);
+    setEventAlertTimeLeft(120);
+    if (eventAlertTimer.current) clearTimeout(eventAlertTimer.current);
+    if (eventAlertInterval.current) clearInterval(eventAlertInterval.current);
+  };
+
+  // Ver detalles de la notificación
+  const handleViewDetails = () => {
+    setSelectedNotification(eventAlert);
+    setIsModalVisible(true);
+    closeEventAlert();
+  };
+
+  // Cronómetro de tiempo conectado
+  useEffect(() => {
+    let timer: any;
+    if (status === 'connected') {
+      setConnectedAt(new Date());
+      setBottomSheetOpen(true); // Abrir Bottom Sheet automáticamente al conectar
+      timer = setInterval(() => setConnectedAt((prev) => prev ? new Date(prev) : new Date()), 1000);
+    } else {
+      setConnectedAt(null);
+      setBottomSheetOpen(false); // Cerrar Bottom Sheet al desconectar
+    }
+    return () => clearInterval(timer);
+  }, [status]);
+
+  // Animación del bottom sheet
+  useEffect(() => {
+    // Dejar siempre visible el handle (20px)
+    const closedPosition = screenHeight - 60 + 20; // 20px del handle visible
+    Animated.timing(bottomSheetY, {
+      toValue: bottomSheetOpen ? screenHeight - bottomSheetHeight : closedPosition,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [bottomSheetOpen]);
+
+  // PanResponder para deslizar
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 10,
+    onPanResponderMove: (_, gestureState) => {
+      let newY = (bottomSheetOpen ? screenHeight - bottomSheetHeight : screenHeight - 60) + gestureState.dy;
+      if (newY < screenHeight - bottomSheetHeight) newY = screenHeight - bottomSheetHeight;
+      if (newY > screenHeight - 60) newY = screenHeight - 60;
+      bottomSheetY.setValue(newY);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dy < -40) setBottomSheetOpen(true);
+      else if (gestureState.dy > 40) setBottomSheetOpen(false);
+      else setBottomSheetOpen(bottomSheetOpen);
+    },
+  });
+
+  // Formato de tiempo conectado
+  const getConnectedTime = () => {
+    if (!connectedAt) return '--:--:--';
+    const diff = Math.floor((Date.now() - connectedAt.getTime()) / 1000);
+    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  // Botón seguro de desconexión
+  const handleSafeDisconnect = () => {
+    Alert.alert(
+      t('settings.logout'),
+      t('settings.logout_confirm'),
+      [
+        { text: t('settings.cancel'), style: 'cancel' },
+        { text: t('settings.logout'), style: 'destructive', onPress: () => handleConnection() },
+      ]
+    );
+  };
 
   const handleOpenNotification = (notification: any) => {
     setSelectedNotification(notification);
@@ -376,65 +519,329 @@ const Dashboard = ({ navigation }: any) => {
     }
   };
 
+  // Slide button para desconexión (mejor sensibilidad)
+  const [slideX, setSlideX] = useState(new Animated.Value(0));
+  const slideWidth = 220;
+  const slideBtnPanResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 5,
+    onPanResponderMove: (_, gestureState) => {
+      let newX = Math.max(0, Math.min(slideWidth - 56, gestureState.dx));
+      slideX.setValue(newX);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx > slideWidth - 100) {
+        setBottomSheetOpen(false);
+        setTimeout(() => handleConnection(), 300);
+        Animated.timing(slideX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      } else {
+        Animated.timing(slideX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
+    },
+  });
+
+  // Animaciones para planeta y lupa (fluidez mejorada)
+  const planetOrbitAnim = useRef(new Animated.Value(0)).current;
+  const planetSpinAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    planetOrbitAnim.setValue(0);
+    planetSpinAnim.setValue(0);
+    Animated.loop(
+      Animated.timing(planetOrbitAnim, {
+        toValue: 1,
+        duration: 4000,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+    Animated.loop(
+      Animated.timing(planetSpinAnim, {
+        toValue: 1,
+        duration: 6000,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+  }, []);
+  const planetOrbitRotate = planetOrbitAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  const planetSpinRotate = planetSpinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  const planetAnimStyles = StyleSheet.create({
+    planetContainer: {
+      width: 180,
+      height: 180,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: 30,
+    },
+    orbit: {
+      position: 'absolute',
+      width: 180,
+      height: 180,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    lupa: {
+      position: 'absolute',
+      top: 0,
+      left: 72,
+    },
+    planet: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+  const slideBtnStyles = StyleSheet.create({
+    slideContainer: {
+      marginTop: 18,
+      alignItems: 'center',
+    },
+    slideText: {
+      fontSize: 15,
+      color: '#444',
+      marginBottom: 8,
+    },
+    slideTrack: {
+      width: 220,
+      height: 56,
+      backgroundColor: '#eee',
+      borderRadius: 28,
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    slideThumb: {
+      position: 'absolute',
+      left: 0,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: color_danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 4,
+      shadowColor: color_danger,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+  });
+
+  // Slide button para conexión
+  const [slideConnectX, setSlideConnectX] = useState(new Animated.Value(0));
+  const slideConnectWidth = 220;
+  const slideConnectPanResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10,
+    onPanResponderMove: (_, gestureState) => {
+      let newX = Math.max(0, Math.min(slideConnectWidth - 56, gestureState.dx));
+      slideConnectX.setValue(newX);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx > slideConnectWidth - 80) {
+        // Conectar
+        setTimeout(() => handleConnection(), 300);
+        Animated.timing(slideConnectX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      } else {
+        Animated.timing(slideConnectX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
+    },
+  });
+  const slideConnectBtnStyles = StyleSheet.create({
+    slideContainer: {
+      marginTop: 40,
+      alignItems: 'center',
+    },
+    slideText: {
+      fontSize: 16,
+      color: '#fff',
+      marginBottom: 10,
+      fontWeight: 'bold',
+      letterSpacing: 0.5,
+      textShadowColor: 'rgba(0,0,0,0.18)',
+      textShadowRadius: 4,
+    },
+    slideTrack: {
+      width: 220,
+      height: 56,
+      backgroundColor: bg_primary,
+      borderRadius: 28,
+      justifyContent: 'center',
+      overflow: 'hidden',
+      borderWidth: 2,
+      borderColor: color_info,
+      shadowColor: color_info,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    slideThumb: {
+      position: 'absolute',
+      left: 0,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: color_info,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 4,
+      shadowColor: color_info,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+    },
+  });
+
+  const playSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../../../assets/sounds/ping.mp3')
+      );
+      await sound.playAsync();
+      setTimeout(() => sound.unloadAsync(), 2000);
+    } catch (e) {}
+  };
+
+  // --- DASHBOARD ULTRA-ESTRABAGANTE CON SISTEMA DE TEMAS ---
+  // Usar el mismo fondo animado y color base en todos los estados
+  const animatedBgColors = Array.from(theme.gradients.primary);
+
   return (
-    <>
-      <AnimatedBackground />
-      {/* 
-        Aplicamos los márgenes seguros como padding.
-        - paddingTop: insets.top asegura que no quede debajo de la barra de estado.
-        - paddingBottom: insets.bottom + 90 asegura que no quede debajo de la barra de pestañas.
-          (90 = 70 de altura de la barra + 20 de margen inferior)
-      */}
-      <View
-        style={[
-          styles.container,
-          { paddingTop: insets.top, paddingBottom: insets.bottom + 90 },
-        ]}
-      >
-        <ScrollView
-          contentContainerStyle={{ alignItems: "center", width: "100%" }}
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background.primary, paddingTop: insets.top + 100 }}>
+      {/* Fondo animado extravagante */}
+      <AnimatedBackground colors={animatedBgColors} />
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          opacity: 0.5,
+          backgroundColor: theme.colors.background.primary,
+          zIndex: 0,
+        }}
+      />
+      {/* Mensaje motivacional animado */}
+      <Animated.View style={{ position: 'absolute', top: insets.top + 30, left: 0, right: 0, alignItems: 'center', opacity: 0.9 }}>
+        <Text style={{ color: theme.colors.text.primary, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, letterSpacing: 1 }}>
+          {status === 'connected' ? t('dashboard.tip_connected') : status === 'connecting' ? t('dashboard.tip_connecting') : t('dashboard.tip_ready')}
+        </Text>
+      </Animated.View>
+      {/* Botón central Lottie extravagante */}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
+        <Pressable
+          onPress={async () => {
+            if (status === 'disconnected') {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              await playSound();
+              handleConnection();
+            }
+          }}
+          disabled={status !== 'disconnected'}
+          style={({ pressed }) => [{
+            borderRadius: borderRadius.full,
+            ...theme.shadows.large,
+            backgroundColor: theme.colors.background.overlay,
+            padding: spacing.xl,
+            marginBottom: spacing.xl,
+            transform: [{ scale: pressed ? 1.08 : 1 }],
+          }]}
         >
-          <View style={styles.header}>
-            <Text style={styles.title}>Bienvenido a {appName} 🎶</Text>
-            <Text style={styles.subtitle}>Tu universo musical te espera</Text>
+          <LottieView
+            source={status === 'connected' ? lottieRadar : status === 'connecting' ? lottieLoading : lottiePower}
+            autoPlay
+            loop
+            style={{ width: 220, height: 220 }}
+          />
+        </Pressable>
+        {/* Estado y tiempo */}
+        <Animated.View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+          <Text style={{ fontSize: typography.fontSize['2xl'], color: theme.colors.text.primary, fontWeight: typography.fontWeight.bold, marginBottom: 4 }}>
+            {status === 'connected' ? t('dashboard.connected') : status === 'connecting' ? t('dashboard.connecting') : t('dashboard.disconnected')}
+          </Text>
+          {status === 'connected' && (
+            <Text style={{ fontSize: typography.fontSize.lg, color: theme.colors.text.primary, opacity: 0.8, marginBottom: 8 }}>{t('dashboard.connected_time')}: {getConnectedTime()}</Text>
+          )}
+          {status === 'connecting' && (
+            <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.primary, opacity: 0.7 }}>{t('dashboard.please_wait')}</Text>
+          )}
+          {status === 'disconnected' && (
+            <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.primary, opacity: 0.7 }}>{t('dashboard.tap_to_connect')}</Text>
+          )}
+        </Animated.View>
+        {/* Badge de eventos animado */}
+        {status === 'connected' && (
+          <Animated.View style={{ backgroundColor: theme.colors.accent[200], borderRadius: borderRadius.xl, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, flexDirection: 'row', alignItems: 'center', ...theme.shadows.medium, marginBottom: spacing.lg }}>
+            <Ionicons name="notifications" size={20} color={theme.colors.primary[900]} style={{ marginRight: 8 }} />
+            <Text style={{ color: theme.colors.primary[900], fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.lg }}>2 {t('dashboard.events_available')}</Text>
+          </Animated.View>
+        )}
+        {/* Slide para desconexión extravagante */}
+        {status === 'connected' && (
+          <View style={{ marginTop: spacing.lg, alignItems: 'center', width: 260 }}>
+            <Text style={{ color: theme.colors.text.primary, fontSize: typography.fontSize.lg, marginBottom: 10 }}>{t('dashboard.slide_to_disconnect')}</Text>
+            <View style={{ width: 260, height: 60, backgroundColor: theme.colors.background.card, borderRadius: 30, justifyContent: 'center', overflow: 'hidden', borderWidth: 2, borderColor: theme.colors.accent[500], ...theme.shadows.medium }}>
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: theme.colors.error[500],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  elevation: 8,
+                  shadowColor: theme.colors.error[500],
+                  shadowOpacity: 0.25,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 2 },
+                  transform: [{ translateX: slideX }],
+                }}
+                {...slideBtnPanResponder.panHandlers}
+                onTouchEnd={async () => {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                  await playSound();
+                }}
+              >
+                <Ionicons name="log-out-outline" size={32} color={theme.colors.text.inverse} />
+              </Animated.View>
+              {/* Barra de progreso visual */}
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  height: 60,
+                  width: slideX.interpolate({ inputRange: [0, 200], outputRange: [0, 200], extrapolate: 'clamp' }),
+                  backgroundColor: theme.colors.error[100],
+                  borderRadius: 30,
+                }}
+              />
+              <View style={{ position: 'absolute', left: 80, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: theme.colors.text.primary, fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.lg, letterSpacing: 1 }}>{t('dashboard.disconnect_swipe')}</Text>
+              </View>
+            </View>
           </View>
-
-          {/* --- BANNER DE NOTIFICACIONES --- */}
-          <View style={styles.notificationsBanner}>
-            <Text style={styles.bannerTitle}>Solicitudes de Eventos</Text>
-            {notifications.length > 0 ? (
-              notifications.map((notif) => (
-                <TouchableOpacity
-                  key={notif.id}
-                  style={styles.notificationItem}
-                  onPress={() => handleOpenNotification(notif)}
-                >
-                  <Ionicons name="notifications" size={24} color={bg_primary} />
-                  <View style={styles.notificationTextContainer}>
-                    <Text style={styles.notificationTitle}>
-                      {notif.eventName}
-                    </Text>
-                    <Text style={styles.notificationDate}>{notif.date}</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward-outline"
-                    size={24}
-                    color="#ccc"
-                  />
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={styles.noNotificationsText}>
-                No tienes solicitudes pendientes.
-              </Text>
-            )}
-          </View>
-
-          <ConnectionGlobe status={status} onPress={handleConnection} />
-        </ScrollView>
-        {renderNotificationModal()}
+        )}
       </View>
-    </>
+    </View>
   );
 };
 
@@ -665,6 +1072,157 @@ const styles = StyleSheet.create({
   },
   rejectButton: {
     backgroundColor: color_danger,
+  },
+});
+
+const bottomSheetStyles = StyleSheet.create({
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 320,
+    backgroundColor: color_white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    elevation: 20,
+    shadowColor: bg_primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
+    padding: 24,
+    zIndex: 100,
+  },
+  handleContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  handle: {
+    width: 48,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ddd',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: bg_primary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  timeLabel: {
+    fontSize: 16,
+    color: color_info,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  section: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 18,
+    backgroundColor: '#f6f8fa',
+    borderRadius: 12,
+    padding: 12,
+  },
+  sectionText: {
+    marginLeft: 10,
+    fontSize: 15,
+    color: '#444',
+  },
+  disconnectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: color_danger,
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginTop: 18,
+  },
+  disconnectText: {
+    color: color_white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+});
+
+const eventAlertStyles = StyleSheet.create({
+  alertContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 200,
+  },
+  alertBox: {
+    backgroundColor: color_white,
+    borderRadius: 18,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: color_info,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
+  },
+  alertTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: bg_primary,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  alertText: {
+    fontSize: 15,
+    color: '#444',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  progressBarContainer: {
+    width: '100%',
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressBarBg: {
+    flex: 1,
+    height: 10,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBarFg: {
+    height: 10,
+    borderRadius: 6,
+  },
+  progressText: {
+    fontSize: 13,
+    color: '#444',
+    fontWeight: 'bold',
+    minWidth: 36,
+    textAlign: 'right',
+  },
+  alertBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+  },
+  alertBtn: {
+    flex: 1,
+    marginHorizontal: 6,
+    backgroundColor: color_info,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  alertBtnText: {
+    color: color_white,
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 

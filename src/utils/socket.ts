@@ -1,10 +1,12 @@
 import { io, Socket } from "socket.io-client";
-import { URL_API } from "./ENV";
+import { SOCKET_URL } from "../config/environment";
 
-const SOCKET_URL = `${URL_API}`; 
-
-export const socket:Socket = io(SOCKET_URL, {
+export const socket: Socket = io(SOCKET_URL, {
   transports: ["websocket"],
   autoConnect: false, 
+  timeout: 5000,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
 });
 

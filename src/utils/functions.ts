@@ -48,7 +48,6 @@ export const getData = async ()=>{
 try{  
   const token = await getToken();
   if (!token) return null;
-  const data1 = jwtDecode(token!);
   const data:Token = jwtDecode(token!);
   return data;
 }catch(error){

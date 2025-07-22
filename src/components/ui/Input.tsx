@@ -10,7 +10,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, textStyles, borderRadius } from '@styles/theme';
+import { colors, textStyles, borderRadius } from '@theme';
 
 interface InputProps extends TextInputProps {
   label: string;
@@ -154,7 +154,7 @@ const Input: React.FC<InputProps> = ({
           />
         )}
         
-        <View style={getInputContainerStyle()}>
+        <View style={getInputContainerStyle() as unknown as ViewStyle}>
           <Animated.Text style={[styles.label, labelAnimatedStyle, labelStyle]}>
             {label}
           </Animated.Text>

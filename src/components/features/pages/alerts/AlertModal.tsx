@@ -2,6 +2,7 @@
 import React from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import { useTranslation } from 'react-i18next';
 import { btn_danger, color_danger, color_success, s } from '@styles/Styles';
 
 const icons: Record<number, string> = {
@@ -56,7 +57,7 @@ type Props = {
 const AlertModal: React.FC<Props> = ({
   visible,
   icon,
-  title = "Alerta",
+  title,
   message,
   onClose,
   onConfim,
@@ -64,12 +65,14 @@ const AlertModal: React.FC<Props> = ({
   btnTxtConfirm,
   children,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={ss.overlay}>
         <View style={ss.container}>
           <Text style={ss.icon}>{icons[icon]}</Text>
-          <Text style={ss.title}>{title}</Text>
+          <Text style={ss.title}>{title || t('alerts.alert')}</Text>
           <ScrollView>{children}</ScrollView>
           <Text style={ss.message}>{message}</Text>
           <View style={[s.row]}>
@@ -78,7 +81,7 @@ const AlertModal: React.FC<Props> = ({
               style={[ss.btn_alert, ss.btn_alert_outline_success]}
             >
               <Text style={ss.text_btn_alert_outline_success}>
-                {confirmText || "Ok"}
+                {confirmText || t('common.ok')}
               </Text>
             </TouchableOpacity>
 
@@ -91,9 +94,7 @@ const AlertModal: React.FC<Props> = ({
                   {btnTxtConfirm}
                 </Text>
               </TouchableOpacity>
-            ) : (
-              ""
-            )}
+            ) : null}
           </View>
         </View>
       </View>

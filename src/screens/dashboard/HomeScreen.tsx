@@ -1,75 +1,369 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Image, TouchableOpacity, Animated} from "react-native";
-import { StackScreenProps } from "@react-navigation/stack";
-import { RootStackParamList } from '@appTypes/DatasTypes';
-import { appName, s } from '@styles/Styles';
-import { validateToken } from '@utils/functions';
-import { useHeaderHeight } from "@react-navigation/elements";
-import { ScrollView } from "react-native-gesture-handler";
-import ReelsScreen from '@components/features/pages/reels/MainReels';
-import MapViewScreen from '@components/features/Home/Maps/MapViewScreen';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@contexts/ThemeContext';
+import { useUser } from '@contexts/UserContext';
+import { useSidebar } from '@contexts/SidebarContext';
+import { getData } from '@utils/functions';
+import { Token } from '@appTypes/DatasTypes';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type Props = StackScreenProps<RootStackParamList, 'Home'>;
+const { width } = Dimensions.get('window');
 
-const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const headerHeight = useHeaderHeight();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [dataToken, useDataToken]  = useState<string[]>([]);
-  const [img, setImg] = useState("https://musikon-media.c8q1.va03.idrivee2-84.com/musikon-media/1744826998680_Logo_app.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=une5qsW31Zlf7yi1lF34%2F20250417%2FVirginia%2Fs3%2Faws4_request&X-Amz-Date=20250417T102557Z&X-Amz-Expires=300&X-Amz-Signature=053847fd5e68a17aa7f5f09e7e26d777a8727b31c00f694edd5269aa788894d6&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject");
+const HomeScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { user } = useUser();
+  const { openSidebar } = useSidebar();
+  const [userData, setUserData] = useState<Token | null>(null);
+  const insets = useSafeAreaInsets();
 
-  const  HandleToken  = async () =>{
-    const tk = await validateToken();
-    if(tk){
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainTabs" }],
-      });
-    }
-  }
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-    HandleToken();
-  },[navigation.addListener]);
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const data = await getData();
+      setUserData(data || null);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  const handleNavigate = (route: string) => {
+    if (user) {
+      navigation.navigate(route);
+    } else {
+      navigation.navigate('Login');
+    }
+  };
+
+  const features = [
+    {
+      id: 1,
+      title: t('navigation.request_musician'),
+      description: 'Encuentra músicos para tu evento',
+      icon: 'musical-notes',
+      route: 'ShareMusician',
+      color: theme.colors.primary[500],
+    },
+    {
+      id: 2,
+      title: t('navigation.events'),
+      description: 'Explora eventos musicales',
+      icon: 'calendar',
+      route: 'EventList',
+      color: theme.colors.secondary[500],
+    },
+    {
+      id: 3,
+      title: t('navigation.profile'),
+      description: 'Gestiona tu perfil',
+      icon: 'person',
+      route: 'Profile',
+      color: theme.colors.accent[500],
+    },
+    {
+      id: 4,
+      title: t('navigation.settings'),
+      description: 'Configura tu cuenta',
+      icon: 'settings',
+      route: 'Settings',
+      color: theme.colors.accent[500],
+    },
+  ];
 
   return (
-   <ScrollView>
-     <AnimatedBackground/>
-    {/* <ReelsScreen></ReelsScreen> */}
-     <View style={[s.container,{paddingTop:headerHeight,paddingBottom:60}]}>
-  
-  {/* Logo y título */}
-<Animated.View style={[s.header, { opacity: fadeAnim }]}>
-<Image source={require("../../../assets/4.png")} style={s.logo}/>
-<Text style={s.title}>Bienvenido a {appName}</Text>
-<Text style={s.subtitle}>Conéctate con músicos y eventos en vivo</Text>
-</Animated.View>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
+      <AnimatedBackground />
+      
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <LinearGradient
+          colors={theme.gradients.primary}
+          style={styles.headerGradient}
+        >
+          <View style={styles.header}>
+            {/* Eliminar el botón de menú/sidebar aquí, ya está en el header global */}
+            <View style={styles.headerContent}>
+              <Text style={[styles.welcomeText, { color: theme.colors.text.inverse }]}> 
+                {userData ? t('home.greeting', { name: userData.name }) : t('welcome')}
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.colors.text.inverse }]}> 
+                {t('app_subtitle')}
+              </Text>
+            </View>
+          </View>
+        </LinearGradient>
 
-{/* Botones de navegación */}
-<Animated.View style={[s.buttonContainer, { opacity: fadeAnim }]}>
-<TouchableOpacity style={[s.btn, s.btn_primary]} onPress={() => navigation.navigate("Home")}>
-<Text style={s.btnText}>Explorar Eventos</Text>
-</TouchableOpacity>
+        {/* Si el usuario NO está logueado, solo mostrar el CTA y botones de registro/login */}
+        {!user && (
+          <View style={styles.section}>
+            <View style={[styles.ctaCard, { backgroundColor: theme.colors.background.card }]}>
+              <LinearGradient
+                colors={theme.gradients.primary}
+                style={styles.ctaGradient}
+              >
+                <Ionicons name="rocket" size={40} color={theme.colors.text.inverse} />
+                <Text style={[styles.ctaTitle, { color: theme.colors.text.inverse }]}>¡Comienza Ahora!</Text>
+                <Text style={[styles.ctaDescription, { color: theme.colors.text.inverse }]}>Conecta con músicos y crea eventos increíbles</Text>
+                <TouchableOpacity
+                  style={[styles.ctaButton, { backgroundColor: theme.colors.text.inverse, marginBottom: 12 }]}
+                  onPress={() => navigation.navigate('Register')}
+                >
+                  <Text style={[styles.ctaButtonText, { color: theme.colors.primary[500] }]}>Registrarse</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.ctaButton, { backgroundColor: theme.colors.text.inverse }]}
+                  onPress={() => navigation.navigate('Login')}
+                >
+                  <Text style={[styles.ctaButtonText, { color: theme.colors.primary[500] }]}>Iniciar Sesión</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          </View>
+        )}
 
-<TouchableOpacity style={[s.btn, s.btn_outline_primary]} onPress={() => navigation.navigate("Register")}>
-<Text style={[s.btnText, s.buttonTextOutline]}>Registrarse</Text>
-</TouchableOpacity>
-<TouchableOpacity style={[s.btn, s.btn_primary]} onPress={() => navigation.navigate("Login")}>
-<Text style={s.btnText}>Iniciar sesión</Text>
-</TouchableOpacity>
-</Animated.View>
-</View>
-{/* <MapViewScreen>
+        {/* Si el usuario está logueado, mostrar el resto de la UI */}
+        {user && (
+          <>
+            {/* Quick Actions */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Acciones Rápidas</Text>
+              <View style={styles.featuresGrid}>
+                {features.map((feature) => (
+                  <TouchableOpacity
+                    key={feature.id}
+                    style={[styles.featureCard, { backgroundColor: theme.colors.background.card }]}
+                    onPress={() => handleNavigate(feature.route)}
+                  >
+                    <LinearGradient
+                      colors={[`${feature.color}20`, `${feature.color}10`]}
+                      style={styles.featureGradient}
+                    >
+                      <View style={[styles.iconContainer, { backgroundColor: feature.color }]}>
+                        <Ionicons name={feature.icon as any} size={24} color={theme.colors.text.inverse} />
+                      </View>
+                      <Text style={[styles.featureTitle, { color: theme.colors.text.primary }]}>{feature.title}</Text>
+                      <Text style={[styles.featureDescription, { color: theme.colors.text.secondary }]}>{feature.description}</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
 
-</MapViewScreen> */}
-   </ScrollView>
-  
+            {/* Stats Section */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Estadísticas</Text>
+              <View style={styles.statsContainer}>
+                <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
+                  <LinearGradient
+                    colors={[`${theme.colors.primary[500]}20`, `${theme.colors.primary[500]}10`]}
+                    style={styles.statGradient}
+                  >
+                    <Ionicons name="musical-notes" size={24} color={theme.colors.primary[500]} />
+                    <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Músicos Conectados</Text>
+                  </LinearGradient>
+                </View>
+                <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
+                  <LinearGradient
+                    colors={[`${theme.colors.secondary[500]}20`, `${theme.colors.secondary[500]}10`]}
+                    style={styles.statGradient}
+                  >
+                    <Ionicons name="calendar" size={24} color={theme.colors.secondary[500]} />
+                    <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Eventos Creados</Text>
+                  </LinearGradient>
+                </View>
+                <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
+                  <LinearGradient
+                    colors={[`${theme.colors.accent[500]}20`, `${theme.colors.accent[500]}10`]}
+                    style={styles.statGradient}
+                  >
+                    <Ionicons name="star" size={24} color={theme.colors.accent[500]} />
+                    <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Calificación</Text>
+                  </LinearGradient>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  menuButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerContent: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.8,
+  },
+  section: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  featureCard: {
+    width: (width - 60) / 2,
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  featureGradient: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  featureDescription: {
+    fontSize: 12,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    flex: 1,
+    marginHorizontal: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  statGradient: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 8,
+  },
+  statLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  ctaCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6.27,
+    elevation: 8,
+  },
+  ctaGradient: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  ctaTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  ctaDescription: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    opacity: 0.9,
+  },
+  ctaButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  ctaButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default HomeScreen;
 

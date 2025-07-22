@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, gradients, shadows, textStyles } from '@styles/theme';
+import { colors, gradients, shadows, textStyles } from '@theme';
 
 interface TabItem {
   key: string;
@@ -60,7 +60,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
       case 'gradient':
         return (
           <LinearGradient
-            colors={gradients.primary as [string, string, ...string[]]}
+            colors={gradients.primary as unknown as [string, string, ...string[]]}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}

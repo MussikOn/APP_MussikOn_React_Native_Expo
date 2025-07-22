@@ -238,3 +238,10 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 **Desarrollado con ❤️ para la comunidad musical**
 
 *Última actualización: Diciembre 2024*
+
+## 🌍 Internacionalización (i18n)
+
+- Soporte completo para múltiples idiomas (español, inglés, y fácil de expandir).
+- Selector de idioma disponible en la pantalla de configuración.
+- Todo el texto visible para el usuario está internacionalizado usando `i18next` y `react-i18next`.
+- Para agregar un nuevo idioma, consulta la documentación en `docs/technologies/tags/LanguageSelector.md`.
