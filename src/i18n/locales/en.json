@@ -252,5 +252,19 @@
     "empty": "No events available",
     "empty_search": "Try other search terms",
     "empty_hint": "Events will appear here"
+  },
+  "dashboard": {
+    "disconnected": "Disconnected",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "tap_to_connect": "Tap to connect",
+    "please_wait": "Please wait...",
+    "connected_time": "Connected time",
+    "slide_to_disconnect": "Slide to disconnect",
+    "disconnect_swipe": "Swipe to disconnect",
+    "events_available": "events available",
+    "tip_ready": "Ready to start your journey!",
+    "tip_connecting": "Getting you online...",
+    "tip_connected": "You're online and visible!"
   }
 } 

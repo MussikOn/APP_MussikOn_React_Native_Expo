@@ -245,7 +245,18 @@
     "new_message": "¡Tienes un nuevo mensaje!"
   },
   "dashboard": {
-    "slide_to_connect": "Desliza para conectar",
+    "disconnected": "Desconectado",
+    "connecting": "Conectando...",
+    "connected": "Conectado",
+    "tap_to_connect": "Toca para conectar",
+    "please_wait": "Por favor espera...",
+    "connected_time": "Tiempo conectado",
+    "slide_to_disconnect": "Desliza para desconectar",
+    "disconnect_swipe": "Desliza para desconectar",
+    "events_available": "eventos disponibles",
+    "tip_ready": "¡Listo para comenzar tu jornada!",
+    "tip_connecting": "Conectándote en línea...",
+    "tip_connected": "¡Estás en línea y visible!"
   },
   "events": {
     "example_birthday": "Fiesta de Cumpleaños",
