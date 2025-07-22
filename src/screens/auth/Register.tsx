@@ -1,211 +1,98 @@
 import React, { useState, useEffect } from "react";
-import { Pressable, View, Text, TouchableOpacity, TextInput } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { s, bg_white, appName, bg_primary } from '@styles/Styles';
-import { saveToken } from '@utils/functions';
-import { RootStackParamList } from '@appTypes/DatasTypes';
-import { StackScreenProps } from "@react-navigation/stack";
-import { ScrollView } from "react-native-gesture-handler";
-import { URL_API } from '@utils/ENV';
-import LoadingModal from '@components/ui/LoadingModal';
-import AlertModal from '@components/features/pages/alerts/AlertModal';
-import FormAlertModal from '@components/features/pages/alerts/FormAlert';
-import { useTranslation } from 'react-i18next';
 import {
-  label1,
-  label2,
-  nameRef_1,
-  nameRef_2,
-  conditionNext,
-  Rules,
-  subTitle,
-  titles,
-  isNumeric,
-} from '@components/features/pages/Register/components/registerStepConfig';
-
-import { ss } from '@components/features/pages/Register/components/StepStyle';
-import { Data } from '@components/features/pages/Register/components/RegisterTypes';
-import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
-import { useUser } from '../../contexts/UserContext';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@contexts/ThemeContext';
+import { useUser } from '@contexts/UserContext';
 import { useSidebar } from '@contexts/SidebarContext';
-import { Ionicons } from '@expo/vector-icons';
-import { color_primary } from '@styles/Styles';
+import { getToken, saveToken } from '@utils/functions';
+import { URL_API } from '@utils/ENV';
+import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type Props = StackScreenProps<RootStackParamList, "Register">;
-
-export interface MainState {
-  icon: number;
-  titleAlert?: string;
-  textAlert?: string;
-  viewPass?: boolean;
-  viewAlert?: boolean;
-  viewModal?: boolean;
-  loading?: boolean;
-  detone?: boolean;
-  sendEmail?: boolean;
-  sendCode?: boolean;
-  sendPassword?: boolean;
-}
-
-const Register: React.FC<Props> = ({ navigation }) => {
+const Register = ({ navigation }: any) => {
   const { t } = useTranslation();
-  const [next, setNext] = useState(0);
-  const [mainState, setMainState] = useState<MainState>({
-    icon: 0,
-    titleAlert: "!Alerta¡",
-    textAlert: "",
-    viewPass: true,
-    viewAlert: false,
-    detone: false,
-    viewModal: true,
-    loading: false,
-    sendEmail: false,
-    sendCode: false,
-    sendPassword: false,
+  const { theme } = useTheme();
+  const { login, user } = useUser();
+  // const { setActiveScreen } = useSidebar();
+  const insets = useSafeAreaInsets();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    lastName: "",
+    email: "",
+    confirmEmail: "",
+    password: "",
+    confirmPassword: "",
+    roll: "eventCreator",
   });
 
-  const Genero = ["femenino", "masculino"];
-  const handleChange = (fieldType: string, inputType: string, text: string) => {
-    if (inputType === "number") {
-      const numeric = text.replace(/[^0-9]/g, "");
-      setStateData((prev) => ({
-        ...prev,
-        [fieldType]: numeric,
-      }));
-      return;
-    } else if (fieldType === "email" || fieldType === "confirmEmail") {
-      const numeric = text.replace(" ", "");
-      setStateData((prev) => ({
-        ...prev,
-        [fieldType]: numeric,
-      }));
-      return;
-    }
-    if (text.length > 60) {
-      setMainState((prev) => ({
-        ...prev,
-        icon: 1,
-        textAlert: `El campo ${fieldType} es demasiado largo.`,
-        viewAlert: true,
-      }));
-      return;
-    } else {
-      setStateData((prev) => ({
-        ...prev,
-        [fieldType]: text,
-      }));
-    }
-  };
-  const nexts = () => {
-    // if (next > 4) {
-    //   setNext(0);
-    // }
-    setMainState((prev) => ({ ...prev, viewModal: false }));
-    setTimeout(() => {
-      setNext(next + 1);
-      setMainState((prev) => ({ ...prev, viewModal: true }));
-    }, 300);
-  };
-  const back = () => {
-    if (next < 0) {
-      setNext(0);
-    }
-    setMainState((prev) => ({ ...prev, viewModal: false }));
-    setTimeout(() => {
-      setNext(next - 1);
-      setMainState((prev) => ({ ...prev, viewModal: true }));
-    }, 300);
-  };
-  const handleSendEmail = async () => {
-    setMainState((prev) => ({ ...prev, loading: true }));
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    try {
-      const response = await fetch(`${URL_API}/auth/authEmail`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userEmail: stateData.email,
-        }),
-      });
+  useEffect(() => {
+    checkExistingToken();
+  }, []);
 
-      const data = await response.json();
+  // Efecto para navegar a MainTabs cuando el usuario esté disponible
+  useEffect(() => {
+    if (user) {
+      // Aquí puedes navegar si es necesario
+    }
+  }, [user, navigation]);
 
-      if (response.ok) {
-        setStateData((prev) => ({
-          ...prev,
-          params: data.numParam,
-        }));
-        setMainState((prev) => ({
-          ...prev,
-          loading: false,
-          textAlert: data.msg,
-        }));
-        nexts();
-      } else {
-        setMainState((prev) => ({
-          ...prev,
-          icon: 1,
-          loading: false,
-          titleAlert: t('register.email_exists'),
-          textAlert: data.msg,
-          viewAlert: true,
-        }));
-      }
-    } catch (error) {
-      setMainState((prev) => ({ ...prev, loading: false }));
-      setMainState((prev) => ({
-        ...prev,
-        textAlert: `Actualmente no puedes registrarte, intentelo mas tarde o pongase en contacto con nosotros 809-858-4001`,
-      }));
-      setMainState((prev) => ({ ...prev, viewAlert: true }));
+  const checkExistingToken = async () => {
+    const token = await getToken();
+    if (token) {
+      // No navegar aquí, dejar que el useEffect maneje la navegación
+      // cuando el contexto del usuario se actualice
     }
   };
 
-  const handleConfirmEmail = async () => {
-    setMainState((prev) => ({ ...prev, loading: true }));
-    try {
-      const response = await fetch(
-        `${URL_API}/auth/validEmail/${stateData.validCode}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            vaildNumber: stateData.params,
-          }),
-        }
-      );
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMainState((prev) => ({ ...prev, loading: false }));
-        nexts();
-      } else {
-        setMainState((prev) => ({ ...prev }));
-        setMainState((prev) => ({
-          ...prev,
-          loading: false,
-          textAlert: data.msg,
-          viewAlert: true,
-        }));
-        setMainState((prev) => ({ ...prev, viewAlert: true }));
-      }
-    } catch (error) {
-      setMainState((prev) => ({
-        ...prev,
-        textAlert: `Actualmente no puedes registrarte, intentelo mas tarde o pongase en contacto con nosotros 809-858-4001`,
-        loading: false,
-        viewAlert: true,
-      }));
+  const validateForm = () => {
+    if (!formData.name || !formData.lastName || !formData.email || !formData.password) {
+      Alert.alert(t('register.error'), t('register.required'));
+      return false;
     }
+
+    if (formData.email !== formData.confirmEmail) {
+      Alert.alert(t('register.error'), t('register.emails_not_match'));
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert(t('register.error'), t('register.passwords_not_match'));
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      Alert.alert(t('register.error'), t('register.min_length'));
+      return false;
+    }
+
+    return true;
   };
 
   const handleRegister = async () => {
-    setMainState((prev) => ({ ...prev, loading: false }));
+    if (!validateForm()) return;
+
+    setLoading(true);
 
     try {
       const response = await fetch(`${URL_API}/auth/register`, {
@@ -214,277 +101,427 @@ const Register: React.FC<Props> = ({ navigation }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: stateData.nombres,
-          lastName: stateData.apellidos,
-          userEmail: stateData.email,
-          userPassword: stateData.password,
-          roll: stateData.roll.rol,
+          name: formData.name,
+          lastName: formData.lastName,
+          userEmail: formData.email,
+          userPassword: formData.password,
+          roll: formData.roll,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMainState((prev) => ({
-          ...prev,
-          loading: false,
-          viewModal: false,
-        }));
-        await loginUser(data.token);
-        setShouldNavigateToMainTabs(true); // Esperar a que user esté definido
+        await login(data.token);
+        // No navegar aquí, dejar que el useEffect maneje la navegación
+        // cuando el contexto del usuario se actualice
       } else {
-        setMainState((prev) => ({
-          ...prev,
-          loading: false,
-          icon: 1,
-          textAlert: data.msg,
-          viewAlert: true,
-        }));
+        Alert.alert(t('register.error'), data.msg || t('register.registration_error'));
       }
     } catch (error) {
-      setMainState((prev) => ({
-        ...prev,
-        loading: false,
-        icon: 1,
-        textAlert: `Actualmente no puedes registrarte, intentelo mas tarde o pongase en contacto con nosotros 809-858-4001`,
-        viewAlert: true,
-      }));
-    }
-  };
-  const [stateData, setStateData] = useState<Data>({
-    nombres: "",
-    apellidos: "",
-    email: "",
-    confirmEmail: "",
-    password: "",
-    confirmPassword: "",
-    roll: {
-      name: "",
-      rol: "",
-    },
-    validCode: "",
-    cValidCode: "",
-    params: "",
-  });
-  const mapTitle = titles(appName, stateData.nombres);
-  const mapSubTitle = subTitle(stateData.roll.name, stateData.email);
-  const stateDataRef1 = nameRef_1();
-  const stateDataRef2 = nameRef_2();
-  const mapLabel1 = label1();
-  const mapLabel2 = label2();
-  const isNumerics = isNumeric();
-  const value1 = stateData[stateDataRef1[next] as keyof Data];
-  const value2 = stateData[stateDataRef2[next] as keyof Data];
-  const detone = conditionNext(stateData)[next]?.();
-
-  const handleNext = () => {
-    if (detone.detone) {
-      setMainState((prev) => ({ ...prev, icon: detone.icon }));
-      setMainState((prev) => ({ ...prev, titleAlert: detone.titleAlert }));
-      setMainState((prev) => ({ ...prev, textAlert: detone.textAlert }));
-      setMainState((prev) => ({ ...prev, viewAlert: detone.detone }));
-    } else if (detone.sendEmail) {
-      handleSendEmail();
-    } else if (detone.sendCode) {
-      handleConfirmEmail();
-    } else if (detone.sendPassword) {
-      handleRegister();
-    } else {
-      nexts();
+      Alert.alert(t('register.error'), t('register.registration_error'));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleBack = () => {
-    setMainState((prev) => ({ ...prev, viewModal: false }));
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Home" }],
-    });
-  };
-
-  const { login: loginUser, user } = useUser();
-  const { openSidebar } = useSidebar();
-  const [shouldNavigateToMainTabs, setShouldNavigateToMainTabs] = useState(false);
-
-  useEffect(() => {
-    if (shouldNavigateToMainTabs && user) {
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-      setShouldNavigateToMainTabs(false);
-    }
-  }, [shouldNavigateToMainTabs, user, navigation]);
-
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <Ionicons
-          name="menu"
-          size={28}
-          color={color_primary}
-          style={{ marginLeft: 18 }}
-          onPress={openSidebar}
-        />
-      ),
-    });
-  }, [navigation, openSidebar]);
+  const roles = [
+    { value: "eventCreator", label: t('sidebar.event_creator') },
+    { value: "musico", label: t('sidebar.musician') },
+    // { value: "evangelista", label: t('sidebar.evangelist') },
+  ];
 
   return (
-    <>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
       <AnimatedBackground />
-      <ScrollView>
-        <LoadingModal visible={mainState.loading!}></LoadingModal>
-        <FormAlertModal
-          title={mapTitle[next]}
-          label1={mapLabel1[next]}
-          label2={mapLabel2[next]}
-          subTitle={mapSubTitle[next]}
-          value1={value1}
-          value2={value2}
-          onChangeValue1={(e) =>
-            handleChange(stateDataRef1[next], isNumerics[next], e)
-          }
-          onChangeValue2={(e) =>
-            handleChange(stateDataRef2[next], isNumerics[next], e)
-          }
-          onNext={() => {
-            handleNext();
-          }}
-          onBack={() => {
-            handleBack();
-          }}
-          visible={mainState.viewModal}
-          secureTextEntry={next === 4 ? mainState.viewPass : false}
+      
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer} 
+          showsVerticalScrollIndicator={false}
         >
-          {next === 0 ? (
-            <ScrollView>
-              {Rules.map((rol, i) => (
-                <Pressable
-                  onPress={() => {
-                    setStateData((prev) => ({
-                      ...prev,
-                      roll: {
-                        ...prev.roll,
-                        name: rol.name,
-                        rol: rol.roll,
-                      },
-                    }));
-                  }}
-                  key={i}
+          <LinearGradient
+            colors={theme.gradients.primary}
+            style={styles.headerGradient}
+          >
+            <View style={styles.header}>
+              <View style={[styles.logoContainer, { backgroundColor: theme.colors.background.card }]}>
+                <Ionicons name="musical-notes" size={60} color={theme.colors.primary[500]} />
+              </View>
+              <Text style={[styles.title, { color: theme.colors.text.inverse }]}>
+                {t('register.title')}
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.colors.text.inverse }]}>
+                {t('register.subtitle')}
+              </Text>
+            </View>
+          </LinearGradient>
+
+          <View style={styles.formContainer}>
+            <View style={[styles.formCard, { backgroundColor: theme.colors.background.card }]}>
+              <Text style={[styles.formTitle, { color: theme.colors.text.primary }]}>
+                {t('register.create_account')}
+              </Text>
+
+              {/* Nombre */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="person-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
+                <TextInput
                   style={[
-                    ss.viewCheck,
-                    stateData.roll.rol === rol.roll && { backgroundColor: bg_white },
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
                   ]}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <MaterialIcons
-                      name="check-box"
-                      size={30}
-                      color={stateData.roll.rol === rol.roll ? bg_primary : bg_white}
-                    />
-                    <Text style={[ss.text, { color: stateData.roll.rol === rol.roll ? bg_primary : bg_white }]}>
-                      {rol.name}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
-            </ScrollView>
-          ) : next === 1 ? (
-            <ScrollView>
-              <View style={ss.container}>
-                <Text style={ss.title}>{t('register.name')}</Text>
-                <TextInput
-                  style={ss.input}
                   placeholder={t('register.name')}
-                  value={stateData.nombres}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, nombres: text }))
-                  }
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={formData.name}
+                  onChangeText={(value) => handleInputChange('name', value)}
                 />
-                <Text style={ss.title}>{t('register.lastname')}</Text>
+              </View>
+
+              {/* Apellido */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="person-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
                 <TextInput
-                  style={ss.input}
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
                   placeholder={t('register.lastname')}
-                  value={stateData.apellidos}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, apellidos: text }))
-                  }
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={formData.lastName}
+                  onChangeText={(value) => handleInputChange('lastName', value)}
                 />
               </View>
-            </ScrollView>
-          ) : next === 2 ? (
-            <ScrollView>
-              <View style={ss.container}>
-                <Text style={ss.title}>{t('register.email')}</Text>
+
+              {/* Email */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="mail-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
                 <TextInput
-                  style={ss.input}
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
                   placeholder={t('register.email')}
-                  value={stateData.email}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, email: text }))
-                  }
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={formData.email}
+                  onChangeText={(value) => handleInputChange('email', value)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
-                <Text style={ss.title}>{t('register.confirm_email')}</Text>
+              </View>
+
+              {/* Confirmar Email */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="mail-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
                 <TextInput
-                  style={ss.input}
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
                   placeholder={t('register.confirm_email')}
-                  value={stateData.confirmEmail}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, confirmEmail: text }))
-                  }
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={formData.confirmEmail}
+                  onChangeText={(value) => handleInputChange('confirmEmail', value)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
-            </ScrollView>
-          ) : next === 3 ? (
-            <ScrollView>
-              <View style={ss.container}>
-                <Text style={ss.title}>{t('register.password')}</Text>
+
+              {/* Contraseña */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="lock-closed-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
                 <TextInput
-                  style={ss.input}
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
                   placeholder={t('register.password')}
-                  value={stateData.password}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, password: text }))
-                  }
-                  secureTextEntry={true}
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={formData.password}
+                  onChangeText={(value) => handleInputChange('password', value)}
+                  secureTextEntry={!showPassword}
                 />
-                <Text style={ss.title}>{t('register.confirm_password')}</Text>
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons 
+                    name={showPassword ? "eye-off" : "eye"} 
+                    size={20} 
+                    color={theme.colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Confirmar Contraseña */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="lock-closed-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
                 <TextInput
-                  style={ss.input}
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
                   placeholder={t('register.confirm_password')}
-                  value={stateData.confirmPassword}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, confirmPassword: text }))
-                  }
-                  secureTextEntry={true}
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={formData.confirmPassword}
+                  onChangeText={(value) => handleInputChange('confirmPassword', value)}
+                  secureTextEntry={!showConfirmPassword}
                 />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Ionicons 
+                    name={showConfirmPassword ? "eye-off" : "eye"} 
+                    size={20} 
+                    color={theme.colors.text.secondary} 
+                  />
+                </TouchableOpacity>
               </View>
-            </ScrollView>
-          ) : next === 4 ? (
-            <ScrollView>
-              <View style={ss.container}>
-                <Text style={ss.title}>{t('register.confirm_code')}</Text>
+
+              {/* Rol */}
+              <View style={styles.inputContainer}>
+                <Ionicons 
+                  name="people-outline" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                  style={styles.inputIcon}
+                />
                 <TextInput
-                  style={ss.input}
-                  placeholder={t('register.confirm_code')}
-                  value={stateData.validCode}
-                  onChangeText={(text) =>
-                    setStateData((prev) => ({ ...prev, validCode: text }))
-                  }
+                  style={[
+                    styles.input,
+                    { 
+                      color: theme.colors.text.primary,
+                      borderColor: theme.colors.border.primary,
+                      backgroundColor: theme.colors.background.secondary
+                    }
+                  ]}
+                  placeholder={t('register.role')}
+                  placeholderTextColor={theme.colors.text.tertiary}
+                  value={t('register.role_' + formData.roll)}
+                  editable={false}
                 />
+                <TouchableOpacity
+                  style={styles.roleButton}
+                  onPress={() => {
+                    Alert.alert(
+                      t('register.select_role'),
+                      '',
+                      roles.map(role => ({
+                        text: role.label,
+                        onPress: () => handleInputChange('roll', role.value)
+                      }))
+                    );
+                  }}
+                >
+                  <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
               </View>
-            </ScrollView>
-          ) : null}
-        </FormAlertModal>
-        <AlertModal
-          visible={mainState.viewAlert!}
-          icon={mainState.icon}
-          title={mainState.titleAlert}
-          message={mainState.textAlert || ''}
-          onClose={() => setMainState((prev) => ({ ...prev, viewAlert: false }))}
-          confirmText={t('register.understood')}
-        />
-      </ScrollView>
-    </>
+
+              <TouchableOpacity
+                style={[
+                  styles.registerButton,
+                  { backgroundColor: theme.colors.primary[500] },
+                  loading && { opacity: 0.7 }
+                ]}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Ionicons name="hourglass" size={20} color={theme.colors.text.inverse} />
+                ) : (
+                  <Text style={[styles.registerButtonText, { color: theme.colors.text.inverse }]}>
+                    {t('register.button')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.loginContainer}>
+                <Text style={[styles.loginText, { color: theme.colors.text.secondary }]}>
+                  {t('register.have_account')}
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                  <Text style={[styles.loginLink, { color: theme.colors.primary[500] }]}>
+                    {t('register.login_here')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+  },
+  header: {
+    alignItems: 'center',
+  },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.9,
+  },
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  formCard: {
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+    position: 'relative',
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: 12,
+    top: 12,
+    zIndex: 1,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    paddingLeft: 40,
+    fontSize: 16,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    zIndex: 1,
+  },
+  roleButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    zIndex: 1,
+  },
+  registerButton: {
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  registerButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginText: {
+    fontSize: 14,
+  },
+  loginLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+});
 
 export default Register;

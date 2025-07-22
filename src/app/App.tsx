@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated, Easing, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as SplashScreen from 'expo-splash-screen';
@@ -11,65 +11,30 @@ import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { UserProvider, useUser } from '../contexts/UserContext';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { getData, getToken } from '@utils/functions';
 import { Token } from '@appTypes/DatasTypes';
 import { SidebarProvider, useSidebar } from '@contexts/SidebarContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import HomeScreen from '@screens/dashboard/HomeScreen';
 import { RootStackParamList } from '@appTypes/DatasTypes';
 import Login from '@screens/auth/Login';
 import Register from '@screens/auth/Register';
-import { MainTabs } from '@components/navigation';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 import MainSidebar from '@components/features/pages/Sidebar/MainSidebar';
+import { Profile } from '@screens/profile/Profile';
+import SettingsScreen from '@screens/settings/SettingsScreen';
+import ShareMusician from '@components/features/pages/event/ShareMusician';
+import EventList from '@screens/events/EventList';
+import Dashboard from '@screens/dashboard/Dashboard';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
 
 // Keep splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
-
-const screenOptions: StackNavigationOptions = {
-  headerStyle: {
-    backgroundColor: 'transparent',
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  headerTintColor: '#ffffff',
-  headerTitleStyle: {
-    fontWeight: '700',
-    fontSize: 18,
-    color: '#ffffff',
-  },
-  headerTransparent: true,
-  headerBackground: () => (
-    <BlurView intensity={20} style={StyleSheet.absoluteFill} />
-  ),
-  cardStyle: { backgroundColor: 'transparent' },
-  cardOverlayEnabled: true,
-  cardStyleInterpolator: ({ current, layouts }) => ({
-    cardStyle: {
-      transform: [
-        {
-          translateX: current.progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [layouts.screen.width, 0],
-          }),
-        },
-      ],
-      opacity: current.progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
-    },
-    overlayStyle: {
-      opacity: current.progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 0.5],
-      }),
-    },
-  }),
-};
 
 function AppContent() {
   const [isReady, setIsReady] = useState(false);
@@ -79,27 +44,16 @@ function AppContent() {
   const { t } = useTranslation();
   const { user, refreshUser } = useUser();
   const { sidebarVisible, openSidebar, closeSidebar } = useSidebar();
+  const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
 
   // Crear un ref global para la navegación
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
 
-  // Estado global para la pantalla activa de MainTabs
-  const [mainTabsScreen, setMainTabsScreen] = useState('Dashboard');
   // Handler global para navegación desde el sidebar
   const handleSidebarNavigate = (route: string) => {
     closeSidebar();
-    if (!user) {
-      // Solo permitir rutas públicas si no hay usuario
-      if (["Home", "Login", "Register"].includes(route)) {
-        navigationRef.current?.navigate(route);
-      }
-      return;
-    }
-    // Si hay usuario, permitir navegación privada
-    setMainTabsScreen(route);
-    if (navigationRef.current?.getCurrentRoute()?.name !== 'MainTabs') {
-      navigationRef.current?.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    }
+    navigationRef.current?.navigate(route);
   };
 
   useEffect(() => {
@@ -138,11 +92,56 @@ function AppContent() {
     }
   }, [appIsReady]);
 
+  const screenOptions: StackNavigationOptions = {
+    headerStyle: {
+      backgroundColor: 'transparent',
+      elevation: 0,
+      shadowOpacity: 0,
+      // Quitar paddingTop/minHeight aquí para evitar que el header tape el contenido
+    },
+    headerTintColor: theme.colors.text.primary,
+    headerTitle: '', // No mostrar texto
+    headerTitleStyle: {
+      fontWeight: '700',
+      fontSize: 18,
+      color: theme.colors.text.primary,
+      display: 'none',
+    },
+    headerTransparent: true,
+    headerBackground: () => (
+      <BlurView intensity={20} style={StyleSheet.absoluteFill} />
+    ),
+    cardStyle: { backgroundColor: 'transparent' },
+    cardOverlayEnabled: true,
+    cardStyleInterpolator: ({ current, layouts }) => ({
+      cardStyle: {
+        transform: [
+          {
+            translateX: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [layouts.screen.width, 0],
+            }),
+          },
+        ],
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+        }),
+      },
+      overlayStyle: {
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.5],
+        }),
+      },
+    }),
+  };
+
   if (!appIsReady) {
     return (
       <View style={styles.splashContainer}>
         <LinearGradient
-          colors={['#667eea', '#764ba2', '#f093fb']}
+          colors={theme.gradients.primary}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -150,20 +149,20 @@ function AppContent() {
         <Animated.View style={[styles.splashContent, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}> 
           <View style={styles.logoContainer}>
             <LinearGradient
-              colors={['#ffffff', '#f8f9fa']}
+              colors={theme.gradients.light}
               style={styles.logoGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Ionicons name="musical-notes" size={60} color="#667eea" />
+              <Ionicons name="musical-notes" size={60} color={theme.colors.primary[500]} />
             </LinearGradient>
           </View>
-          <Text style={styles.appTitle}>{t('welcome')}</Text>
-          <Text style={styles.appSubtitle}>{t('app_subtitle')}</Text>
+          <Text style={[styles.appTitle, { color: theme.colors.text.primary }]}>{t('welcome')}</Text>
+          <Text style={[styles.appSubtitle, { color: theme.colors.text.primary }]}>{t('app_subtitle')}</Text>
           <View style={styles.loadingContainer}>
-            <Animated.View style={[styles.loadingDot, { opacity: fadeAnim }]} />
-            <Animated.View style={[styles.loadingDot, { opacity: fadeAnim }]} />
-            <Animated.View style={[styles.loadingDot, { opacity: fadeAnim }]} />
+            <Animated.View style={[styles.loadingDot, { opacity: fadeAnim, backgroundColor: theme.colors.text.primary }]} />
+            <Animated.View style={[styles.loadingDot, { opacity: fadeAnim, backgroundColor: theme.colors.text.primary }]} />
+            <Animated.View style={[styles.loadingDot, { opacity: fadeAnim, backgroundColor: theme.colors.text.primary }]} />
           </View>
         </Animated.View>
       </View>
@@ -172,7 +171,7 @@ function AppContent() {
 
   return (
     <>
-      <StatusBar style="light" backgroundColor="transparent" translucent />
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor="transparent" translucent />
       <AnimatedBackground />
       {/* Sidebar global, disponible en toda la app */}
       <MainSidebar
@@ -184,14 +183,14 @@ function AppContent() {
       <NavigationContainer
         ref={navigationRef}
         theme={{
-          dark: true,
+          dark: isDark,
           colors: {
-            primary: '#667eea',
-            background: 'transparent',
-            card: 'transparent',
-            text: '#ffffff',
-            border: 'transparent',
-            notification: '#f093fb',
+            primary: theme.colors.primary[500],
+            background: theme.colors.background.primary,
+            card: theme.colors.background.card,
+            text: theme.colors.text.primary,
+            border: theme.colors.border.primary,
+            notification: theme.colors.secondary[500],
           },
           fonts: {
             regular: {
@@ -214,56 +213,46 @@ function AppContent() {
         }}
       >
         <Stack.Navigator
-          screenOptions={screenOptions}
+          screenOptions={({ navigation, route }) => ({
+            ...screenOptions,
+            headerLeft: () =>
+              route.name === 'Home' ? (
+                <View style={{ marginLeft: 16 }}>
+                  <TouchableOpacity
+                    onPress={openSidebar}
+                    style={{ padding: 8, borderRadius: 20, backgroundColor: theme.colors.background.card }}
+                    accessibilityLabel="Abrir menú"
+                  >
+                    <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={{ marginLeft: 16 }}>
+                  <TouchableOpacity
+                    onPress={() => navigation.canGoBack() && navigation.goBack()}
+                    style={{ padding: 8, borderRadius: 20, backgroundColor: theme.colors.background.card }}
+                    accessibilityLabel="Atrás"
+                  >
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+                  </TouchableOpacity>
+                </View>
+              ),
+            headerRight: () => null,
+            headerTitle: '',
+          })}
           initialRouteName="Home"
         >
-          <Stack.Screen 
-            name="Home" 
-            component={HomeScreen} 
-            options={{
-              title: '',
-              headerLeft: () => null,
-              headerRight: () => (
-                <View style={styles.headerRight}>
-                  <Ionicons name="notifications-outline" size={24} color="#ffffff" />
-                </View>
-              ),
-            }} 
-          />
-          <Stack.Screen 
-            name="Register" 
-            component={Register} 
-            options={{
-              title: t('register.title'),
-              headerLeft: () => (
-                <View style={styles.headerLeft}>
-                  <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </View>
-              ),
-            }}
-          />
-          <Stack.Screen 
-            name="Login" 
-            component={Login} 
-            options={{
-              title: t('login.title'),
-              headerLeft: () => (
-                <View style={styles.headerLeft}>
-                  <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </View>
-              ),
-            }}
-          />
-          {user && (
-            <Stack.Screen 
-              name="MainTabs" 
-              children={() => <MainTabs user={user} activeScreen={mainTabsScreen} setActiveScreen={setMainTabsScreen} />} 
-              options={{ 
-                headerShown: false,
-                gestureEnabled: false,
-              }} 
-            />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          {/* Solo registrar Dashboard si el usuario es musico */}
+          {user && user.roll === 'musico' && (
+            <Stack.Screen name="Dashboard" component={Dashboard} />
           )}
+          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Profile" component={Profile} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="ShareMusician" component={ShareMusician} />
+          <Stack.Screen name="EventList" component={EventList} />
         </Stack.Navigator>
       </NavigationContainer>
     </>
@@ -304,7 +293,6 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#ffffff',
     marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
@@ -312,7 +300,6 @@ const styles = StyleSheet.create({
   },
   appSubtitle: {
     fontSize: 16,
-    color: '#ffffff',
     opacity: 0.8,
     marginBottom: 40,
   },
@@ -325,33 +312,34 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ffffff',
     marginHorizontal: 4,
   },
   headerRight: {
     marginRight: 16,
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   headerLeft: {
     marginLeft: 16,
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
 });
 
 export default function App() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <LanguageProvider>
-        <UserProvider>
-          <SidebarProvider>
-            <AppContent />
-          </SidebarProvider>
-        </UserProvider>
-      </LanguageProvider>
-    </I18nextProvider>
+    <SafeAreaProvider>
+      <I18nextProvider i18n={i18n}>
+        <LanguageProvider>
+          <ThemeProvider>
+            <UserProvider>
+              <SidebarProvider>
+                <AppContent />
+              </SidebarProvider>
+            </UserProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+      </I18nextProvider>
+    </SafeAreaProvider>
   );
 }

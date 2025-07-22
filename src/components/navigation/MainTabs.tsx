@@ -2,13 +2,11 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import Dashboard from '../../screens/dashboard/Dashboard';
-import CreateEventScreen from '../features/pages/Maps/CreateEventScreen';
 import ShareMusician from '../features/pages/event/ShareMusician';
 import { Profile } from '../../screens/profile/Profile';
 import SettingsScreen from '../../screens/settings/SettingsScreen';
 import Maps from '../features/pages/Maps/MapsMovil';
 import EventListScreen from '../../screens/events/EventList';
-import EventRequestWizard from '../../screens/events/EventRequestWizard';
 import MainSidebar from '../features/pages/Sidebar/MainSidebar';
 import { Token } from '../../appTypes/DatasTypes';
 import { bg_white, color_primary, color_secondary } from '../../styles/Styles';
@@ -38,7 +36,6 @@ const MainTabs: React.FC<MainTabsProps> = ({ user, activeScreen, setActiveScreen
   // Definir los componentes de cada pantalla
   const screenComponents: { [key: string]: React.ComponentType<any> } = {
     'Dashboard': Dashboard,
-    'CreateEvent': CreateEventScreen,
     'ShareMusician': ShareMusician,
     'EventList': EventListScreen,
     'Profile': Profile,

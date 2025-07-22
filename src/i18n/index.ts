@@ -47,7 +47,7 @@ i18n
   .init({
     resources,
     fallbackLng: 'es',
-    debug: __DEV__,
+    debug: false,
     interpolation: {
       escapeValue: false, // React ya escapa por defecto
     },
