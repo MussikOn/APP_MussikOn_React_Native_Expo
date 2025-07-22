@@ -1,26 +1,42 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import EventList from '../../components/features/pages/event/EventList';
-import { useSidebar } from '../../contexts/SidebarContext';
+import { color_white, bg_white } from '../../styles/Styles';
 
-const EventListScreen = () => {
-  const { setActiveScreen } = useSidebar();
+const EventListScreen: React.FC = () => {
+  const navigation = useNavigation();
 
-  const handleEventPress = (event: any) => {
-    // Aquí puedes manejar la navegación al detalle del evento
-    console.log('Event pressed:', event);
+  const handleEventPress = (eventId: string) => {
+    // Aquí se puede navegar a los detalles del evento
+    console.log('Evento seleccionado:', eventId);
+  };
+
+  const handleCreateEvent = () => {
+    navigation.navigate('EventRequestWizard' as never);
   };
 
   return (
-    <View style={styles.container}>
-      <EventList onEventPress={handleEventPress} />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <EventList
+          onEventPress={handleEventPress}
+          onCreateEvent={handleCreateEvent}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: bg_white,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
 });
 

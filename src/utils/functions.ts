@@ -1,7 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 import { Token } from '@appTypes/DatasTypes';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Start Token Secction
 export const validateToken = async () =>{
@@ -75,53 +74,3 @@ export function validarEmail(email: string): boolean {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 }
-
-/**
- * Funciones utilitarias para manejar roles de usuario
- */
-export const getRoleDisplayName = (role: string): string => {
-  switch (role) {
-    case 'eventCreator':
-      return 'Creador de Eventos';
-    case 'musico':
-      return 'Músico';
-    case 'evangelista':
-      return 'Evangelista';
-    default:
-      return role;
-  }
-};
-
-export const getRoleIcon = (role: string): string => {
-  switch (role) {
-    case 'eventCreator':
-      return 'calendar';
-    case 'musico':
-      return 'musical-notes';
-    case 'evangelista':
-      return 'heart';
-    default:
-      return 'person';
-  }
-};
-
-export const isValidRole = (role: string): boolean => {
-  const validRoles = ['eventCreator', 'musico', 'evangelista'];
-  return validRoles.includes(role);
-};
-
-export const canCreateEvents = (role: string): boolean => {
-  return role === 'eventCreator';
-};
-
-export const canRequestMusicians = (role: string): boolean => {
-  return ['eventCreator', 'musico', 'evangelista'].includes(role);
-};
-
-export const canViewEvents = (role: string): boolean => {
-  return ['eventCreator', 'musico', 'evangelista'].includes(role);
-};
-
-export const canViewRequests = (role: string): boolean => {
-  return ['eventCreator', 'musico', 'evangelista'].includes(role);
-};

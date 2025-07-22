@@ -36,9 +36,9 @@ const UserList = ({children}:any) => {
             <Text style={styles.text}>{t('home.lastnames')}: {item.lastName}</Text>
             <Text style={styles.text}>{t('home.email')}: {item.userEmail}</Text>
             <Text style={styles.text}>{t('home.role')}: {item.roll}</Text>
-            <Text style={styles.text}>{t('userlist.created_at')}: {item.create_at}</Text>
-            <Text style={styles.text}>{t('userlist.updated_at')}: {item.update_at}</Text>
-            <Text style={styles.text}>{t('userlist.deleted_at')}: {item.delete_at}</Text>
+            <Text style={styles.text}>Fecha de Creación: {item.create_at}</Text>
+            <Text style={styles.text}>Ultima Actualización: {item.update_at}</Text>
+            <Text style={styles.text}>Fecha que se eliminó: {item.delete_at}</Text>
           </View>
         )}
       />

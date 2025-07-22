@@ -1,1 +1,1 @@
-export { MainTabs } from './MainTabs'; 
+export { default as MainTabs } from './MainTabs'; 

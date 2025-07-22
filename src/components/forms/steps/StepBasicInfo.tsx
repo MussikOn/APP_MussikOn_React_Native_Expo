@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLegacyColors } from '@hooks/useAppTheme';
+import { color_primary, color_secondary, color_white, border_color_primary, text_primary, text_secondary } from '@styles/Styles';
 
 interface StepBasicInfoProps {
   values: any;
@@ -20,133 +20,110 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
   touched,
 }) => {
   const { t } = useTranslation();
-  const colors = useLegacyColors();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Ionicons name="information-circle" size={32} color={colors.color_primary} />
-          <Text style={[styles.title, { color: colors.text_primary }]}>{t('forms.basic_info')}</Text>
-          <Text style={[styles.subtitle, { color: colors.text_secondary }]}>{t('forms.basic_info_subtitle')}</Text>
+          <Ionicons name="information-circle" size={32} color={color_primary} />
+          <Text style={styles.title}>{t('forms.basic_info')}</Text>
+          <Text style={styles.subtitle}>{t('forms.basic_info_subtitle')}</Text>
         </View>
 
         {/* Nombre del evento */}
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: colors.text_primary }]}>{t('events.event_name')} *</Text>
+          <Text style={styles.label}>{t('events.event_name')} *</Text>
           <TextInput
             style={[
               styles.input,
-              { 
-                borderColor: colors.border_color_primary,
-                color: colors.text_primary,
-              },
-              touched.eventName && errors.eventName && { borderColor: colors.color_danger },
+              touched.eventName && errors.eventName && styles.inputError,
             ]}
             placeholder={t('forms.event_name_placeholder')}
             value={values.eventName}
             onChangeText={handleChange('eventName')}
             onBlur={handleBlur('eventName')}
-            placeholderTextColor={colors.color_secondary}
+            placeholderTextColor={color_secondary}
           />
           {touched.eventName && errors.eventName && (
-            <Text style={[styles.errorText, { color: colors.color_danger }]}>{errors.eventName}</Text>
+            <Text style={styles.errorText}>{errors.eventName}</Text>
           )}
         </View>
 
         {/* Tipo de evento */}
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: colors.text_primary }]}>{t('events.event_type')} *</Text>
+          <Text style={styles.label}>{t('events.event_type')} *</Text>
           <TextInput
             style={[
               styles.input,
-              { 
-                borderColor: colors.border_color_primary,
-                color: colors.text_primary,
-              },
-              touched.eventType && errors.eventType && { borderColor: colors.color_danger },
+              touched.eventType && errors.eventType && styles.inputError,
             ]}
             placeholder={t('forms.event_type_placeholder')}
             value={values.eventType}
             onChangeText={handleChange('eventType')}
             onBlur={handleBlur('eventType')}
-            placeholderTextColor={colors.color_secondary}
+            placeholderTextColor={color_secondary}
           />
           {touched.eventType && errors.eventType && (
-            <Text style={[styles.errorText, { color: colors.color_danger }]}>{errors.eventType}</Text>
+            <Text style={styles.errorText}>{errors.eventType}</Text>
           )}
         </View>
 
         {/* Instrumento requerido */}
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: colors.text_primary }]}>{t('events.instrument')} *</Text>
+          <Text style={styles.label}>{t('events.instrument')} *</Text>
           <TextInput
             style={[
               styles.input,
-              { 
-                borderColor: colors.border_color_primary,
-                color: colors.text_primary,
-              },
-              touched.instrument && errors.instrument && { borderColor: colors.color_danger },
+              touched.instrument && errors.instrument && styles.inputError,
             ]}
             placeholder={t('forms.instrument_placeholder')}
             value={values.instrument}
             onChangeText={handleChange('instrument')}
             onBlur={handleBlur('instrument')}
-            placeholderTextColor={colors.color_secondary}
+            placeholderTextColor={color_secondary}
           />
           {touched.instrument && errors.instrument && (
-            <Text style={[styles.errorText, { color: colors.color_danger }]}>{errors.instrument}</Text>
+            <Text style={styles.errorText}>{errors.instrument}</Text>
           )}
         </View>
 
         {/* Duración */}
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: colors.text_primary }]}>{t('events.duration')} ({t('forms.minutes')}) *</Text>
+          <Text style={styles.label}>{t('events.duration')} ({t('forms.minutes')}) *</Text>
           <TextInput
             style={[
               styles.input,
-              { 
-                borderColor: colors.border_color_primary,
-                color: colors.text_primary,
-              },
-              touched.duration && errors.duration && { borderColor: colors.color_danger },
+              touched.duration && errors.duration && styles.inputError,
             ]}
             placeholder={t('forms.duration_placeholder')}
             value={values.duration}
             onChangeText={handleChange('duration')}
             onBlur={handleBlur('duration')}
-            placeholderTextColor={colors.color_secondary}
             keyboardType="numeric"
+            placeholderTextColor={color_secondary}
           />
           {touched.duration && errors.duration && (
-            <Text style={[styles.errorText, { color: colors.color_danger }]}>{errors.duration}</Text>
+            <Text style={styles.errorText}>{errors.duration}</Text>
           )}
         </View>
 
-        {/* Descripción */}
+        {/* Presupuesto */}
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: colors.text_primary }]}>{t('events.description')}</Text>
+          <Text style={styles.label}>{t('events.budget')} ({t('forms.dollars')}) *</Text>
           <TextInput
             style={[
-              styles.textArea,
-              { 
-                borderColor: colors.border_color_primary,
-                color: colors.text_primary,
-              },
-              touched.description && errors.description && { borderColor: colors.color_danger },
+              styles.input,
+              touched.budget && errors.budget && styles.inputError,
             ]}
-            placeholder={t('forms.description_placeholder')}
-            value={values.description}
-            onChangeText={handleChange('description')}
-            onBlur={handleBlur('description')}
-            placeholderTextColor={colors.color_secondary}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
+            placeholder={t('forms.budget_placeholder')}
+            value={values.budget}
+            onChangeText={handleChange('budget')}
+            onBlur={handleBlur('budget')}
+            keyboardType="numeric"
+            placeholderTextColor={color_secondary}
           />
-          {touched.description && errors.description && (
-            <Text style={[styles.errorText, { color: colors.color_danger }]}>{errors.description}</Text>
+          {touched.budget && errors.budget && (
+            <Text style={styles.errorText}>{errors.budget}</Text>
           )}
         </View>
       </View>
@@ -157,6 +134,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: color_white,
   },
   content: {
     padding: 20,
@@ -168,13 +146,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 5,
+    color: text_primary,
+    marginTop: 12,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
+    color: text_secondary,
     textAlign: 'center',
-    opacity: 0.8,
   },
   inputContainer: {
     marginBottom: 20,
@@ -182,27 +161,27 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
+    color: text_primary,
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
+    borderWidth: 2,
+    borderColor: border_color_primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 100,
+    color: text_primary,
+    backgroundColor: color_white,
   },
   inputError: {
-    borderColor: '#dc3545',
+    borderColor: '#ff6b6b',
   },
   errorText: {
+    color: '#ff6b6b',
     fontSize: 14,
-    marginTop: 5,
+    marginTop: 4,
+    marginLeft: 4,
   },
 });
 

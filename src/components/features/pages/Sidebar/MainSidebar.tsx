@@ -1,13 +1,21 @@
 
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image, ScrollView, Pressable, Platform, PanResponder } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, Dimensions, Image, ScrollView, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Token } from '@appTypes/DatasTypes';
+import {
+  color_primary,
+  color_white,
+  color_secondary,
+  bg_white,
+  btn_primary,
+  btn_danger,
+  color_info,
+  color_success,
+} from '@styles/Styles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '@contexts/UserContext';
-import { useTheme } from '@contexts/ThemeContext';
-import { getRoleDisplayName, canRequestMusicians, canViewEvents, canViewRequests } from '@utils/functions';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -21,82 +29,38 @@ interface SidebarProps {
 const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavigate }) => {
   const { t } = useTranslation();
   const { user: globalUser, logout } = useUser();
-  const { theme } = useTheme();
-  const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
-
-  // PanResponder para swipe to close
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -10,
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dx < 0) {
-          slideAnim.setValue(Math.max(gestureState.dx, -SCREEN_WIDTH * 0.8));
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -60) {
-          Animated.timing(slideAnim, {
-            toValue: -SCREEN_WIDTH * 0.8,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => onClose && onClose());
-        } else {
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  const slideAnim = React.useRef(new Animated.Value(-SCREEN_WIDTH * 0.8)).current;
 
   // Menú dinámico según estado de usuario
+  // Si no hay usuario, mostrar Home, Login y Register
   const menuItems = () => {
     if (!globalUser) {
       return [
         { icon: 'home', label: t('sidebar.home'), route: 'Home' },
-        { icon: 'log-in', label: t('sidebar.login'), route: 'Login', color: theme.colors.primary[500] },
-        { icon: 'person-add', label: t('sidebar.register'), route: 'Register', color: theme.colors.primary[500] },
+        { icon: 'log-in', label: t('sidebar.login'), route: 'Login', color: color_primary },
+        { icon: 'person-add', label: t('sidebar.register'), route: 'Register', color: color_primary },
       ];
     }
-    const baseMenu = [
-      { icon: 'home', label: t('sidebar.home'), route: 'Home' },
-      // Mostrar Dashboard solo si el usuario es musico
-      ...(globalUser.roll === 'musico' ? [
-        { icon: 'speedometer', label: t('sidebar.dashboard'), route: 'Dashboard', color: theme.colors.primary[500] },
-      ] : []),
-      { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
-      { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
-      { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: theme.colors.error[500] },
-    ];
-    const specificMenu = [];
-    if (canRequestMusicians(globalUser.roll)) {
-      specificMenu.push({
-        icon: 'person-add',
-        label: t('sidebar.request_musician'),
-        route: 'ShareMusician',
-        color: theme.colors.primary[500]
-      });
-    }
-    if (canViewRequests(globalUser.roll)) {
-      // Eliminar la opción 'RequestList' porque no existe la pantalla
-      // specificMenu.push({
-      //   icon: 'list',
-      //   label: t('sidebar.my_requests'),
-      //   route: 'RequestList',
-      //   color: theme.colors.accent[500]
-      // });
-    }
-    if (canViewEvents(globalUser.roll)) {
-      specificMenu.push({
-        icon: 'calendar',
-        label: globalUser.roll === 'eventCreator' ? t('sidebar.events') : t('sidebar.agenda'),
-        route: 'EventList', // Solo dejar EventList, eliminar Maps
-        color: theme.colors.accent[500]
-      });
-    }
-    return [...specificMenu, ...baseMenu];
+    // Si hay usuario, mostrar menú completo según rol
+    return globalUser.roll === 'eventCreator'
+      ? [
+          { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
+          { icon: 'add-circle', label: t('sidebar.create_event'), route: 'CreateEvent', color: color_success },
+          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
+          { icon: 'list', label: t('sidebar.events'), route: 'EventList', color: color_info },
+          { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
+          { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
+          { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
+        ]
+      : [
+          { icon: 'home', label: t('sidebar.home'), route: 'Dashboard' },
+          { icon: 'person-add', label: t('sidebar.request_musician'), route: 'ShareMusician', color: color_primary },
+          { icon: 'list', label: t('sidebar.events'), route: 'EventList', color: color_info },
+          { icon: 'calendar', label: t('sidebar.agenda'), route: 'Maps' },
+          { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
+          { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
+          { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: btn_danger },
+        ];
   };
 
   React.useEffect(() => {
@@ -107,6 +71,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
     }).start();
   }, [isVisible]);
 
+  // Handler para Logout/Login
   const handleMenuPress = (route: string) => {
     if (route === 'Logout') {
       logout();
@@ -117,182 +82,228 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
     if (onClose) onClose();
   };
 
-  // Overlay para cerrar tocando fuera
-  if (!isVisible) return null;
-
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* Overlay oscuro */}
-      <Pressable
-        style={[styles.overlay, { backgroundColor: theme.colors.secondary + 'CC' }]}
-        onPress={onClose}
-      />
-      {/* Sidebar animado */}
-      <Animated.View
-        style={[styles.sidebar, { backgroundColor: theme.colors.background.primary, transform: [{ translateX: slideAnim }] }]}
-        {...panResponder.panHandlers}
+    <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>  
+      {/* Header con gradiente, avatar destacado y datos */}
+      <LinearGradient
+        colors={[color_primary, color_info]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerContainer}
       >
-        {/* Botón de cerrar */}
-        <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel="Cerrar menú">
-          <Ionicons name="close" size={28} color={theme.colors.text.inverse} />
-        </TouchableOpacity>
-        {/* Header con gradiente y avatar */}
-        <LinearGradient
-          colors={theme.gradients.primary}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerContainer}
-        >
-          <View style={styles.avatarWrapper}>
-            <Image
-              source={require('../../../../../assets/Jefry_Astacio_perfil_example.jpg')}
-              style={styles.avatar}
-            />
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>
-              {globalUser ? `${globalUser.name} ${globalUser.lastName}` : t('sidebar.user')}
-            </Text>
-            <Text style={styles.userRole} numberOfLines={1}>
-              {globalUser ? getRoleDisplayName(globalUser.roll) : ''}
-            </Text>
-          </View>
-        </LinearGradient>
-        {/* Lista de menú */}
-        <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
-          {menuItems().map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.menuItem,
-                {
-                  backgroundColor: item.color
-                    ? `${item.color}22`
-                    : theme.colors.background.card,
-                },
-              ]}
-              onPress={() => handleMenuPress(item.route)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuItemContent}>
-                <Ionicons
-                  name={item.icon as any}
-                  size={26}
-                  color={item.color || theme.colors.text.primary}
-                />
-                <Text
-                  style={[
-                    styles.menuItemText,
-                    { color: item.color || theme.colors.text.primary },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
+        <View style={styles.avatarWrapper}>
+          <Image
+            source={require('../../../../../assets/Jefry_Astacio_perfil_example.jpg')}
+            style={styles.avatar}
+          />
+        </View>
+        <Text style={styles.name}>{globalUser?.name || t('sidebar.user')}</Text>
+        <Text style={styles.email}>{globalUser?.userEmail || ''}</Text>
+      </LinearGradient>
+      {/* Menú con ScrollView */}
+      <ScrollView style={styles.menuScroll} contentContainerStyle={styles.menuContainer} showsVerticalScrollIndicator={false}>
+        {menuItems().map((item, idx) => (
+          <Pressable
+            key={item.label}
+            style={({ pressed }) => [
+              styles.menuItem,
+              item.route === 'Logout' ? styles.menuItemDanger : styles.menuItemOutline,
+              pressed && styles.menuItemPressed,
+              idx === 0 && styles.menuItemFirst,
+              idx === menuItems().length - 1 && styles.menuItemLast,
+            ]}
+            android_ripple={{ color: color_primary + '11' }}
+            onPress={() => handleMenuPress(item.route)}
+          >
+            <Ionicons name={item.icon as any} size={24} color={item.route === 'Logout' ? btn_danger : color_primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, item.route === 'Logout' ? { color: btn_danger } : { color: color_primary }]}>{item.label}</Text>
+            {/* Badge para opciones nuevas */}
+            {(item.route === 'ShareMusician' || item.route === 'EventList') && globalUser && (
+              <View style={styles.badgeNew}>
+                <Text style={styles.badgeNewText}>{t('sidebar.new')}</Text>
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={item.color || theme.colors.text.primary}
-              />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </Animated.View>
-    </View>
+            )}
+          </Pressable>
+        ))}
+        <View style={{ height: Platform.OS === 'ios' ? 60 : 40 }} />
+      </ScrollView>
+      {/* Separador */}
+      <View style={styles.separator} />
+      {/* Botón cerrar flotante */}
+      <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
+        <Ionicons name="close" size={32} color={color_secondary} />
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 999,
-  },
   sidebar: {
     position: 'absolute',
-    top: 0,
     left: 0,
+    top: 0,
+    bottom: 0,
     width: SCREEN_WIDTH * 0.8,
-    height: '100%',
-    zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 2,
-      height: 0,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 10,
-    borderTopRightRadius: 24,
-    borderBottomRightRadius: 24,
-    overflow: 'hidden',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 48 : 24,
-    right: 16,
-    zIndex: 10,
-    backgroundColor: '#2228',
-    borderRadius: 20,
-    padding: 4,
+    backgroundColor: bg_white,
+    paddingTop: 0,
+    paddingHorizontal: 0,
+    zIndex: 99,
+    borderTopRightRadius: 36,
+    borderBottomRightRadius: 36,
+    elevation: 24,
+    shadowColor: color_primary,
+    shadowOpacity: 0.13,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
   },
   headerContainer: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-    borderTopRightRadius: 24,
+    alignItems: 'center',
+    paddingTop: 48,
+    paddingBottom: 32,
+    borderTopRightRadius: 36,
+    borderBottomLeftRadius: 60,
+    borderBottomRightRadius: 60,
+    elevation: 8,
+    shadowColor: color_primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
   avatarWrapper: {
-    alignItems: 'center',
-    marginBottom: 16,
+    borderWidth: 4,
+    borderColor: color_white,
+    borderRadius: 50,
+    padding: 4,
+    marginBottom: 10,
+    backgroundColor: color_white,
+    elevation: 6,
+    shadowColor: color_primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 3,
-    borderColor: '#ffffff',
   },
-  userInfo: {
-    alignItems: 'center',
-  },
-  userName: {
-    fontSize: 18,
+  name: {
+    color: color_white,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 4,
-    maxWidth: SCREEN_WIDTH * 0.6,
+    marginTop: 6,
+    letterSpacing: 0.5,
+    textShadowColor: color_primary,
+    textShadowRadius: 8,
   },
-  userRole: {
-    fontSize: 14,
-    color: '#ffffff',
-    opacity: 0.9,
-    maxWidth: SCREEN_WIDTH * 0.6,
+  email: {
+    color: color_white,
+    fontSize: 15,
+    opacity: 0.92,
+    marginTop: 2,
+    marginBottom: 2,
+    textShadowColor: color_primary,
+    textShadowRadius: 4,
+  },
+  menuScroll: {
+    flex: 1,
   },
   menuContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 18,
+    paddingHorizontal: 18,
+    paddingBottom: 18,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 18,
+    marginBottom: 16,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    marginVertical: 6,
-    borderRadius: 16,
+    borderRadius: 14,
+    minHeight: 54,
+    backgroundColor: color_white,
+    borderWidth: 2,
+    borderColor: color_primary,
+    elevation: 2,
+    shadowColor: color_primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    position: 'relative',
   },
-  menuItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  menuItemOutline: {
+    backgroundColor: color_white,
+    borderColor: color_primary,
+  },
+  menuItemDanger: {
+    backgroundColor: color_white,
+    borderColor: btn_danger,
+  },
+  menuItemPressed: {
+    backgroundColor: color_info + '11',
+    shadowOpacity: 0.16,
+    transform: [{ scale: 0.98 }],
+  },
+  menuItemFirst: {
+    marginTop: 8,
+  },
+  menuItemLast: {
+    marginBottom: 8,
+  },
+  menuIcon: {
+    marginRight: 18,
+    opacity: 0.98,
+  },
+  menuText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 0.2,
     flex: 1,
   },
-  menuItemText: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginLeft: 18,
+  badgeNew: {
+    backgroundColor: color_info,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    position: 'absolute',
+    top: 8,
+    right: 12,
+    zIndex: 2,
+  },
+  badgeNewText: {
+    color: color_white,
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: color_secondary + '22',
+    marginHorizontal: 18,
+    marginVertical: 8,
+    borderRadius: 2,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 18,
+    right: 18,
+    backgroundColor: color_white,
+    borderRadius: 24,
+    padding: 10,
+    elevation: 8,
+    shadowColor: color_primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
   },
 });
 
 export default MainSidebar;
+//
+// Cambios de diseño:
+// - Botones tipo outline/fill suaves, fondo blanco, borde color principal
+// - Icono a la izquierda, texto grande y legible, badge pequeño y discreto
+// - Feedback sutil, espaciado cómodo, contraste profesional
+// - ScrollView para menú
+// - Botón cerrar flotante y visible
+//
+

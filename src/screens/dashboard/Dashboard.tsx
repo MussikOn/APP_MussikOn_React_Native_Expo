@@ -704,7 +704,12 @@ const Dashboard = ({ navigation }: any) => {
         - paddingBottom: insets.bottom + 90 asegura que no quede debajo de la barra de pestañas.
           (90 = 70 de altura de la barra + 20 de margen inferior)
       */}
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: insets.top, paddingBottom: insets.bottom + 90 },
+        ]}
+      >
         {/* --- Alerta de notificación de evento --- */}
         {eventAlertVisible && eventAlert && (
           <View style={eventAlertStyles.alertContainer}>
@@ -755,7 +760,7 @@ const Dashboard = ({ navigation }: any) => {
           {/* --- Slide to connect button --- */}
           {status === 'disconnected' && (
             <View style={slideConnectBtnStyles.slideContainer}>
-              <Text style={slideConnectBtnStyles.slideText}>{t('dashboard.slide_to_connect')}</Text>
+              <Text style={slideConnectBtnStyles.slideText}>Desliza para conectarte</Text>
               <View style={slideConnectBtnStyles.slideTrack}>
                 <Animated.View
                   style={[
@@ -800,11 +805,11 @@ const Dashboard = ({ navigation }: any) => {
             <Text style={bottomSheetStyles.timeLabel}>{t('Tiempo conectado')}: {getConnectedTime()}</Text>
             <View style={bottomSheetStyles.section}>
               <Ionicons name="information-circle-outline" size={22} color={color_info} />
-              <Text style={bottomSheetStyles.sectionText}>{t('home.event_details_coming_soon')}</Text>
+              <Text style={bottomSheetStyles.sectionText}>Detalles del evento (próximamente)</Text>
             </View>
             {/* Slide button para desconexión */}
             <View style={slideBtnStyles.slideContainer}>
-              <Text style={slideBtnStyles.slideText}>{t('dashboard.slide_to_disconnect')}</Text>
+              <Text style={slideBtnStyles.slideText}>Desliza para desconectarte</Text>
               <View style={slideBtnStyles.slideTrack}>
                 <Animated.View
                   style={[
