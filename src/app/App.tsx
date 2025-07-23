@@ -244,7 +244,11 @@ function AppContent() {
             headerRight: () => null,
             headerTitle: '',
           })}
-          initialRouteName={user ? 'Dashboard' : 'Login'}
+          initialRouteName={
+            user
+              ? (user.roll === 'musico' ? 'Dashboard' : 'Home')
+              : 'Login'
+          }
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           {/* Solo registrar Dashboard si el usuario es musico */}

@@ -5,6 +5,12 @@ import { useMusicianRequestSocket } from '@hooks/useMusicianRequestSocket';
 import { useTheme } from '@contexts/ThemeContext';
 import { typography, spacing } from '../../../../theme';
 
+// Animaciones Lottie disponibles actualmente
+// Si agregas nuevas animaciones, reemplaza la ruta correspondiente
+const RadarAnimation = require('../../../../../assets/lottie/Radar.json'); // Cambia este archivo si tienes otro para 'buscando'
+const SuccessAnimation = require('../../../../../assets/lottie/Power.json'); // Cambia este archivo si tienes uno de 'éxito'
+const NotFoundAnimation = require('../../../../../assets/lottie/Loading.json'); // Cambia este archivo si tienes uno de 'no encontrado'
+
 interface SearchingMusicianModalProps {
   visible: boolean;
   requestData: any;
@@ -39,7 +45,7 @@ const SearchingMusicianModal: React.FC<SearchingMusicianModalProps> = ({ visible
         <View style={{ backgroundColor: theme.colors.background.card, borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, alignItems: 'center' }}>
           {status === 'buscando' && (
             <>
-              <LottieView source={require('../../../assets/lottie/Radar.json')} autoPlay loop style={{ width: 180, height: 180 }} />
+              <LottieView source={RadarAnimation} autoPlay loop style={{ width: 180, height: 180 }} />
               <Text style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, marginTop: spacing.lg, color: theme.colors.text.primary }}>Buscando músico disponible...</Text>
               <ActivityIndicator size="large" color={theme.colors.primary[500]} style={{ marginTop: spacing.lg }} />
               <TouchableOpacity onPress={cancelRequest} style={{ marginTop: spacing.xl }}>
@@ -49,8 +55,10 @@ const SearchingMusicianModal: React.FC<SearchingMusicianModalProps> = ({ visible
           )}
           {status === 'encontrado' && musician && (
             <>
-              <LottieView source={require('../../../assets/lottie/Success.json')} autoPlay loop={false} style={{ width: 120, height: 120 }} />
-              <Text style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, marginTop: spacing.lg, color: theme.colors.success[700] }}>¡Músico encontrado!</Text>
+              <LottieView source={SuccessAnimation} autoPlay loop={false} style={{ width: 120, height: 120 }} />
+              <Text style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, marginTop: spacing.lg, color: theme.colors.success[700] }}>
+                ¡Músico encontrado!
+              </Text>
               <View style={{ marginTop: spacing.lg, alignItems: 'center' }}>
                 <Text style={{ fontSize: typography.fontSize.lg, color: theme.colors.text.primary }}>{musician.name}</Text>
                 <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.secondary }}>{musician.instrument}</Text>
@@ -63,7 +71,7 @@ const SearchingMusicianModal: React.FC<SearchingMusicianModalProps> = ({ visible
           )}
           {status === 'no_encontrado' && (
             <>
-              <LottieView source={require('../../../assets/lottie/NotFound.json')} autoPlay loop={false} style={{ width: 120, height: 120 }} />
+              <LottieView source={NotFoundAnimation} autoPlay loop={false} style={{ width: 120, height: 120 }} />
               <Text style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, marginTop: spacing.lg, color: theme.colors.error[700] }}>No se encontró músico disponible</Text>
               <TouchableOpacity onPress={onRetry} style={{ marginTop: spacing.lg }}>
                 <Text style={{ color: theme.colors.primary[500], fontWeight: 'bold', fontSize: typography.fontSize.lg }}>Reintentar</Text>

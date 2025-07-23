@@ -5,7 +5,8 @@ import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { Token } from '@appTypes/DatasTypes';
 import { useTranslation } from 'react-i18next';
-
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 const UseSocket = () => {
   const { t } = useTranslation();
@@ -33,11 +34,11 @@ const UseSocket = () => {
     console.info("11. Paso.");    RegisterSocket();
   },[]);
 
+  // Solo usar el hook para efectos secundarios
+  useSocket(user ? user.userEmail : '');
 
-  const socketResult = useSocket(user ? user.userEmail : undefined);
-  const notifications = socketResult?.notifications || [];
-  const sendNotification = socketResult?.sendNotification || (() => {});
-  console.info(`Valor del user.id: ${user}`)
+  // Obtener notificaciones desde Redux
+  const notifications = useSelector((state: RootState) => state.notifications.notifications);
   const [targetUserId, setTargetUserId] = useState("1"); // ID de usuario receptor
   
   return (
@@ -52,17 +53,17 @@ const UseSocket = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={{ padding: 10, backgroundColor: "#ddd", marginBottom: 5 }}>
-            <Text style={{ fontWeight: "bold" }}>{item.title}</Text>
+            <Text style={{ fontWeight: "bold" }}>{item.type}</Text>
             <Text>{item.message}</Text>
           </View>
         )}
       />
 
-      {/* Botón para enviar notificación a otro usuario */}
-      <Button
+      {/* Botón para enviar notificación a otro usuario (opcional, implementar si es necesario) */}
+      {/* <Button
         title={t('notifications.send_button')}
-        onPress={() => sendNotification(targetUserId, t('notifications.hello'), t('notifications.new_message'))}
-      />
+        onPress={() => {}}
+      /> */}
     </View>
   );
 };
