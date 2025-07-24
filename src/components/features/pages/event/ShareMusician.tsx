@@ -11,7 +11,7 @@ import * as Location from 'expo-location';
 import { ActivityIndicator } from 'react-native';
 import { useUser } from '@contexts/UserContext';
 import { eventService } from '@services/events';
-import { registerSocketUser } from '@utils/socket';
+import { socket, registerSocketUser } from '@utils/socket';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MAX_FORM_WIDTH = 420;
@@ -448,7 +448,16 @@ const ShareMusician = () => {
 
   useEffect(() => {
     if (user?.userEmail) {
-      registerSocketUser(user.userEmail);
+      const emailLower = user.userEmail.toLowerCase();
+      const register = () => {
+        console.log('Registrando usuario en socket:', emailLower);
+        socket.emit('register', emailLower);
+      };
+      socket.on('connect', register);
+      if (socket.connected) register();
+      return () => {
+        socket.off('connect', register);
+      };
     }
   }, [user]);
 
