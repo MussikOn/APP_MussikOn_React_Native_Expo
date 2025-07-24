@@ -34,6 +34,7 @@ import LottieView from 'lottie-react-native';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { typography, spacing, borderRadius } from '../../theme';
+import Logo from '../../components/ui/Logo';
 
 // Animaciones Lottie (puedes reemplazar los paths por los tuyos propios)
 const lottiePower = require('../../../assets/lottie/Power.json');
@@ -725,7 +726,7 @@ const Dashboard = ({ navigation }: any) => {
   const animatedBgColors = Array.from(theme.gradients.primary);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background.primary, paddingTop: insets.top + 100 }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background.primary, paddingTop: insets.top + 100 }}>
       {/* Fondo animado extravagante */}
       <AnimatedBackground colors={animatedBgColors} />
       <Animated.View
@@ -737,110 +738,116 @@ const Dashboard = ({ navigation }: any) => {
           zIndex: 0,
         }}
       />
-      {/* Mensaje motivacional animado */}
-      <Animated.View style={{ position: 'absolute', top: insets.top + 30, left: 0, right: 0, alignItems: 'center', opacity: 0.9 }}>
-        <Text style={{ color: theme.colors.text.primary, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, letterSpacing: 1 }}>
-          {status === 'connected' ? t('dashboard.tip_connected') : status === 'connecting' ? t('dashboard.tip_connecting') : t('dashboard.tip_ready')}
-        </Text>
-      </Animated.View>
-      {/* Botón central Lottie extravagante */}
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
-        <Pressable
-          onPress={async () => {
-            if (status === 'disconnected') {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              await playSound();
-              handleConnection();
-            }
-          }}
-          disabled={status !== 'disconnected'}
-          style={({ pressed }) => [{
-            borderRadius: borderRadius.full,
-            ...theme.shadows.large,
-            backgroundColor: theme.colors.background.overlay,
-            padding: spacing.xl,
-            marginBottom: spacing.xl,
-            transform: [{ scale: pressed ? 1.08 : 1 }],
-          }]}
-        >
-          <LottieView
-            source={status === 'connected' ? lottieRadar : status === 'connecting' ? lottieLoading : lottiePower}
-            autoPlay
-            loop
-            style={{ width: 220, height: 220 }}
-          />
-        </Pressable>
-        {/* Estado y tiempo */}
-        <Animated.View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
-          <Text style={{ fontSize: typography.fontSize['2xl'], color: theme.colors.text.primary, fontWeight: typography.fontWeight.bold, marginBottom: 4 }}>
-            {status === 'connected' ? t('dashboard.connected') : status === 'connecting' ? t('dashboard.connecting') : t('dashboard.disconnected')}
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }} showsVerticalScrollIndicator={false}>
+        {/* Logo de la app centrado */}
+        <View style={{ alignItems: 'center', marginBottom: 24 }}>
+          <Logo size={140} showText={true} />
+        </View>
+        {/* Mensaje motivacional animado */}
+        <Animated.View style={{ marginBottom: 16, alignItems: 'center', opacity: 0.9 }}>
+          <Text style={{ color: theme.colors.text.primary, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, letterSpacing: 1 }}>
+            {status === 'connected' ? t('dashboard.tip_connected') : status === 'connecting' ? t('dashboard.tip_connecting') : t('dashboard.tip_ready')}
           </Text>
-          {status === 'connected' && (
-            <Text style={{ fontSize: typography.fontSize.lg, color: theme.colors.text.primary, opacity: 0.8, marginBottom: 8 }}>{t('dashboard.connected_time')}: {getConnectedTime()}</Text>
-          )}
-          {status === 'connecting' && (
-            <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.primary, opacity: 0.7 }}>{t('dashboard.please_wait')}</Text>
-          )}
-          {status === 'disconnected' && (
-            <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.primary, opacity: 0.7 }}>{t('dashboard.tap_to_connect')}</Text>
-          )}
         </Animated.View>
-        {/* Badge de eventos animado */}
-        {status === 'connected' && (
-          <Animated.View style={{ backgroundColor: theme.colors.accent[200], borderRadius: borderRadius.xl, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, flexDirection: 'row', alignItems: 'center', ...theme.shadows.medium, marginBottom: spacing.lg }}>
-            <Ionicons name="notifications" size={20} color={theme.colors.primary[900]} style={{ marginRight: 8 }} />
-            <Text style={{ color: theme.colors.primary[900], fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.lg }}>2 {t('dashboard.events_available')}</Text>
+        {/* Botón central Lottie extravagante */}
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
+          <Pressable
+            onPress={async () => {
+              if (status === 'disconnected') {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                await playSound();
+                handleConnection();
+              }
+            }}
+            disabled={status !== 'disconnected'}
+            style={({ pressed }) => [{
+              borderRadius: borderRadius.full,
+              ...theme.shadows.large,
+              backgroundColor: theme.colors.background.overlay,
+              padding: spacing.xl,
+              marginBottom: spacing.xl,
+              transform: [{ scale: pressed ? 1.08 : 1 }],
+            }]}
+          >
+            <LottieView
+              source={status === 'connected' ? lottieRadar : status === 'connecting' ? lottieLoading : lottiePower}
+              autoPlay
+              loop
+              style={{ width: 220, height: 220 }}
+            />
+          </Pressable>
+          {/* Estado y tiempo */}
+          <Animated.View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+            <Text style={{ fontSize: typography.fontSize['2xl'], color: theme.colors.text.primary, fontWeight: typography.fontWeight.bold, marginBottom: 4 }}>
+              {status === 'connected' ? t('dashboard.connected') : status === 'connecting' ? t('dashboard.connecting') : t('dashboard.disconnected')}
+            </Text>
+            {status === 'connected' && (
+              <Text style={{ fontSize: typography.fontSize.lg, color: theme.colors.text.primary, opacity: 0.8, marginBottom: 8 }}>{t('dashboard.connected_time')}: {getConnectedTime()}</Text>
+            )}
+            {status === 'connecting' && (
+              <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.primary, opacity: 0.7 }}>{t('dashboard.please_wait')}</Text>
+            )}
+            {status === 'disconnected' && (
+              <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.primary, opacity: 0.7 }}>{t('dashboard.tap_to_connect')}</Text>
+            )}
           </Animated.View>
-        )}
-        {/* Slide para desconexión extravagante */}
-        {status === 'connected' && (
-          <View style={{ marginTop: spacing.lg, alignItems: 'center', width: 260 }}>
-            <Text style={{ color: theme.colors.text.primary, fontSize: typography.fontSize.lg, marginBottom: 10 }}>{t('dashboard.slide_to_disconnect')}</Text>
-            <View style={{ width: 260, height: 60, backgroundColor: theme.colors.background.card, borderRadius: 30, justifyContent: 'center', overflow: 'hidden', borderWidth: 2, borderColor: theme.colors.accent[500], ...theme.shadows.medium }}>
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: theme.colors.error[500],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  elevation: 8,
-                  shadowColor: theme.colors.error[500],
-                  shadowOpacity: 0.25,
-                  shadowRadius: 12,
-                  shadowOffset: { width: 0, height: 2 },
-                  transform: [{ translateX: slideX }],
-                }}
-                {...slideBtnPanResponder.panHandlers}
-                onTouchEnd={async () => {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                  await playSound();
-                }}
-              >
-                <Ionicons name="log-out-outline" size={32} color={theme.colors.text.inverse} />
-              </Animated.View>
-              {/* Barra de progreso visual */}
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  height: 60,
-                  width: slideX.interpolate({ inputRange: [0, 200], outputRange: [0, 200], extrapolate: 'clamp' }),
-                  backgroundColor: theme.colors.error[100],
-                  borderRadius: 30,
-                }}
-              />
-              <View style={{ position: 'absolute', left: 80, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: theme.colors.text.primary, fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.lg, letterSpacing: 1 }}>{t('dashboard.disconnect_swipe')}</Text>
+          {/* Badge de eventos animado */}
+          {status === 'connected' && (
+            <Animated.View style={{ backgroundColor: theme.colors.accent[200], borderRadius: borderRadius.xl, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, flexDirection: 'row', alignItems: 'center', ...theme.shadows.medium, marginBottom: spacing.lg }}>
+              <Ionicons name="notifications" size={20} color={theme.colors.primary[900]} style={{ marginRight: 8 }} />
+              <Text style={{ color: theme.colors.primary[900], fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.lg }}>2 {t('dashboard.events_available')}</Text>
+            </Animated.View>
+          )}
+          {/* Slide para desconexión extravagante */}
+          {status === 'connected' && (
+            <View style={{ marginTop: spacing.lg, alignItems: 'center', width: 260 }}>
+              <Text style={{ color: theme.colors.text.primary, fontSize: typography.fontSize.lg, marginBottom: 10 }}>{t('dashboard.slide_to_disconnect')}</Text>
+              <View style={{ width: 260, height: 60, backgroundColor: theme.colors.background.card, borderRadius: 30, justifyContent: 'center', overflow: 'hidden', borderWidth: 2, borderColor: theme.colors.accent[500], ...theme.shadows.medium }}>
+                <Animated.View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: theme.colors.error[500],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    elevation: 8,
+                    shadowColor: theme.colors.error[500],
+                    shadowOpacity: 0.25,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 2 },
+                    transform: [{ translateX: slideX }],
+                  }}
+                  {...slideBtnPanResponder.panHandlers}
+                  onTouchEnd={async () => {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                    await playSound();
+                  }}
+                >
+                  <Ionicons name="log-out-outline" size={32} color={theme.colors.text.inverse} />
+                </Animated.View>
+                {/* Barra de progreso visual */}
+                <Animated.View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    height: 60,
+                    width: slideX.interpolate({ inputRange: [0, 200], outputRange: [0, 200], extrapolate: 'clamp' }),
+                    backgroundColor: theme.colors.error[100],
+                    borderRadius: 30,
+                  }}
+                />
+                <View style={{ position: 'absolute', left: 80, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: theme.colors.text.primary, fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.lg, letterSpacing: 1 }}>{t('dashboard.disconnect_swipe')}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        )}
-      </View>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 };
