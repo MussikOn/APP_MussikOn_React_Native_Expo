@@ -447,14 +447,19 @@ const ShareMusician = () => {
   }, [locationMode, form.location]);
 
   useEffect(() => {
-    if (user?.userEmail) {
+    if (user?.userEmail && user.roll === 'eventCreator') {
       const emailLower = user.userEmail.toLowerCase();
       const register = () => {
-        console.log('Registrando usuario en socket:', emailLower);
+        console.log('[ShareMusician] Registrando usuario en socket:', emailLower, 'Socket conectado:', socket.connected);
         socket.emit('register', emailLower);
       };
       socket.on('connect', register);
-      if (socket.connected) register();
+      if (!socket.connected) {
+        console.log('[ShareMusician] Forzando conexión de socket para organizador');
+        socket.connect();
+      } else {
+        register();
+      }
       return () => {
         socket.off('connect', register);
       };
@@ -477,6 +482,16 @@ const ShareMusician = () => {
     if (!user || !user.userEmail) {
       Alert.alert('Error', 'Debes iniciar sesión para solicitar un músico.');
       return;
+    }
+    // Refuerza el registro justo antes de crear la solicitud
+    if (user.roll === 'eventCreator') {
+      const emailLower = user.userEmail.toLowerCase();
+      if (!socket.connected) {
+        console.log('[ShareMusician] Forzando conexión de socket antes de crear solicitud');
+        socket.connect();
+      }
+      console.log('[ShareMusician] Registrando usuario en socket antes de crear solicitud:', emailLower);
+      socket.emit('register', emailLower);
     }
     setIsLoading(true);
     try {
@@ -702,6 +717,8 @@ const ShareMusician = () => {
 
   const progress = (currentStep + 1) / (steps.length + 1);
 
+  // Justo antes del return principal
+  console.log('[ShareMusician] Renderizando SearchingMusicianModal', { modalVisible, requestData });
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.colors.background.primary }}

@@ -1,0 +1,1 @@
+import MyEventsList from '@screens/events/MyEventsList';

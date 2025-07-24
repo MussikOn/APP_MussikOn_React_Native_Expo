@@ -61,6 +61,13 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
     }
     const baseMenu = [
       { icon: 'home', label: t('sidebar.home'), route: 'Home' },
+      // Mis Solicitudes como segunda opción
+      ...(['musico', 'eventCreator'].includes(globalUser.roll) ? [{
+        icon: 'list',
+        label: t('sidebar.my_requests'),
+        route: 'MyEventsList',
+        color: theme.colors.primary[500]
+      }] : []),
       // Mostrar Dashboard solo si el usuario es musico
       ...(globalUser.roll === 'musico' ? [
         { icon: 'speedometer', label: t('sidebar.dashboard'), route: 'Dashboard', color: theme.colors.primary[500] },

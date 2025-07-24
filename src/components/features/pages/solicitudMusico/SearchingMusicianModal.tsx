@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, Modal, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { useMusicianRequestSocket } from '@hooks/useMusicianRequestSocket';
 import { useTheme } from '@contexts/ThemeContext';
@@ -35,10 +35,27 @@ const SearchingMusicianModal: React.FC<SearchingMusicianModalProps> = ({ visible
 
   React.useEffect(() => {
     if (visible && requestData) {
+      console.log('[SearchingMusicianModal] Modal abierto con requestData:', requestData);
       emitRequest(requestData);
     }
-    // eslint-disable-next-line
   }, [visible, requestData]);
+
+  // Cerrar automáticamente el modal al encontrar músico
+  React.useEffect(() => {
+    if (status === 'encontrado' && musician) {
+      console.log('[SearchingMusicianModal] ¡Músico encontrado! Datos:', musician);
+      const timer = setTimeout(() => {
+        Alert.alert('¡Músico encontrado!', 'Se ha asignado un músico a tu evento.');
+        console.log('[SearchingMusicianModal] Cerrando modal automáticamente');
+        onClose();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, musician, onClose]);
+
+  React.useEffect(() => {
+    console.log('[SearchingMusicianModal] Estado actual:', { status, musician, error });
+  }, [status, musician, error]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent>

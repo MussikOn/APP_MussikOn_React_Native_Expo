@@ -5,11 +5,13 @@ import { bg_primary, bg_success } from '@styles/Styles';
 import { getData } from '@utils/functions';
 import { Token, User } from '@appTypes/DatasTypes';
 import { useEffect, useState } from "react";
+import { useUser } from '@contexts/UserContext';
 
 export const SocketConnectButton = () => {
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Token>();
+  const { user } = useUser();
 
   useEffect(() => {
     const getDatausers = async () => {
@@ -23,7 +25,7 @@ export const SocketConnectButton = () => {
 
 
   useEffect(() => {
-    if (!data) return;
+    if (!data || user?.roll !== 'musico') return;
   
     const onConnect = () => {
       console.info(`Usuario conectado: ${socket.id}`);
@@ -52,8 +54,9 @@ export const SocketConnectButton = () => {
       socket.off("disconnect", handleDisconnect);
       socket.off("notification", onNotification); 
     };
-  }, [data]);
+  }, [data, user]);
 
+  if (user?.roll !== 'musico') return null;
 
   return (
     <Pressable

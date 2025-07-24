@@ -37,9 +37,10 @@ interface Event {
 
 interface EventListProps {
   onEventPress?: (event: Event) => void;
+  mode?: 'available' | 'my-pending' | 'my-assigned' | 'my-scheduled' | 'my-events';
 }
 
-const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
+const EventList: React.FC<EventListProps> = ({ onEventPress, mode = 'available' }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -75,16 +76,28 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
       socket.off('new_event_request');
       socket.off('musician_accepted');
     };
-  }, [filterInstrument, filterLocation, filterDate, searchQuery, user]);
+  }, [filterInstrument, filterLocation, filterDate, searchQuery, user, mode]);
 
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const filters: any = {};
-      if (filterInstrument) filters.instrument = filterInstrument;
-      if (filterLocation) filters.location = filterLocation;
-      if (filterDate) filters.date = filterDate;
-      const response = await eventService.getAvailableRequests(filters);
+      let response;
+      if (mode === 'my-pending') {
+        response = await eventService.getMyPendingEvents();
+      } else if (mode === 'my-assigned') {
+        response = await eventService.getMyAssignedEvents();
+      } else if (mode === 'my-scheduled') {
+        response = await eventService.getMyScheduledEvents();
+      } else if (mode === 'my-events') {
+        response = await eventService.getMyEvents();
+      } else {
+        // Default: available requests for musicians
+        const filters: any = {};
+        if (filterInstrument) filters.instrument = filterInstrument;
+        if (filterLocation) filters.location = filterLocation;
+        if (filterDate) filters.date = filterDate;
+        response = await eventService.getAvailableRequests(filters);
+      }
       console.log('Eventos disponibles para músico:', response?.data);
       setEvents(response?.data || []);
     } catch (error) {

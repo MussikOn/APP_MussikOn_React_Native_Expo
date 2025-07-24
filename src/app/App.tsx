@@ -32,6 +32,7 @@ import ShareMusician from '@components/features/pages/event/ShareMusician';
 import EventList from '@screens/events/EventList';
 import Dashboard from '@screens/dashboard/Dashboard';
 import NotificationSnackbar from '@components/ui/NotificationSnackbar';
+import MyEventsList from '@screens/events/MyEventsList';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -261,6 +262,7 @@ function AppContent() {
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="ShareMusician" component={ShareMusician} />
           <Stack.Screen name="EventList" component={EventList} />
+          <Stack.Screen name="MyEventsList" component={MyEventsList} options={{ title: 'Mis Solicitudes' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </>
