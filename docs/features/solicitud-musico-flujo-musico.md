@@ -16,6 +16,7 @@ Este documento describe el flujo completo y la lógica de negocio para la funcio
   - Presupuesto
   - Comentarios
 - Opción para “Aceptar” o “Rechazar”.
+- **NUEVO:** El músico puede acceder a la pantalla "Mis Solicitudes" desde el menú lateral, donde puede ver y gestionar todas las solicitudes/eventos en los que participa, alternar entre tabs (agendados, todos) y recibir feedback visual inmediato sobre el estado de cada solicitud.
 
 ---
 
@@ -42,6 +43,7 @@ Este documento describe el flujo completo y la lógica de negocio para la funcio
 - Notificaciones en tiempo real para cada cambio de estado.
 - Animaciones y banners para mejorar la experiencia.
 - Mensajes claros en cada estado (“¡Fuiste asignado!”, “Solicitud tomada por otro músico”, etc.).
+- **NUEVO:** UI moderna y centralizada para la gestión de solicitudes en la pantalla "Mis Solicitudes".
 
 ---
 
@@ -52,12 +54,14 @@ Este documento describe el flujo completo y la lógica de negocio para la funcio
 - Mostrar detalles completos del evento al ser asignado.
 - Contraste y accesibilidad en todos los textos y botones.
 - Animación de “esperando” si está en proceso de asignación.
+- **NUEVO:** Gestión centralizada de solicitudes/eventos en la pantalla "Mis Solicitudes".
 
 ---
 
 ## 6. Eventos y Endpoints Clave
 - **Socket**: Escuchar `new_event_request` (nueva solicitud)
-- **API REST**: POST `/musician-requests/accept` (aceptar solicitud)
+- **API REST**: GET `/events/my-scheduled`, `/events/my-events` (ver solicitudes)
+- **API REST**: POST `/events/{eventId}/accept` (aceptar solicitud)
 - **Socket**: Emitir `musician_accepted` al aceptar
 - **Socket**: Escuchar `musician_request_taken` (si otro músico la tomó)
 
@@ -82,4 +86,4 @@ flowchart TD
 - Implementar la lógica de recepción y respuesta de solicitudes por socket.
 - Crear el banner/modal de nueva solicitud.
 - Integrar feedback y animaciones.
-- Documentar el flujo de matching y estados globales. 
+- **NUEVO:** Probar y documentar la pantalla "Mis Solicitudes" para la gestión centralizada de solicitudes/eventos. 

@@ -1,5 +1,17 @@
 # 🛠️ Stack Tecnológico - MussikOn
 
+**NUEVO:** La app ahora incluye una pantalla moderna de **"Mis Solicitudes"** con tabs, feedback visual y consumo de endpoints REST modernos para la gestión centralizada de solicitudes/eventos. Esta pantalla es clave para la experiencia de usuario de músicos y organizadores.
+
+- React Native + Expo
+- TypeScript
+- Redux Toolkit
+- React Navigation
+- Socket.io (real-time)
+- Firebase Firestore
+- Lottie (animaciones)
+- Axios (API REST)
+- ...
+
 ## 📱 **Framework Principal**
 
 ### React Native

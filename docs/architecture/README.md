@@ -289,6 +289,29 @@ eas build --platform ios      # Build para iOS
 - **Apple App Store**: iOS
 - **OTA Updates**: Actualizaciones sin store
 
+## Pantalla "Mis Solicitudes" y Arquitectura
+
+La pantalla **"Mis Solicitudes"** es un componente central de la arquitectura moderna de MussikOn. Permite a músicos y organizadores gestionar todas sus solicitudes/eventos en progreso desde un solo lugar, accesible desde el menú lateral.
+
+- **Integración:**
+  - Accesible desde el menú lateral para ambos roles.
+  - Usa el componente reutilizable `EventList` en diferentes modos (pendientes, asignados/agendados, todos).
+  - Consume los endpoints REST `/events/my-pending`, `/events/my-assigned`, `/events/my-scheduled`, `/events/my-events`.
+  - UI moderna con tabs y feedback visual inmediato.
+
+### Diagrama de Navegación (Mermaid)
+```mermaid
+graph TD;
+  Sidebar --> MyEventsList;
+  MyEventsList --> EventList;
+  EventList --> API[API REST /events/*];
+  Sidebar --> ShareMusician;
+  Sidebar --> EventList;
+  Sidebar --> Dashboard;
+```
+
+- La arquitectura favorece la reutilización de componentes y la centralización de la gestión de solicitudes/eventos.
+
 ---
 
 **Última actualización**: Diciembre 2024  

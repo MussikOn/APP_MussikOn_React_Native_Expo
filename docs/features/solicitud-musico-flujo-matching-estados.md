@@ -12,6 +12,7 @@ Este documento describe el flujo de matching y los estados globales para el sist
 - Los músicos reciben la solicitud y pueden “Aceptar” o “Rechazar”.
 - El **primer músico** que acepte la solicitud la toma (“first come, first served”).
 - El backend bloquea la solicitud para otros músicos y emite eventos de actualización de estado.
+- **NUEVO:** Ahora, tanto músicos como organizadores pueden ver todas sus solicitudes/eventos en progreso desde la pantalla "Mis Solicitudes", accesible desde el menú lateral. Esta pantalla incluye tabs para alternar entre pendientes, asignados/agendados y todos, con una UI moderna y feedback visual inmediato.
 
 ---
 
@@ -41,6 +42,7 @@ Este documento describe el flujo de matching y los estados globales para el sist
 - El usuario puede cancelar la solicitud mientras está “pendiente”.
 - Los músicos pueden rechazar sin penalización, pero solo el primero que acepte la toma.
 - El sistema debe manejar reintentos si no se encuentra músico.
+- **NUEVO:** La pantalla "Mis Solicitudes" permite a los usuarios gestionar y visualizar el estado de todas sus solicitudes/eventos de forma centralizada y moderna.
 
 ---
 
@@ -63,4 +65,4 @@ stateDiagram-v2
 ## 6. Siguientes pasos
 - Implementar la lógica de matching y estados en el backend.
 - Integrar la escucha y actualización de estados en el frontend.
-- Probar el flujo completo con múltiples músicos conectados. 
+- **Probar el flujo completo con múltiples músicos conectados y la pantalla de "Mis Solicitudes".** 

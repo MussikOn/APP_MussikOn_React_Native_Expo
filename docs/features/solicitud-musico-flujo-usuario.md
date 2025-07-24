@@ -50,6 +50,7 @@ Este documento describe el flujo completo y la lógica de negocio para la funcio
 - Notificaciones en tiempo real (socket) para cada cambio de estado.
 - Animaciones y banners para mejorar la experiencia.
 - Mensajes motivacionales y claros en cada estado.
+- **NUEVO:** El usuario puede acceder a la pantalla "Mis Solicitudes" desde el menú lateral, donde puede ver y gestionar todas sus solicitudes en progreso, alternar entre tabs (pendientes, asignadas, todas) y recibir feedback visual inmediato sobre el estado de cada solicitud.
 
 ---
 
@@ -60,11 +61,13 @@ Este documento describe el flujo completo y la lógica de negocio para la funcio
 - Opción para cancelar la búsqueda en cualquier momento.
 - Mostrar perfil y datos del músico cuando se acepta la solicitud.
 - Contraste y accesibilidad en todos los textos y botones.
+- **NUEVO:** UI moderna y centralizada para la gestión de solicitudes en la pantalla "Mis Solicitudes".
 
 ---
 
 ## 7. Eventos y Endpoints Clave
-- **API REST**: POST `/musician-requests` (crear solicitud)
+- **API REST**: POST `/events/request-musician` (crear solicitud)
+- **API REST**: GET `/events/my-pending`, `/events/my-assigned`, `/events/my-events` (ver solicitudes)
 - **Socket**: Emitir `new_event_request` al crear solicitud
 - **Socket**: Escuchar `musician_accepted` y `musician_not_found`
 
@@ -89,4 +92,4 @@ flowchart TD
 - Implementar la lógica de envío y escucha de sockets en el frontend.
 - Crear la pantalla/modal de “Buscando músico...”.
 - Integrar feedback y animaciones.
-- Documentar el flujo del lado del músico. 
+- **NUEVO:** Probar y documentar la pantalla "Mis Solicitudes" para la gestión centralizada de solicitudes. 
