@@ -4,6 +4,7 @@ import LottieView from 'lottie-react-native';
 import { useMusicianRequestSocket } from '@hooks/useMusicianRequestSocket';
 import { useTheme } from '@contexts/ThemeContext';
 import { typography, spacing } from '../../../../theme';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Animaciones Lottie disponibles actualmente
 // Si agregas nuevas animaciones, reemplaza la ruta correspondiente
@@ -59,10 +60,15 @@ const SearchingMusicianModal: React.FC<SearchingMusicianModalProps> = ({ visible
               <Text style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, marginTop: spacing.lg, color: theme.colors.success[700] }}>
                 ¡Músico encontrado!
               </Text>
-              <View style={{ marginTop: spacing.lg, alignItems: 'center' }}>
-                <Text style={{ fontSize: typography.fontSize.lg, color: theme.colors.text.primary }}>{musician.name}</Text>
-                <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.secondary }}>{musician.instrument}</Text>
-                {musician.rating && <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.secondary }}>⭐ {musician.rating}</Text>}
+              <View style={{ marginTop: spacing.lg, alignItems: 'center', backgroundColor: theme.colors.background.secondary, borderRadius: 16, padding: 20, width: 260, shadowColor: theme.colors.primary[500], shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }}>
+                <Ionicons name="person-circle" size={54} color={theme.colors.primary[500]} style={{ marginBottom: 8 }} />
+                <Text style={{ fontSize: typography.fontSize.lg, fontWeight: 'bold', color: theme.colors.text.primary }}>{musician.name || 'Nombre no disponible'}</Text>
+                {musician.email && <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.secondary, marginTop: 2 }}>{musician.email}</Text>}
+                {musician.instrument && <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.text.secondary, marginTop: 2 }}>Instrumento: {musician.instrument}</Text>}
+                {musician.rating && <Text style={{ fontSize: typography.fontSize.base, color: theme.colors.success[700], marginTop: 2 }}>⭐ {musician.rating}</Text>}
+                <TouchableOpacity style={{ marginTop: spacing.lg, backgroundColor: theme.colors.primary[500], borderRadius: 8, paddingVertical: 10, paddingHorizontal: 24 }} onPress={() => {/* Acción de contacto futuro */}}>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: typography.fontSize.base }}>Contactar Músico</Text>
+                </TouchableOpacity>
               </View>
               <TouchableOpacity onPress={onClose} style={{ marginTop: spacing.xl }}>
                 <Text style={{ color: theme.colors.primary[500], fontWeight: 'bold', fontSize: typography.fontSize.lg }}>Cerrar</Text>

@@ -1,17 +1,9 @@
-// {
-//   "extends": "expo/tsconfig.base",
-//   "compilerOptions": {
-//     "strict": true,
-//     "moduleResolution": "bundler"
-//   }
-// }
-// ===================================================================================
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "skipLibCheck": true,           
-    "moduleResolution": "node",     
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "types": ["react", "react-native"],
     "baseUrl": ".",
     "paths": {
@@ -31,19 +23,3 @@
     }
   }
 }
-// ===================================================================================
-// {
-//   "compilerOptions": {
-//     "target": "esnext",
-//     "module": "esnext",
-//     "moduleResolution": "node",  
-//     "jsx": "react-native",
-//     "allowJs": true,
-//     "esModuleInterop": true,
-//     "strict": true,
-//     "skipLibCheck": true,         
-//     "resolveJsonModule": true,
-//     "types": ["react", "react-native"],
-//     "noEmit": true
-//   }
-// }

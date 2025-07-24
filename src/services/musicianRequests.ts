@@ -4,7 +4,8 @@ interface CreateMusicianRequestPayload {
   userId: string;
   eventType: string;
   date: string;
-  time: string;
+  startTime: string;
+  endTime: string;
   location: string;
   instrument: string;
   budget: number;

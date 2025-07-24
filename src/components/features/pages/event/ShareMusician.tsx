@@ -1,14 +1,17 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Dimensions, Platform, KeyboardAvoidingView } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, TouchableOpacity, Alert, ScrollView, Dimensions, Platform, KeyboardAvoidingView, Modal, TextInput, FlatList } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchingMusicianModal from '@components/features/pages/solicitudMusico/SearchingMusicianModal';
 import { createMusicianRequest } from '@services/musicianRequests';
-import DateTimeSelector from '@components/ui/DateTimeSelector';
-import Input from '@components/ui/Input';
-import LocationPickerModal from '@components/features/pages/Maps/LocationPickerModal';
+import MapView, { Marker, Region } from 'react-native-maps';
+import * as Location from 'expo-location';
+import { ActivityIndicator } from 'react-native';
+import { useUser } from '@contexts/UserContext';
+import { eventService } from '@services/events';
+import { registerSocketUser } from '@utils/socket';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MAX_FORM_WIDTH = 420;
@@ -18,8 +21,8 @@ const steps = [
     key: 'eventType',
     label: '¿Qué tipo de evento vas a realizar?',
     options: [
-      { label: 'Culto', value: 'culto', icon: 'ios-people' },
-      { label: 'Campaña', value: 'campana', icon: 'ios-megaphone' },
+      { label: 'Culto', value: 'culto', icon: 'people' },
+      { label: 'Campaña', value: 'campana', icon: 'megaphone' },
       { label: 'Concierto', value: 'concierto', icon: 'musical-notes' },
       { label: 'Otro', value: 'otro', icon: 'ellipsis-horizontal' },
     ],
@@ -29,9 +32,9 @@ const steps = [
     label: '¿Qué instrumento necesitas?',
     options: [
       { label: 'Piano', value: 'piano', icon: 'musical-notes' },
-      { label: 'Guitarra', value: 'guitarra', icon: 'guitar-outline' },
-      { label: 'Batería', value: 'bateria', icon: 'drum-outline' },
-      { label: 'Voz', value: 'voz', icon: 'mic-outline' },
+      { label: 'Guitarra', value: 'guitarra', icon: 'musical-notes' },
+      { label: 'Batería', value: 'bateria', icon: 'musical-notes' },
+      { label: 'Voz', value: 'voz', icon: 'mic' },
       { label: 'Otro', value: 'otro', icon: 'ellipsis-horizontal' },
     ],
   },
@@ -57,16 +60,397 @@ const steps = [
   },
 ];
 
-const ShareMusician = () => {
+const formatDate = (date: Date | string | undefined) => {
+  if (!date) return '';
+  if (typeof date === 'string') date = new Date(date);
+  return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+const formatTime = (date: Date | string | undefined) => {
+  if (!date) return '';
+  if (typeof date === 'string') date = new Date(`1970-01-01T${date}`);
+  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+};
+
+// CustomDatePickerModal
+const CustomDatePickerModal = ({
+  visible,
+  onClose,
+  onConfirm,
+  initialDate = new Date(),
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: (date: Date) => void;
+  initialDate?: Date;
+}) => {
   const { theme } = useTheme();
+  const [currentDate, setCurrentDate] = useState(initialDate);
+  const [displayMonth, setDisplayMonth] = useState(initialDate.getMonth());
+  const [displayYear, setDisplayYear] = useState(initialDate.getFullYear());
+
+  const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  // Cambiar el cálculo del primer día de la semana para que lunes sea 0
+  const firstDayOfWeek = (year: number, month: number) => {
+    const day = new Date(year, month, 1).getDay();
+    return (day + 6) % 7; // Lunes=0, Domingo=6
+  };
+
+  const days = [];
+  const totalDays = daysInMonth(displayYear , displayMonth);
+  const firstDay = firstDayOfWeek(displayYear, displayMonth);
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let d = 1; d <= totalDays; d++) days.push(d);
+
+  const handlePrevMonth = () => {
+    if (displayMonth === 0) {
+      setDisplayMonth(11);
+      setDisplayYear(displayYear - 1);
+    } else {
+      setDisplayMonth(displayMonth - 1);
+    }
+  };
+  const handleNextMonth = () => {
+    if (displayMonth === 11) {
+      setDisplayMonth(0);
+      setDisplayYear(displayYear + 1);
+    } else {
+      setDisplayMonth(displayMonth + 1);
+    }
+  };
+
+  const handleSelectDay = (day: number | null) => {
+    if (!day) return;
+    const selected = new Date(displayYear, displayMonth, day);
+    onConfirm(selected);
+    onClose();
+  };
+
+  const monthNames = ['Enero', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  const weekDays = [
+    { key: 'D', label: 'D' },
+    { key: 'L', label: 'L' },
+    { key: 'Ma', label: 'M' },
+    { key: 'Mi', label: 'M' },
+    { key: 'J', label: 'J' },
+    { key: 'V', label: 'V' },
+    { key: 'S', label: 'S' },
+  ];
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ backgroundColor: theme.colors.background.card, borderRadius: 20, padding: 24, width: 340, alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <TouchableOpacity onPress={handlePrevMonth} style={{ padding: 8 }}>
+              <Ionicons name="chevron-back" size={24} color={theme.colors.primary[500]} />
+            </TouchableOpacity>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary, marginHorizontal: 12 }}>{monthNames[displayMonth]} {displayYear}</Text>
+            <TouchableOpacity onPress={handleNextMonth} style={{ padding: 8 }}>
+              <Ionicons name="chevron-forward" size={24} color={theme.colors.primary[500]} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 4 }}>
+            {weekDays.map((d) => (
+              <Text key={d.key} style={{ width: 32, textAlign: 'center', color: theme.colors.text.secondary, fontWeight: 'bold' }}>{d.label}</Text>
+            ))}
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: 32 * 7 }}>
+            {days.map((day, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center', margin: 2, borderRadius: 16, backgroundColor: day && currentDate.getDate() === day && currentDate.getMonth() === displayMonth && currentDate.getFullYear() === displayYear ? theme.colors.primary[500] : 'transparent' }}
+                onPress={() => handleSelectDay(day)}
+                disabled={!day}
+              >
+                <Text style={{ color: day && currentDate.getDate() === day && currentDate.getMonth() === displayMonth && currentDate.getFullYear() === displayYear ? theme.colors.text.inverse : theme.colors.text.primary, fontWeight: 'bold' }}>{day ? day : ''}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <TouchableOpacity onPress={onClose} style={{ marginTop: 18, padding: 10, borderRadius: 10, backgroundColor: theme.colors.primary[100] }}>
+            <Text style={{ color: theme.colors.primary[700], fontWeight: 'bold' }}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// CustomTimePickerModal
+const CustomTimePickerModal = ({
+  visible,
+  onClose,
+  onConfirm,
+  initialHour = 12,
+  initialMinute = 0,
+  hourFormat = '24h',
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: (hour: number, minute: number, ampm?: 'AM' | 'PM') => void;
+  initialHour?: number;
+  initialMinute?: number;
+  hourFormat?: '24h' | '12h';
+}) => {
+  const [hour, setHour] = useState(initialHour);
+  const [minute, setMinute] = useState(initialMinute);
+  const [ampm, setAMPM] = useState<'AM' | 'PM'>('AM');
+  const { theme } = useTheme();
+
+  const hours = hourFormat === '24h' ? Array.from({ length: 24 }, (_, i) => i) : Array.from({ length: 12 }, (_, i) => i + 1);
+  const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ backgroundColor: theme.colors.background.card, borderRadius: 20, padding: 24, width: 320, alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 16 }}>Seleccionar hora</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <ScrollView style={{ height: 120 }} showsVerticalScrollIndicator={false}>
+              {hours.map((h) => (
+                <TouchableOpacity key={h} onPress={() => setHour(h)} style={{ padding: 8, backgroundColor: hour === h ? theme.colors.primary[100] : 'transparent', borderRadius: 8 }}>
+                  <Text style={{ fontSize: 22, color: theme.colors.text.primary }}>{h.toString().padStart(2, '0')}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <Text style={{ fontSize: 22, marginHorizontal: 8, color: theme.colors.text.primary }}>:</Text>
+            <ScrollView style={{ height: 120 }} showsVerticalScrollIndicator={false}>
+              {minutes.map((m) => (
+                <TouchableOpacity key={m} onPress={() => setMinute(m)} style={{ padding: 8, backgroundColor: minute === m ? theme.colors.primary[100] : 'transparent', borderRadius: 8 }}>
+                  <Text style={{ fontSize: 22, color: theme.colors.text.primary }}>{m.toString().padStart(2, '0')}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            {hourFormat === '12h' && (
+              <View style={{ marginLeft: 12 }}>
+                <TouchableOpacity onPress={() => setAMPM('AM')} style={{ padding: 8, backgroundColor: ampm === 'AM' ? theme.colors.primary[100] : 'transparent', borderRadius: 8 }}>
+                  <Text style={{ fontSize: 18, color: theme.colors.text.primary }}>AM</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setAMPM('PM')} style={{ padding: 8, backgroundColor: ampm === 'PM' ? theme.colors.primary[100] : 'transparent', borderRadius: 8, marginTop: 4 }}>
+                  <Text style={{ fontSize: 18, color: theme.colors.text.primary }}>PM</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', marginTop: 12 }}>
+            <TouchableOpacity onPress={onClose} style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.primary[100], marginRight: 12 }}>
+              <Text style={{ color: theme.colors.primary[700], fontWeight: 'bold' }}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+              onConfirm(hour, minute, hourFormat === '12h' ? ampm : undefined);
+              onClose();
+            }} style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.primary[500] }}>
+              <Text style={{ color: theme.colors.text.inverse, fontWeight: 'bold' }}>Confirmar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// Paso de ubicación: solo mapa + barra de búsqueda
+const LocationMapPicker = ({
+  value,
+  onChange,
+  onConfirm,
+  theme,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  onConfirm: (val: string) => void;
+  theme: any;
+}) => {
+  const [region, setRegion] = useState<Region | undefined>(undefined);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const mapRef = useRef<MapView>(null);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      let location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    })();
+  }, []);
+
+  // Autocompletado en tiempo real
+  useEffect(() => {
+    let active = true;
+    if (search.length > 2) {
+      setLoading(true);
+      // @ts-ignore: searchPlacesAsync puede no estar en todos los entornos
+      if (typeof Location.searchPlacesAsync === 'function') {
+        // @ts-ignore
+        Location.searchPlacesAsync(search, undefined, 5)
+          .then((results: any[]) => {
+            if (active) setSuggestions(results);
+          })
+          .catch(() => {
+            if (active) setSuggestions([]);
+          })
+          .finally(() => {
+            if (active) setLoading(false);
+          });
+      } else {
+        if (active) setSuggestions([]);
+        setLoading(false);
+      }
+    } else {
+      setSuggestions([]);
+    }
+    return () => { active = false; };
+  }, [search]);
+
+  const handleSuggestionSelect = async (item: any) => {
+    setSearch(item.name);
+    setSuggestions([]);
+    if (item.coordinate) {
+      setRegion({
+        latitude: item.coordinate.latitude,
+        longitude: item.coordinate.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+      mapRef.current?.animateToRegion({
+        latitude: item.coordinate.latitude,
+        longitude: item.coordinate.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }, 1000);
+    }
+  };
+
+  const goToMyLocation = async () => {
+    let location = await Location.getCurrentPositionAsync({});
+    setRegion({
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    mapRef.current?.animateToRegion({
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    }, 1000);
+  };
+
+  return (
+    <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', padding: 8, backgroundColor: theme.colors.background.card, borderRadius: 12, marginBottom: 8, marginTop: 8 }}>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Buscar dirección o lugar"
+          style={{ flex: 1, fontSize: 16, color: theme.colors.text.primary, padding: 8 }}
+          placeholderTextColor={theme.colors.text.secondary}
+        />
+        <TouchableOpacity onPress={goToMyLocation} style={{ marginLeft: 8 }}>
+          <Ionicons name="locate" size={22} color={theme.colors.primary[500]} />
+        </TouchableOpacity>
+        {loading && <ActivityIndicator size="small" color={theme.colors.primary[500]} style={{ marginLeft: 8 }} />}
+      </View>
+      {/* Sugerencias de autocompletado */}
+      {suggestions.length > 0 && (
+        <View style={{ width: '100%', backgroundColor: theme.colors.background.card, borderRadius: 12, maxHeight: 180, marginBottom: 8 }}>
+          <FlatList
+            data={suggestions}
+            keyExtractor={(item) => item.id || item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => handleSuggestionSelect(item)} style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.border.secondary }}>
+                <Text style={{ color: theme.colors.text.primary }}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
+      {typeof Location.searchPlacesAsync !== 'function' && (
+        <Text style={{ color: theme.colors.error[500], marginBottom: 8 }}>
+          El autocompletado de direcciones no está disponible en este entorno Expo.
+        </Text>
+      )}
+      <View style={{ width: '100%', height: 300, borderRadius: 16, overflow: 'hidden', marginBottom: 12 }}>
+        {region ? (
+          <MapView
+            ref={mapRef}
+            style={{ flex: 1 }}
+            initialRegion={region}
+            region={region}
+            onRegionChangeComplete={setRegion}
+          >
+            <Marker coordinate={{ latitude: region.latitude, longitude: region.longitude }} />
+          </MapView>
+        ) : (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={theme.colors.primary[500]} />
+          </View>
+        )}
+      </View>
+      <TouchableOpacity
+        style={{ backgroundColor: theme.colors.primary[500], borderRadius: 12, padding: 14, alignItems: 'center', width: '80%' }}
+        onPress={() => {
+          if (region) {
+            const locStr = `${region.latitude},${region.longitude}`;
+            onChange(locStr);
+            onConfirm(locStr);
+          }
+        }}
+      >
+        <Text style={{ color: theme.colors.text.inverse, fontWeight: 'bold' }}>Confirmar ubicación</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const ShareMusician = () => {
+  const { theme, hourFormat } = useTheme();
+  const { user } = useUser();
   const insets = useSafeAreaInsets();
   const [currentStep, setCurrentStep] = useState(0);
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<any>({
+    eventType: '',
+    instrument: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    location: '', // Siempre string vacío al inicio
+  });
   const [modalVisible, setModalVisible] = useState(false);
   const [requestData, setRequestData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationMode, setLocationMode] = useState<'text' | 'map'>('text');
+  // DateTimePicker states
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+  const [pickerKey, setPickerKey] = useState<string>('');
+  // CustomDatePickerModal states
+  const [customDatePickerVisible, setCustomDatePickerVisible] = useState(false);
+  const [customDatePickerKey, setCustomDatePickerKey] = useState<'date'>('date');
+  // CustomTimePickerModal states
+  const [customTimePickerVisible, setCustomTimePickerVisible] = useState(false);
+  const [customTimePickerKey, setCustomTimePickerKey] = useState<'startTime' | 'endTime'>('startTime');
+
+  useEffect(() => {
+    if (locationMode === 'text' && typeof form.location !== 'string') {
+      setForm((prev: any) => ({ ...prev, location: '' }));
+    }
+  }, [locationMode, form.location]);
+
+  useEffect(() => {
+    if (user?.userEmail) {
+      registerSocketUser(user.userEmail);
+    }
+  }, [user]);
 
   const handleOptionSelect = (value: string) => {
     setForm({ ...form, [steps[currentStep].key]: value });
@@ -81,22 +465,35 @@ const ShareMusician = () => {
   const handleBack = () => setCurrentStep((prev) => prev - 1);
 
   const handleSubmit = async () => {
+    if (!user || !user.userEmail) {
+      Alert.alert('Error', 'Debes iniciar sesión para solicitar un músico.');
+      return;
+    }
     setIsLoading(true);
     try {
       const payload = {
-        userId: 'userId_placeholder',
+        eventName: form.eventName,
         eventType: form.eventType,
+        date: typeof form.date === 'string' ? form.date : form.date?.toISOString().split('T')[0],
+        time: `${form.startTime} - ${form.endTime}`,
+        location: {
+          address: typeof form.location === 'string' ? form.location : '',
+          city: '',
+          latitude: 0,
+          longitude: 0,
+          googleMapsUrl: '',
+        },
+        duration: 60, // 1 hora por defecto
         instrument: form.instrument,
-        date: form.date,
-        startTime: form.startTime,
-        endTime: form.endTime,
-        location: form.location,
         budget: 0,
-        comments: '',
+        minBudget: 0,
+        maxBudget: 0,
+        description: '',
+        user: user.userEmail,
       };
-      const response = await createMusicianRequest(payload);
-      if (response && response.id) {
-        setRequestData({ ...payload, id: response.id });
+      const response = await eventService.createEventRequest(payload);
+      if (response && response.data && response.data.id) {
+        setRequestData({ ...payload, id: response.data.id });
         setModalVisible(true);
       } else {
         throw new Error(response?.message || 'No se pudo crear la solicitud.');
@@ -143,35 +540,33 @@ const ShareMusician = () => {
       );
     }
     if (step.type === 'date') {
+      const value = form[step.key];
       return (
         <View style={{ marginTop: 24 }}>
           <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 20, textAlign: 'center' }}>{step.label}</Text>
-          <DateTimeSelector
-            value={form.date || ''}
-            onValueChange={(val) => setForm({ ...form, date: val })}
-            mode="date"
-            placeholder="Seleccionar fecha"
-          />
           <TouchableOpacity
-            style={{ marginTop: 24, alignSelf: 'flex-end' }}
-            onPress={handleNext}
-            disabled={!form.date}
+            style={{
+              backgroundColor: theme.colors.background.card,
+              borderRadius: 16,
+              padding: 16,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: theme.colors.border.secondary,
+              width: '100%',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+            onPress={() => {
+              setCustomDatePickerKey(step.key as 'date');
+              setCustomDatePickerVisible(true);
+            }}
+            activeOpacity={0.85}
           >
-            <Text style={{ color: theme.colors.primary[500], fontWeight: 'bold', fontSize: 16 }}>Siguiente</Text>
+            <Ionicons name="calendar" size={24} color={theme.colors.primary[500]} style={{ marginRight: 12 }} />
+            <Text style={{ fontSize: 16, color: theme.colors.text.primary }}>
+              {value ? formatDate(value) : 'Seleccionar fecha'}
+            </Text>
           </TouchableOpacity>
-        </View>
-      );
-    }
-    if (step.type === 'time') {
-      return (
-        <View style={{ marginTop: 24 }}>
-          <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 20, textAlign: 'center' }}>{step.label}</Text>
-          <DateTimeSelector
-            value={form[step.key] || ''}
-            onValueChange={(val) => setForm({ ...form, [step.key]: val })}
-            mode="time"
-            placeholder="Seleccionar hora"
-          />
           <TouchableOpacity
             style={{ marginTop: 24, alignSelf: 'flex-end' }}
             onPress={handleNext}
@@ -179,78 +574,82 @@ const ShareMusician = () => {
           >
             <Text style={{ color: theme.colors.primary[500], fontWeight: 'bold', fontSize: 16 }}>Siguiente</Text>
           </TouchableOpacity>
+          <CustomDatePickerModal
+            visible={customDatePickerVisible && customDatePickerKey === step.key}
+            onClose={() => setCustomDatePickerVisible(false)}
+            onConfirm={(date) => {
+              setForm({ ...form, [step.key]: date.toISOString().split('T')[0] });
+              setCustomDatePickerVisible(false);
+            }}
+            initialDate={form[step.key] ? new Date(form[step.key]) : new Date()}
+          />
+        </View>
+      );
+    }
+    if (step.type === 'time') {
+      const value = form[step.key];
+      return (
+        <View style={{ marginTop: 24 }}>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 20, textAlign: 'center' }}>{step.label}</Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: theme.colors.background.card,
+              borderRadius: 16,
+              padding: 16,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: theme.colors.border.secondary,
+              width: '100%',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+            onPress={() => {
+              setCustomTimePickerKey(step.key as 'startTime' | 'endTime');
+              setCustomTimePickerVisible(true);
+            }}
+            activeOpacity={0.85}
+          >
+            <Ionicons name={'time'} size={24} color={theme.colors.primary[500]} style={{ marginRight: 12 }} />
+            <Text style={{ fontSize: 16, color: theme.colors.text.primary }}>
+              {value ? formatTime(value) : 'Seleccionar hora'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ marginTop: 24, alignSelf: 'flex-end' }}
+            onPress={handleNext}
+            disabled={!form[step.key]}
+          >
+            <Text style={{ color: theme.colors.primary[500], fontWeight: 'bold', fontSize: 16 }}>Siguiente</Text>
+          </TouchableOpacity>
+          <CustomTimePickerModal
+            visible={customTimePickerVisible && customTimePickerKey === step.key}
+            onClose={() => setCustomTimePickerVisible(false)}
+            onConfirm={(hour, minute, ampm) => {
+              let val = '';
+              if (hourFormat === '24h') {
+                val = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+              } else {
+                let h = hour;
+                if (ampm === 'PM' && h < 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+                val = `${h.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+              }
+              setForm({ ...form, [step.key]: val });
+            }}
+            hourFormat={hourFormat}
+          />
         </View>
       );
     }
     if (step.type === 'location') {
       return (
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 24, width: '100%', alignItems: 'center' }}>
           <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 20, textAlign: 'center' }}>{step.label}</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: locationMode === 'text' ? theme.colors.primary[100] : theme.colors.background.card,
-                borderRadius: 12,
-                padding: 10,
-                marginRight: 8,
-                borderWidth: 1,
-                borderColor: locationMode === 'text' ? theme.colors.primary[500] : theme.colors.border.secondary,
-              }}
-              onPress={() => setLocationMode('text')}
-            >
-              <Ionicons name="search" size={18} color={theme.colors.primary[500]} />
-              <Text style={{ marginLeft: 6, color: theme.colors.text.primary }}>Buscar por texto</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                backgroundColor: locationMode === 'map' ? theme.colors.primary[100] : theme.colors.background.card,
-                borderRadius: 12,
-                padding: 10,
-                borderWidth: 1,
-                borderColor: locationMode === 'map' ? theme.colors.primary[500] : theme.colors.border.secondary,
-              }}
-              onPress={() => setLocationMode('map')}
-            >
-              <Ionicons name="map" size={18} color={theme.colors.primary[500]} />
-              <Text style={{ marginLeft: 6, color: theme.colors.text.primary }}>Seleccionar en mapa</Text>
-            </TouchableOpacity>
-          </View>
-          {locationMode === 'text' ? (
-            <Input
-              label="Dirección del evento"
-              value={form.location || ''}
-              onChangeText={(val) => setForm({ ...form, location: val })}
-              placeholder="Ej: Iglesia Central, Santo Domingo"
-              leftIcon="location-outline"
-            />
-          ) : (
-            <>
-              <TouchableOpacity
-                style={{ backgroundColor: theme.colors.primary[500], borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8 }}
-                onPress={() => setShowLocationModal(true)}
-              >
-                <Ionicons name="map" size={20} color={theme.colors.text.inverse} />
-                <Text style={{ color: theme.colors.text.inverse, fontWeight: 'bold', marginTop: 4 }}>Abrir mapa</Text>
-              </TouchableOpacity>
-              <Text style={{ marginTop: 12, color: theme.colors.text.secondary, fontSize: 13 }}>
-                {form.location ? `Ubicación seleccionada: ${form.location}` : 'No se ha seleccionado ubicación.'}
-              </Text>
-            </>
-          )}
-          <TouchableOpacity
-            style={{ marginTop: 24, alignSelf: 'flex-end' }}
-            onPress={handleNext}
-            disabled={!form.location}
-          >
-            <Text style={{ color: theme.colors.primary[500], fontWeight: 'bold', fontSize: 16 }}>Siguiente</Text>
-          </TouchableOpacity>
-          <LocationPickerModal
-            visible={showLocationModal}
-            onClose={() => setShowLocationModal(false)}
-            onLocationSelect={(loc) => {
-              setForm({ ...form, location: `${loc.latitude},${loc.longitude}` });
-              setShowLocationModal(false);
-            }}
+          <LocationMapPicker
+            value={form.location}
+            onChange={(val) => setForm({ ...form, location: val })}
+            onConfirm={handleNext}
+            theme={theme}
           />
         </View>
       );
@@ -269,11 +668,14 @@ const ShareMusician = () => {
             const selected = step.options.find(opt => opt.value === form[step.key]);
             if (selected) iconName = selected.icon;
           }
+          let displayValue = form[step.key];
+          if (step.type === 'date') displayValue = formatDate(form[step.key]);
+          if (step.type === 'time') displayValue = formatTime(form[step.key]);
           return (
             <View key={step.key} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, width: '100%' }}>
               <Ionicons name={iconName as any} size={18} color={theme.colors.primary[500]} style={{ marginRight: 8 }} />
               <Text style={{ fontSize: 15, color: theme.colors.text.primary }}>{step.label}: </Text>
-              <Text style={{ fontSize: 15, color: theme.colors.text.secondary, marginLeft: 4, flexShrink: 1 }}>{form[step.key]}</Text>
+              <Text style={{ fontSize: 15, color: theme.colors.text.secondary, marginLeft: 4, flexShrink: 1 }}>{displayValue}</Text>
             </View>
           );
         })}
@@ -361,5 +763,11 @@ const ShareMusician = () => {
     </KeyboardAvoidingView>
   );
 };
+
+declare module 'expo-location' {
+  interface Location {
+    searchPlacesAsync?: (query: string, options?: any, limit?: number) => Promise<any[]>;
+  }
+}
 
 export default ShareMusician;

@@ -16,6 +16,9 @@ import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@contexts/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { eventService } from '@services/events';
+import { useUser } from '@contexts/UserContext';
+import { socket } from '@utils/socket';
 
 interface Event {
   id: string;
@@ -26,6 +29,10 @@ interface Event {
   status: 'active' | 'completed' | 'cancelled';
   musicianCount: number;
   maxMusicians: number;
+  name?: string; // Added for new_event_request socket event
+  additionalComments?: string; // Added for new_event_request socket event
+  instrument?: string; // Added for new_event_request socket event
+  location?: { address: string }; // Added for new_event_request socket event
 }
 
 interface EventListProps {
@@ -36,60 +43,53 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
   const styles = getStyles(theme, insets);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
-
-  // Datos de ejemplo
-  const mockEvents: Event[] = [
-    {
-      id: '1',
-      title: t('events.example_birthday'),
-      description: t('events.example_birthday_desc'),
-      date: '2024-01-15',
-      location: 'Santo Domingo',
-      status: 'active',
-      musicianCount: 2,
-      maxMusicians: 5,
-    },
-    {
-      id: '2',
-      title: t('events.example_wedding'),
-      description: t('events.example_wedding_desc'),
-      date: '2024-02-20',
-      location: 'Punta Cana',
-      status: 'active',
-      musicianCount: 3,
-      maxMusicians: 4,
-    },
-    {
-      id: '3',
-      title: t('events.example_corporate'),
-      description: t('events.example_corporate_desc'),
-      date: '2024-01-30',
-      location: 'Santiago',
-      status: 'completed',
-      musicianCount: 1,
-      maxMusicians: 2,
-    },
-  ];
+  const [filterInstrument, setFilterInstrument] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [acceptedIds, setAcceptedIds] = useState<string[]>([]);
 
   useEffect(() => {
     loadEvents();
-  }, []);
+    // Escuchar eventos de socket para actualizar en tiempo real
+    socket.on('new_event_request', (data: any) => {
+      console.log('Solicitud recibida por socket:', data);
+      loadEvents();
+    });
+    // Feedback en tiempo real para organizador
+    socket.on('musician_accepted', (data: any) => {
+      // Si el usuario es organizador y el evento le pertenece
+      if (user?.roll === 'eventCreator' && data?.event?.organizerId === user.userEmail) {
+        Alert.alert('¡Solicitud aceptada!', `Un músico ha aceptado tu solicitud para el evento: ${data.event?.name || data.event?.title}`);
+        loadEvents();
+      }
+    });
+    return () => {
+      socket.off('new_event_request');
+      socket.off('musician_accepted');
+    };
+  }, [filterInstrument, filterLocation, filterDate, searchQuery, user]);
 
   const loadEvents = async () => {
     setLoading(true);
     try {
-      // Simular carga de datos
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setEvents(mockEvents);
+      const filters: any = {};
+      if (filterInstrument) filters.instrument = filterInstrument;
+      if (filterLocation) filters.location = filterLocation;
+      if (filterDate) filters.date = filterDate;
+      const response = await eventService.getAvailableRequests(filters);
+      console.log('Eventos disponibles para músico:', response?.data);
+      setEvents(response?.data || []);
     } catch (error) {
       console.error('Error loading events:', error);
-      Alert.alert('Error', 'No se pudieron cargar los eventos');
+      Alert.alert('Error', 'No se pudieron cargar las solicitudes');
     } finally {
       setLoading(false);
     }
@@ -104,6 +104,20 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
   const handleEventPress = (event: Event) => {
     if (onEventPress) {
       onEventPress(event);
+    }
+  };
+
+  const handleAccept = async (eventId: string) => {
+    setAcceptingId(eventId);
+    try {
+      await eventService.acceptEventRequest(eventId);
+      setAcceptedIds(prev => [...prev, eventId]);
+      Alert.alert('¡Solicitud aceptada!', 'Has aceptado la solicitud correctamente.');
+      await loadEvents();
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo aceptar la solicitud.');
+    } finally {
+      setAcceptingId(null);
     }
   };
 
@@ -134,9 +148,9 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
   };
 
   const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = ((event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (event.description || event.additionalComments || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          ((event.location && (event.location.address || event.location)) || '').toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesFilter = filterStatus === 'all' || event.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
@@ -152,14 +166,12 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
         style={styles.cardGradient}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.eventTitle}>{item.title}</Text>
+          <Text style={styles.eventTitle}>{item.name || item.title}</Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
             <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
           </View>
         </View>
-
-        <Text style={styles.eventDescription}>{item.description}</Text>
-
+        <Text style={styles.eventDescription}>{item.description || item.additionalComments}</Text>
         <View style={styles.eventDetails}>
           <View style={styles.detailItem}>
             <Ionicons name="calendar" size={16} color="#667eea" />
@@ -167,16 +179,23 @@ const EventList: React.FC<EventListProps> = ({ onEventPress }) => {
           </View>
           <View style={styles.detailItem}>
             <Ionicons name="location" size={16} color="#667eea" />
-            <Text style={styles.detailText}>{item.location}</Text>
+            <Text style={styles.detailText}>{item.location?.address || item.location}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Ionicons name="musical-notes" size={16} color="#667eea" />
+            <Text style={styles.detailText}>{item.instrument}</Text>
           </View>
         </View>
-
-        <View style={styles.musicianInfo}>
-          <Ionicons name="musical-notes" size={16} color="#667eea" />
-          <Text style={styles.musicianText}>
-            {item.musicianCount}/{item.maxMusicians} músicos
+        {/* Botón para aceptar solicitud (acción se implementará después) */}
+        <TouchableOpacity
+          style={[styles.acceptButton, (acceptingId === item.id || acceptedIds.includes(item.id)) && { opacity: 0.5 }]}
+          onPress={() => handleAccept(item.id)}
+          disabled={acceptingId === item.id || acceptedIds.includes(item.id)}
+        >
+          <Text style={styles.acceptButtonText}>
+            {acceptingId === item.id ? 'Aceptando...' : acceptedIds.includes(item.id) ? 'Aceptada' : 'Aceptar Solicitud'}
           </Text>
-        </View>
+        </TouchableOpacity>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -470,6 +489,24 @@ const getStyles = (theme: any, insets: any) => StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
+  },
+  acceptButton: {
+    backgroundColor: theme.colors.primary[500],
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 15,
+    shadowColor: theme.colors.primary[500],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  acceptButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

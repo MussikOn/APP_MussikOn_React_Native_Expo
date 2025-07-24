@@ -252,6 +252,8 @@ interface ThemeContextType {
   setMode: (mode: ThemeMode) => void;
   toggleTheme: () => void;
   isDark: boolean;
+  hourFormat: '24h' | '12h';
+  setHourFormat: (format: '24h' | '12h') => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -259,6 +261,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [mode, setMode] = useState<ThemeMode>('light');
   const [theme, setTheme] = useState<Theme>(lightTheme);
+  const [hourFormat, setHourFormat] = useState<'24h' | '12h'>('24h');
 
   useEffect(() => {
     loadThemeMode();
@@ -313,6 +316,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setMode: setModeHandler,
       toggleTheme,
       isDark,
+      hourFormat,
+      setHourFormat,
     }}>
       {children}
     </ThemeContext.Provider>

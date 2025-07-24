@@ -1,5 +1,56 @@
 # 🎵 MussikOn
 
+> **Estado actual y checklist de desarrollo**
+
+## 🚦 Progreso y Pendientes (Resumen)
+
+### Funcionalidades Implementadas
+- [x] Autenticación de usuarios (login, registro, JWT, persistencia)
+- [x] Navegación principal (Stack, Tabs, Drawer, roles)
+- [x] Sistema de temas (claro/oscuro, personalización)
+- [x] Internacionalización (i18n, selector de idioma)
+- [x] Creación de eventos y solicitudes de músico (organizador)
+- [x] Notificaciones en tiempo real (socket.io, backend)
+- [x] UI/UX foundation (componentes, loading, errores, responsive)
+- [x] Configuración de entorno y API
+
+### Funcionalidades Parcialmente Implementadas
+- [~] Listado de solicitudes disponibles para músicos
+- [~] Integración de mapas y geolocalización avanzada
+- [~] Chat en tiempo real (interfaz y notificaciones)
+- [~] Gestión de eventos (historial, asignados, completados)
+- [~] Perfiles de usuario avanzados
+
+### Funcionalidades Pendientes / Mejoras
+- [ ] Acción de aceptar solicitud desde la app (músico)
+- [ ] Feedback en tiempo real al organizador cuando un músico acepta
+- [ ] Filtros avanzados en solicitudes (instrumento, ubicación, fecha)
+- [ ] Pantallas de gestión de eventos para ambos roles
+- [ ] Validación de roles y permisos en frontend
+- [ ] Mejoras de UX/UI: validaciones, feedback visual, loading, errores claros
+- [ ] Pruebas automáticas (unitarias y de integración)
+- [ ] Documentación de componentes y guías de desarrollo
+- [ ] Optimización de performance y accesibilidad
+
+---
+
+## 📝 Orden Recomendado de Desarrollo
+1. Completar listado y filtrado de solicitudes para músicos.
+2. Permitir aceptar solicitudes y feedback en tiempo real.
+3. Implementar pantallas de gestión de eventos para ambos roles.
+4. Mejorar validaciones, feedback visual y robustez general.
+5. Agregar pruebas automáticas y actualizar documentación.
+
+---
+
+## 📊 Estado Actual
+- El flujo de autenticación, creación de eventos y notificación está **funcionando**.
+- El backend acepta y guarda correctamente los datos.
+- Falta completar la experiencia del músico y la gestión de eventos en el frontend.
+- Faltan validaciones de roles, pruebas automáticas y documentación de componentes para robustez total.
+
+---
+
 Aplicación móvil para conectar músicos y eventos musicales. Desarrollada con React Native y Expo.
 
 ## 📱 Características

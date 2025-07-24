@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SettingsScreen = () => {
   const { t } = useTranslation();
-  const { theme, mode, setMode, toggleTheme, isDark } = useTheme();
+  const { theme, mode, setMode, toggleTheme, isDark, hourFormat, setHourFormat } = useTheme();
   const { logout } = useUser();
   const { currentLanguage, changeLanguage, availableLanguages } = useLanguage();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -280,6 +280,21 @@ const SettingsScreen = () => {
           </TouchableOpacity>
         </View>
       </Modal>
+      <View style={{ marginVertical: 24 }}>
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 }}>
+          Formato de hora
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ color: theme.colors.text.primary, marginRight: 12 }}>24h</Text>
+          <Switch
+            value={hourFormat === '12h'}
+            onValueChange={(val) => setHourFormat(val ? '12h' : '24h')}
+            thumbColor={theme.colors.primary[500]}
+            trackColor={{ false: theme.colors.border.secondary, true: theme.colors.primary[200] }}
+          />
+          <Text style={{ color: theme.colors.text.primary, marginLeft: 12 }}>12h (AM/PM)</Text>
+        </View>
+      </View>
     </View>
   );
 };
