@@ -33,6 +33,7 @@ import EventList from '@screens/events/EventList';
 import Dashboard from '@screens/dashboard/Dashboard';
 import NotificationSnackbar from '@components/ui/NotificationSnackbar';
 import MyEventsList from '@screens/events/MyEventsList';
+import EditEvent from '@screens/events/EditEvent';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -185,7 +186,6 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
       <NotificationSnackbar />
-      <Text style={{ color: 'black', fontSize: 20, fontWeight: 'bold' , marginTop: 100}}>Hola</Text>
       <NavigationContainer
         ref={navigationRef}
         theme={{
@@ -264,6 +264,7 @@ function AppContent() {
           <Stack.Screen name="ShareMusician" component={ShareMusician} />
           <Stack.Screen name="EventList" component={EventList} />
           <Stack.Screen name="MyEventsList" component={MyEventsList} options={{ title: 'Mis Solicitudes' }} />
+          <Stack.Screen name="EditEvent" component={EditEvent} options={{ title: 'Editar Evento' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </>
