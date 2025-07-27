@@ -185,6 +185,7 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
       <NotificationSnackbar />
+      <Text style={{ color: 'black', fontSize: 20, fontWeight: 'bold' , marginTop: 100}}>Hola</Text>
       <NavigationContainer
         ref={navigationRef}
         theme={{

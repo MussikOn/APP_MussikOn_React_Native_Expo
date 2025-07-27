@@ -1,37 +1,172 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# 🔒 PROTECCIÓN DE CÓDIGO FUENTE - MussikOn
+# Este archivo protege el código fuente mientras permite acceso público a la documentación
 
-# dependencies
-node_modules/
+# ========================================
+# 🚫 CÓDIGO FUENTE PROTEGIDO
+# ========================================
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# Código fuente principal (PROTEGIDO)
+/src/
+/app/
+/components/
+/screens/
+/services/
+/utils/
+/hooks/
+/contexts/
+/store/
+/config/
+/types/
+/appTypes/
 
-# Native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+# Archivos de configuración de desarrollo
+package.json
+package-lock.json
+yarn.lock
+metro.config.js
+babel.config.js
+tsconfig.json
+app.json
+eas.json
 
-# Metro
-.metro-health-check*
+# Archivos de build y distribución
+/build/
+/dist/
+/.expo/
+/.expo-shared/
+/.expo-web/
+/.next/
+/.nuxt/
+/.output/
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+# Archivos de entorno y secretos
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.env
 
-# macOS
-.DS_Store
+# Archivos de certificados y claves
 *.pem
+*.key
+*.crt
+*.p12
+*.pfx
 
-# local env files
-.env*.local
-ENV.ts
+# Archivos de base de datos
+*.db
+*.sqlite
+*.sqlite3
 
-# typescript
-*.tsbuildinfo
+# Archivos de logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos temporales
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Archivos de IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================================
+# ✅ DOCUMENTACIÓN PÚBLICA
+# ========================================
+
+# La documentación SÍ se incluye en el repositorio
+!docs/
+!README.md
+!LICENSE.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+
+# ========================================
+# 📋 ARCHIVOS DE CONFIGURACIÓN PÚBLICOS
+# ========================================
+
+# Archivos de configuración que pueden ser públicos
+!.github/
+!docs/
+!assets/
+!public/
+
+# ========================================
+# 🔐 ARCHIVOS DE SEGURIDAD
+# ========================================
+
+# Archivos de seguridad que nunca deben subirse
+secrets/
+keys/
+certificates/
+passwords.txt
+credentials.json
+
+# ========================================
+# 📱 ARCHIVOS DE PLATAFORMA
+# ========================================
+
+# iOS
+ios/
+*.ipa
+*.app
+
+# Android
+android/
+*.apk
+*.aab
+
+# ========================================
+# 🧪 ARCHIVOS DE TESTING
+# ========================================
+
+# Archivos de testing (pueden contener información sensible)
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+coverage/
+.nyc_output/
+
+# ========================================
+# 📦 ARCHIVOS DE DEPENDENCIAS
+# ========================================
+
+node_modules/
+jspm_packages/
+
+# ========================================
+# 🔄 ARCHIVOS DE CONTROL DE VERSIÓN
+# ========================================
+
+# Mantener solo los archivos de documentación en el historial
+# Los archivos de código fuente se manejan por separado
+
+# ========================================
+# 📝 NOTA IMPORTANTE
+# ========================================
+
+# Este .gitignore está configurado para:
+# 1. Proteger el código fuente de MussikOn
+# 2. Permitir acceso público solo a la documentación
+# 3. Mantener la propiedad intelectual segura
+# 4. Cumplir con la licencia de uso restringido
+
+# Para acceder al código fuente, contactar a:
+# legal@mussikon.com
