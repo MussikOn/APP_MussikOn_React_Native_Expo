@@ -56,23 +56,29 @@ APP_MussikOn_Express/
 - **Rate limiting** para prevenir abuso
 - **CORS configurado** para producción
 
-## 🎵 **Gestión de Eventos**
+## 🎵 **Sistema de Solicitudes de Músicos**
 
-### **Endpoints de Eventos**
-- `POST /events` - Crear evento
-- `GET /events` - Listar eventos
-- `GET /events/:id` - Obtener evento por ID
-- `PUT /events/:id` - Actualizar evento
-- `DELETE /events/:id` - Eliminar evento
-- `GET /events/my-pending` - Eventos pendientes del organizador
-- `GET /events/my-assigned` - Eventos asignados del organizador
+### **Endpoints de Solicitudes (usando /events/)**
+- `POST /events/request-musician` - Crear solicitud de músico
+- `GET /events/my-pending` - Solicitudes pendientes del organizador
+- `GET /events/my-assigned` - Solicitudes asignadas del organizador
+- `GET /events/my-completed` - Solicitudes completadas del organizador
+- `GET /events/my-events` - Todas las solicitudes del usuario
 - `GET /events/available-requests` - Solicitudes disponibles para músicos
+- `GET /events/my-scheduled` - Solicitudes agendadas del músico
+- `GET /events/my-past-performances` - Historial de actuaciones del músico
+- `GET /events/:id` - Obtener solicitud por ID
+- `PUT /events/:id` - Actualizar solicitud
+- `DELETE /events/:id` - Eliminar solicitud
+- `PATCH /events/:id/cancel` - Cancelar solicitud
+- `PATCH /events/:id/complete` - Completar solicitud
+- `POST /events/:id/accept` - Aceptar solicitud
 
-### **Estados de Eventos**
+### **Estados de Solicitudes**
 - **pending_musician** - Esperando asignación de músico
-- **musician_assigned** - Músico asignado
-- **completed** - Evento completado
-- **cancelled** - Evento cancelado
+- **assigned** - Músico asignado
+- **completed** - Solicitud completada
+- **cancelled** - Solicitud cancelada
 
 ## 🎼 **Solicitudes de Músicos**
 

@@ -1,6 +1,6 @@
 # 🛠️ Stack Tecnológico - MussikOn
 
-**NUEVO:** La app ahora incluye una pantalla moderna de **"Mis Solicitudes"** con tabs, feedback visual y consumo de endpoints REST modernos para la gestión centralizada de solicitudes/eventos. Esta pantalla es clave para la experiencia de usuario de músicos y organizadores.
+**ACTUALIZADO:** El sistema de solicitudes de músicos está completamente implementado y funcional. Se eliminaron todas las funcionalidades de "eventos" y se mantuvieron solo las de "solicitudes de músicos". Los endpoints se actualizaron para usar `/events/` en lugar de `/requests/` para compatibilidad con el backend. La pantalla "Mis Solicitudes" permite filtrado por rol y edición de solicitudes.
 
 ## 📱 **Framework Principal**
 

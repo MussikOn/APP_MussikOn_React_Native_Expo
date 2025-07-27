@@ -4,7 +4,7 @@
 
 Este documento analiza el estado actual de la aplicación móvil MussikOn desarrollada en React Native con Expo. El proyecto tiene una **base sólida y funcional** con la mayoría de funcionalidades core implementadas y está listo para el desarrollo de características avanzadas.
 
-**NUEVO:** La pantalla "Mis Solicitudes" está completamente implementada y accesible desde el menú lateral, permitiendo a músicos y organizadores gestionar todas sus solicitudes/eventos en progreso desde un solo lugar. Incluye tabs para alternar entre pendientes, asignados/agendados y todos, con feedback visual inmediato y endpoints REST modernos.
+**NUEVO:** El sistema de solicitudes de músicos está completamente implementado y funcional. Se eliminaron todas las funcionalidades de "eventos" y se mantuvieron solo las de "solicitudes de músicos". La pantalla "Mis Solicitudes" permite a organizadores ver solo sus solicitudes creadas (con capacidad de edición) y a músicos ver solo las solicitudes que han aceptado. Los endpoints se actualizaron para usar `/events/` en lugar de `/requests/` para compatibilidad con el backend.
 
 ---
 
@@ -40,7 +40,7 @@ Este documento analiza el estado actual de la aplicación móvil MussikOn desarr
 7. **Configuración de Entorno**: Variables de entorno configuradas
 8. **Servicios HTTP**: Cliente centralizado con interceptores
 9. **Sockets**: Configuración robusta con reconexión automática
-10. **Pantalla "Mis Solicitudes"**: Gestión centralizada y moderna de solicitudes/eventos
+10. **Sistema de Solicitudes de Músicos**: Gestión completa con filtrado por rol y edición
 
 ### 🔄 **En Desarrollo**
 1. **Sistema de Mapas**: Integración avanzada con React Native Maps

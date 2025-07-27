@@ -9,11 +9,13 @@
 - [x] **Navegación Inteligente** - Stack, Tabs, Drawer con roles diferenciados
 - [x] **Sistema de Temas** - Claro/oscuro con personalización completa
 - [x] **Internacionalización** - Soporte ES/EN con detección automática
-- [x] **Gestión de Eventos** - Creación, listado, filtros por rol
+- [x] **Sistema de Solicitudes de Músicos** - Creación, gestión, filtros por rol
 - [x] **Notificaciones en Tiempo Real** - Socket.io con reconexión automática
 - [x] **UI/UX Foundation** - Componentes modernos, loading states, error handling
 - [x] **Configuración Robusta** - Entornos, APIs centralizadas, manejo de errores
 - [x] **Pantalla "Mis Solicitudes"** - Gestión centralizada con tabs y feedback visual
+- [x] **Edición de Solicitudes** - Organizadores pueden editar sus solicitudes creadas
+- [x] **Filtrado por Rol** - Organizadores ven solo sus solicitudes, músicos ven solo las aceptadas
 
 ### 🔄 **Funcionalidades en Desarrollo**
 - [~] **Sistema de Mapas Avanzado** - Geolocalización y marcadores personalizados
@@ -73,11 +75,13 @@
 - Persistencia de sesión automática
 - Manejo de tokens expirados
 
-### 🎵 **Gestión de Eventos Musicales**
-- Creación de solicitudes de músicos
+### 🎵 **Sistema de Solicitudes de Músicos**
+- Creación de solicitudes de músicos para eventos
 - Filtros por instrumento, ubicación, fecha
 - Estados en tiempo real (pendiente, asignado, completado)
-- Historial de eventos por rol
+- Historial de solicitudes por rol
+- Edición de solicitudes por organizadores
+- Filtrado inteligente por tipo de usuario
 
 ### 🌍 **Internacionalización Completa**
 - Soporte para español e inglés

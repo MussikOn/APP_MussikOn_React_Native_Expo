@@ -41,17 +41,15 @@ const getAvailableTabs = () => {
   if (isOrganizador) {
     return [
       { name: 'Inicio', icon: 'home' },
-      { name: 'Crear Evento', icon: 'add-circle' },
-      { name: 'Solicitudes', icon: 'list' },
-      { name: 'EventList', icon: 'list' },
+      { name: 'Crear Solicitud', icon: 'add-circle' },
+      { name: 'Mis Solicitudes', icon: 'list' },
       { name: 'Perfil', icon: 'person' },
       { name: 'Configuracion', icon: 'settings' },
     ];
   } else {
     return [
       { name: 'Inicio', icon: 'home' },
-      { name: 'Solicitudes', icon: 'list' },
-      { name: 'EventList', icon: 'list' },
+      { name: 'Mis Solicitudes', icon: 'list' },
       { name: 'Agenda', icon: 'calendar' },
       { name: 'Historial', icon: 'time' },
       { name: 'Configuracion', icon: 'settings' },

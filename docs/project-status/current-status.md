@@ -4,7 +4,7 @@
 
 MussikOn es una aplicación móvil en **fase de desarrollo activo** con una arquitectura sólida implementada. El proyecto tiene una base técnica robusta con funcionalidades core implementadas y está listo para el desarrollo de características avanzadas.
 
-**NUEVO:** La pantalla "Mis Solicitudes" está implementada y accesible desde el menú lateral, permitiendo a músicos y organizadores gestionar todas sus solicitudes/eventos en progreso. Incluye tabs para alternar entre pendientes, asignados/agendados y todos, con feedback visual inmediato y endpoints REST modernos.
+**ACTUALIZADO:** El sistema de solicitudes de músicos está completamente implementado y funcional. Se eliminaron todas las funcionalidades de "eventos" y se mantuvieron solo las de "solicitudes de músicos". Los endpoints se actualizaron para usar `/events/` en lugar de `/requests/` para compatibilidad con el backend. La pantalla "Mis Solicitudes" permite filtrado por rol y edición de solicitudes.
 
 ## 📈 **Métricas del Proyecto**
 
@@ -36,7 +36,7 @@ MussikOn es una aplicación móvil en **fase de desarrollo activo** con una arqu
 7. **Configuración de Entorno**: Variables de entorno configuradas
 8. **Servicios HTTP**: Cliente centralizado con interceptores
 9. **Sockets**: Configuración robusta con reconexión automática
-10. **Pantalla "Mis Solicitudes"**: Gestión centralizada y moderna de solicitudes/eventos
+10. **Sistema de Solicitudes de Músicos**: Gestión completa con filtrado por rol y edición
 
 ### 🔄 **En Desarrollo**
 1. **Sistema de Mapas**: Integración avanzada con React Native Maps

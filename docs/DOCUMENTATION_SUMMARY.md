@@ -63,11 +63,12 @@ He realizado una **revisión exhaustiva** de todo el proyecto frontend y backend
    - Detección automática de idioma
    - Context de idioma global
 
-5. **Gestión de Eventos**
-   - Creación de eventos
-   - Listado con filtros
-   - Estados de eventos
+5. **Sistema de Solicitudes de Músicos**
+   - Creación de solicitudes de músicos
+   - Listado con filtros por rol
+   - Estados de solicitudes
    - Pantalla "Mis Solicitudes" con tabs
+   - Edición de solicitudes por organizadores
 
 6. **UI/UX Foundation**
    - Componentes modernos
@@ -82,11 +83,11 @@ He realizado una **revisión exhaustiva** de todo el proyecto frontend y backend
    - Verificación por email
    - Middleware de autenticación
 
-2. **Gestión de Eventos**
-   - CRUD completo
-   - Estados: pending_musician, musician_assigned, completed, cancelled
+2. **Sistema de Solicitudes de Músicos**
+   - CRUD completo usando endpoints `/events/`
+   - Estados: pending_musician, assigned, completed, cancelled
    - Matching automático de músicos
-   - Filtros por organizador
+   - Filtros por organizador y músico
 
 3. **Solicitudes de Músicos**
    - CRUD completo ✅
