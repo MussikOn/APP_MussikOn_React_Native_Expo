@@ -65,4 +65,4 @@ export type ChatFilters = {
   unreadOnly?: boolean;
   dateFrom?: string;
   dateTo?: string;
-};
+    };

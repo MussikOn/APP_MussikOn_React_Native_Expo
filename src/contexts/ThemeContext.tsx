@@ -193,27 +193,7 @@ export interface Theme {
 // Light Theme
 const lightTheme: Theme = {
   mode: 'light',
-  colors: {
-    ...require('../theme/colors').colors,
-    background: {
-      primary: '#f1f1f1',
-      secondary: '#ffffff',
-      tertiary: '#e5e5e5',
-      card: '#ffffff',
-      overlay: 'rgba(1, 74, 173, 0.08)',
-    },
-    text: {
-      primary: '#000000',
-      secondary: '#014aad',
-      tertiary: '#666666',
-      inverse: '#ffffff',
-    },
-    border: {
-      primary: '#014aad',
-      secondary: '#cccccc',
-      accent: '#1aa3ff',
-    },
-  },
+  colors: require('../theme/colors').colors,
   gradients: require('../theme/colors').gradients,
   shadows: require('../theme/colors').shadows,
 };
