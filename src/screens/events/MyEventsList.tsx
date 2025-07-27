@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { useUser } from '@contexts/UserContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -396,8 +396,12 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Contenido */}
-      <View style={{ flex: 1, paddingHorizontal: 20 }}>
+      {/* Contenido con ScrollView */}
+      <ScrollView 
+        style={{ flex: 1, paddingHorizontal: 20 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
         {/* TEMPORAL: Componente de prueba para debug */}
         <View style={{ marginBottom: 20 }}>
           <TouchableOpacity
@@ -423,18 +427,18 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
         )}
 
         {loading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
             <ActivityIndicator size="large" color={theme.colors.primary[500]} />
             <Text style={{ marginTop: 12, color: theme.colors.text.secondary }}>
               Cargando solicitudes...
             </Text>
           </View>
         ) : events.length > 0 ? (
-          <View style={{ flex: 1 }}>
+          <View>
             {events.map(renderEventCard)}
           </View>
         ) : (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
             <Ionicons name="list-outline" size={64} color={theme.colors.text.tertiary} />
             <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.text.secondary, marginTop: 16 }}>
               No hay solicitudes
@@ -447,7 +451,7 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
             </Text>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 };
