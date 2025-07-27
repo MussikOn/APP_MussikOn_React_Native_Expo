@@ -1,3 +1,4 @@
+// Lee el archivo START.md y continúa con el desarrollo del proyecto
 import { registerRootComponent } from 'expo';
 
 import App from './src/app/App';

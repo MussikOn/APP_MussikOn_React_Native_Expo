@@ -2,46 +2,39 @@
 
 **NUEVO:** La app ahora incluye una pantalla moderna de **"Mis Solicitudes"** con tabs, feedback visual y consumo de endpoints REST modernos para la gestión centralizada de solicitudes/eventos. Esta pantalla es clave para la experiencia de usuario de músicos y organizadores.
 
-- React Native + Expo
-- TypeScript
-- Redux Toolkit
-- React Navigation
-- Socket.io (real-time)
-- Firebase Firestore
-- Lottie (animaciones)
-- Axios (API REST)
-- ...
-
 ## 📱 **Framework Principal**
 
 ### React Native
-- **Versión**: 0.76.7
+- **Versión**: 0.79.5
 - **Propósito**: Framework principal para desarrollo móvil multiplataforma
 - **Características**:
   - Desarrollo nativo para iOS y Android
   - Componentes reutilizables
   - Hot reloading para desarrollo rápido
   - Acceso a APIs nativas
+  - Performance optimizada
 
 ### Expo
-- **Versión**: ~52.0.38
+- **Versión**: ~53.0.0
 - **Propósito**: Plataforma de desarrollo que simplifica React Native
 - **Características**:
   - Herramientas de desarrollo integradas
   - Gestión de dependencias simplificada
   - Build y deployment automatizado
   - Acceso a APIs nativas sin configuración compleja
+  - EAS Build para builds en la nube
 
 ## 🔧 **Lenguaje y Tipado**
 
 ### TypeScript
-- **Versión**: ^5.3.3
+- **Versión**: ^5.8.3
 - **Propósito**: Tipado estático para JavaScript
 - **Beneficios**:
   - Detección temprana de errores
   - Mejor autocompletado en IDEs
   - Documentación implícita del código
   - Refactoring más seguro
+  - Interfaces y tipos bien definidos
 
 ## 🎨 **UI y Componentes**
 
@@ -57,6 +50,7 @@
   - Navegación por tabs
   - Navegación drawer
   - Transiciones personalizadas
+  - Navegación condicional por roles
 
 ### Expo Vector Icons
 - **Versión**: ^14.0.2
@@ -65,27 +59,45 @@
   - Iconos de Ionicons
   - Optimización automática
   - Soporte multiplataforma
+  - Iconos personalizados
 
 ### Expo Linear Gradient
-- **Versión**: ~14.0.2
+- **Versión**: ~14.1.5
 - **Propósito**: Gradientes lineales
 - **Uso**: Fondos y elementos visuales
+- **Características**:
+  - Gradientes personalizados
+  - Efectos visuales modernos
+  - Performance optimizada
 
 ### Expo Blur
 - **Versión**: ^14.1.5
 - **Propósito**: Efectos de desenfoque
 - **Uso**: Headers y modales
+- **Características**:
+  - Efectos de transparencia
+  - UI moderna y elegante
+
+### React Native SVG
+- **Versión**: 15.11.2
+- **Propósito**: Renderizado de SVG
+- **Uso**: Iconos vectoriales y gráficos
+- **Características**:
+  - SVG nativo
+  - Performance optimizada
+  - Animaciones SVG
 
 ## 🌐 **Comunicación y APIs**
 
 ### Axios
-- **Versión**: ^1.8.4
+- **Versión**: ^1.3.6
 - **Propósito**: Cliente HTTP para APIs
 - **Características**:
   - Interceptores para tokens
   - Manejo automático de errores
   - Reintentos automáticos
   - Timeouts configurables
+  - Configuración centralizada
 
 ### Socket.io Client
 - **Versión**: ^4.8.1
@@ -95,6 +107,15 @@
   - Notificaciones push
   - Estados de conexión
   - Reconexión automática
+  - Eventos específicos por funcionalidad
+
+### JWT Decode
+- **Versión**: ^4.0.0
+- **Propósito**: Decodificación de tokens JWT
+- **Características**:
+  - Decodificación segura
+  - Validación de tokens
+  - Extracción de datos de usuario
 
 ## 🗄️ **Estado y Gestión de Datos**
 
@@ -102,94 +123,32 @@
 - **Versión**: ^2.8.2
 - **Propósito**: Gestión de estado global
 - **Características**:
-  - Slices para diferentes dominios
+  - Slices organizados
   - DevTools integradas
-  - Inmutabilidad automática
-  - Middleware configurables
+  - Performance optimizada
+  - Middleware personalizado
 
-### React Redux
-- **Versión**: ^9.2.0
-- **Propósito**: Integración de Redux con React
-- **Características**:
-  - Hooks optimizados
-  - Re-renders automáticos
-  - Selectores memoizados
+### React Context
+- **Propósito**: Estado local y configuración
+- **Contextos implementados**:
+  - ThemeContext - Gestión de temas
+  - UserContext - Datos de usuario
+  - LanguageContext - Internacionalización
+  - SidebarContext - Estado del sidebar
 
-## 🔐 **Autenticación y Seguridad**
-
-### JWT Decode
-- **Versión**: ^4.0.0
-- **Propósito**: Decodificación de tokens JWT
-- **Uso**: Validación de tokens de autenticación
+### AsyncStorage
+- **Versión**: 2.1.2
+- **Propósito**: Almacenamiento local
+- **Uso**: Preferencias y datos temporales
 
 ### Expo Secure Store
-- **Versión**: ~14.0.1
+- **Versión**: ~14.2.3
 - **Propósito**: Almacenamiento seguro
+- **Uso**: Tokens JWT y datos sensibles
 - **Características**:
   - Encriptación automática
-  - Acceso a keychain (iOS)
-  - Acceso a keystore (Android)
-
-## 📱 **Funcionalidades Nativas**
-
-### React Native Maps
-- **Versión**: 1.18.0
-- **Propósito**: Integración de mapas
-- **Características**:
-  - Mapas de Google
-  - Marcadores personalizados
-  - Geolocalización
-  - Rutas y direcciones
-
-### Expo Location
-- **Versión**: ^18.1.6
-- **Propósito**: Acceso a ubicación
-- **Características**:
-  - GPS en tiempo real
-  - Permisos automáticos
-  - Optimización de batería
-
-### Expo Image Picker
-- **Versión**: ^16.0.6
-- **Propósito**: Selección de imágenes
-- **Características**:
-  - Cámara y galería
-  - Compresión automática
-  - Permisos automáticos
-
-### Expo AV
-- **Versión**: ^15.1.7
-- **Propósito**: Reproducción de audio/video
-- **Características**:
-  - Reproducción de sonidos
-  - Control de volumen
-  - Estados de reproducción
-
-## 🌍 **Internacionalización**
-
-### i18next
-- **Versión**: ^25.3.2
-- **Propósito**: Framework de internacionalización
-- **Características**:
-  - Detección automática de idioma
-  - Pluralización
-  - Interpolación de variables
-
-### React i18next
-- **Versión**: ^15.6.0
-- **Propósito**: Integración de i18next con React
-- **Características**:
-  - Hooks para traducciones
-  - Cambio dinámico de idioma
-  - Persistencia de preferencias
-
-### Expo Localization
-- **Versión**: ^16.1.6
-- **Propósito**: Detección de configuración local
-- **Características**:
-  - Idioma del dispositivo
-  - Región y zona horaria
-  - Formato de fechas
+  - Acceso seguro
+  - Compatibilidad multiplataforma
 
 ## 📝 **Formularios y Validación**
 
@@ -198,82 +157,192 @@
 - **Propósito**: Gestión de formularios
 - **Características**:
   - Validación integrada
-  - Manejo de estados
+  - Manejo de estado de formularios
   - Performance optimizada
 
 ### Yup
 - **Versión**: ^1.6.1
 - **Propósito**: Validación de esquemas
 - **Características**:
-  - Validación declarativa
-  - Mensajes de error personalizables
+  - Validación robusta
+  - Mensajes de error personalizados
   - Integración con Formik
 
-## 🎯 **Utilidades**
+## 🎭 **Animaciones y Efectos**
 
-### Lodash
-- **Versión**: ^4.17.21
-- **Propósito**: Utilidades de JavaScript
+### React Native Reanimated
+- **Versión**: ~3.17.4
+- **Propósito**: Animaciones nativas
 - **Características**:
-  - Funciones de array y objeto
-  - Debounce y throttle
-  - Deep clone y merge
+  - Animaciones fluidas
+  - Performance nativa
+  - Gestos avanzados
 
-### Invariant
-- **Versión**: ^2.2.4
-- **Propósito**: Validaciones de invariantes
-- **Uso**: Validación de condiciones críticas
+### Lottie React Native
+- **Versión**: 7.2.2
+- **Propósito**: Animaciones complejas
+- **Características**:
+  - Animaciones vectoriales
+  - Archivos Lottie
+  - Efectos visuales avanzados
+
+### Expo Haptics
+- **Versión**: ^14.1.4
+- **Propósito**: Feedback táctil
+- **Características**:
+  - Vibración personalizada
+  - Feedback de usuario
+  - Experiencia táctil
+
+## 📍 **Geolocalización y Mapas**
+
+### React Native Maps
+- **Versión**: 1.20.1
+- **Propósito**: Integración de mapas
+- **Características**:
+  - Mapas nativos
+  - Marcadores personalizados
+  - Geolocalización
+  - Direcciones y rutas
+
+### Expo Location
+- **Versión**: ^18.1.6
+- **Propósito**: Servicios de ubicación
+- **Características**:
+  - Geolocalización precisa
+  - Permisos automáticos
+  - Tracking de ubicación
+
+## 🖼️ **Multimedia**
+
+### Expo AV
+- **Versión**: ^15.1.7
+- **Propósito**: Audio y video
+- **Características**:
+  - Reproducción de audio
+  - Grabación de audio
+  - Controles multimedia
+
+### Expo Image Picker
+- **Versión**: ^16.1.4
+- **Propósito**: Selección de imágenes
+- **Características**:
+  - Cámara integrada
+  - Galería de fotos
+  - Compresión automática
+
+## 🌍 **Internacionalización**
+
+### i18next
+- **Versión**: ^25.3.2
+- **Propósito**: Framework de internacionalización
+- **Características**:
+  - Soporte multiidioma
+  - Interpolación de variables
+  - Pluralización
+
+### React i18next
+- **Versión**: ^15.6.0
+- **Propósito**: Integración con React
+- **Características**:
+  - Hooks de traducción
+  - Componentes de traducción
+  - Cambio de idioma dinámico
+
+### Expo Localization
+- **Versión**: ^16.1.6
+- **Propósito**: Detección de idioma
+- **Características**:
+  - Detección automática
+  - Configuración regional
+  - Formato de fechas y números
 
 ## 🔧 **Herramientas de Desarrollo**
 
 ### Babel
 - **Versión**: ^7.25.2
 - **Propósito**: Transpilación de JavaScript
-- **Configuración**: `babel.config.js`
+- **Configuración**: Babel plugin module resolver
 
-### Metro Bundler
-- **Propósito**: Bundler de React Native
+### TypeScript
+- **Versión**: ^5.8.3
+- **Propósito**: Compilación y verificación de tipos
+- **Configuración**: tsconfig.json optimizado
+
+### EAS Build
+- **Propósito**: Build en la nube
 - **Características**:
-  - Hot reloading
-  - Optimización de bundles
-  - Resolución de módulos
+  - Builds automáticos
+  - Configuración por plataforma
+  - Distribución simplificada
 
 ## 📊 **Monitoreo y Analytics**
 
 ### Expo Updates
-- **Versión**: ^0.27.4
+- **Versión**: ~0.28.17
 - **Propósito**: Actualizaciones OTA
 - **Características**:
-  - Actualizaciones sin store
+  - Actualizaciones automáticas
   - Rollback automático
   - Control de versiones
 
-## 🔄 **Compatibilidad**
+## 🔒 **Seguridad**
 
-### Versiones de Node.js
-- **Mínima**: 16.x
-- **Recomendada**: 18.x o superior
+### Expo Secure Store
+- **Versión**: ~14.2.3
+- **Propósito**: Almacenamiento seguro
+- **Características**:
+  - Encriptación automática
+  - Acceso seguro a datos
+  - Compatibilidad con Keychain/Keystore
+
+## 📱 **Compatibilidad**
 
 ### Plataformas Soportadas
 - **iOS**: 13.0+
-- **Android**: API 21+ (Android 5.0+)
+- **Android**: API 21+
 - **Web**: Navegadores modernos
 
-## 📈 **Performance**
+### Versiones de React
+- **React**: 19.0.0
+- **React DOM**: 19.0.0
+
+## 🚀 **Performance**
 
 ### Optimizaciones Implementadas
-- Lazy loading de componentes
-- Memoización con React.memo
-- Optimización de re-renders
-- Bundle splitting automático
+- **Lazy Loading**: Carga diferida de componentes
+- **Bundle Splitting**: División de código
+- **Image Optimization**: Compresión automática
+- **Memory Management**: Limpieza de recursos
+- **Caching**: Almacenamiento inteligente
 
-### Métricas Objetivo
-- **Tiempo de carga inicial**: < 3 segundos
-- **Tiempo de respuesta**: < 100ms
-- **Tamaño de bundle**: < 50MB
-- **Uso de memoria**: < 200MB
+## 📦 **Dependencias de Desarrollo**
+
+### TypeScript
+- **@types/react**: ^19.1.8
+- **@types/uuid**: ^10.0.0
+- **@types/react-native-maps**: ^0.24.1
+
+### Babel
+- **@babel/core**: ^7.25.2
+- **babel-plugin-module-resolver**: ^5.0.2
+
+## 🔄 **Actualizaciones y Mantenimiento**
+
+### Política de Actualizaciones
+- **Actualizaciones de seguridad**: Inmediatas
+- **Actualizaciones menores**: Mensuales
+- **Actualizaciones mayores**: Trimestrales
+- **Compatibilidad**: Mantenida por 2 versiones
+
+### Proceso de Actualización
+1. **Análisis de impacto**
+2. **Testing exhaustivo**
+3. **Migración gradual**
+4. **Documentación actualizada**
 
 ---
 
 **Última actualización**: Diciembre 2024  
-**Mantenedor**: Equipo de Desarrollo MussikOn 
+**Versión del stack**: 2.0.0  
+**Estado**: Actualizado y optimizado 

@@ -8,6 +8,7 @@ interface Musician {
   name: string;
   instrument: string;
   rating?: number;
+  email?: string;
   // ...otros campos relevantes
 }
 

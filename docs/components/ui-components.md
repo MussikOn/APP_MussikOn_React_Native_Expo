@@ -21,6 +21,8 @@ src/components/ui/
 ├── LanguageSelector.tsx    # Selector de idioma
 ├── DateTimeSelector.tsx    # Selector de fecha/hora
 ├── UserList.tsx            # Lista de usuarios
+├── Logo.tsx                # Logo de la aplicación
+├── NotificationSnackbar.tsx # Notificaciones
 ├── buttons/                # Variantes de botones
 │   ├── OutlineButton.tsx   # Botón con borde
 │   └── SlideButton.tsx     # Botón deslizante
@@ -100,78 +102,68 @@ interface InputProps {
   secureTextEntry?: boolean;        // Campo de contraseña
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  editable?: boolean;               // Estado editable
-  multiline?: boolean;              // Campo multilínea
+  autoCorrect?: boolean;
+  multiline?: boolean;              // Campo de múltiples líneas
   numberOfLines?: number;           // Número de líneas
-  leftIcon?: string;                // Icono izquierdo
-  rightIcon?: string;               // Icono derecho
-  onRightIconPress?: () => void;    // Acción del icono derecho
+  style?: ViewStyle;                // Estilos personalizados
+  containerStyle?: ViewStyle;       // Estilos del contenedor
 }
 ```
 
 **Características**:
 - Validación en tiempo real
 - Estados de error visuales
-- Iconos opcionales
 - Soporte para campos de contraseña
-- Auto-capitalización configurable
+- Iconos de acción (limpiar, mostrar/ocultar)
+- Animaciones suaves
 
 **Ejemplo de Uso**:
 ```typescript
 <Input
-  label="Correo Electrónico"
-  placeholder="tu@email.com"
+  label="Email"
+  placeholder="Ingresa tu email"
   value={email}
   onChangeText={setEmail}
   error={emailError}
   keyboardType="email-address"
-  leftIcon="mail-outline"
+  autoCapitalize="none"
 />
 ```
 
-## 🃏 **Componentes de Contenido**
+## 🃏 **Componentes de Contenedores**
 
 ### Card.tsx
-**Propósito**: Contenedor de contenido con estilo de tarjeta.
+**Propósito**: Tarjeta contenedora para agrupar contenido relacionado.
 
 **Props**:
 ```typescript
 interface CardProps {
-  children: ReactNode;              // Contenido de la tarjeta
+  children: React.ReactNode;        // Contenido de la tarjeta
   style?: ViewStyle;                // Estilos personalizados
-  onPress?: () => void;             // Acción al presionar
-  disabled?: boolean;               // Estado deshabilitado
-  elevation?: number;                // Elevación de la sombra
-  borderRadius?: number;             // Radio de borde
   padding?: number;                 // Padding interno
+  margin?: number;                  // Margen externo
+  elevation?: number;               // Elevación (Android)
+  shadowColor?: string;             // Color de sombra
+  shadowOffset?: { width: number; height: number };
+  shadowOpacity?: number;           // Opacidad de sombra
+  shadowRadius?: number;            // Radio de sombra
+  borderRadius?: number;            // Radio de borde
+  backgroundColor?: string;         // Color de fondo
 }
 ```
 
 **Características**:
-- Sombras configurables
+- Sombras consistentes
 - Bordes redondeados
-- Estados de presión
-- Padding personalizable
+- Padding configurable
+- Colores adaptables al tema
 
-### UserList.tsx
-**Propósito**: Lista de usuarios con avatares y información.
-
-**Props**:
+**Ejemplo de Uso**:
 ```typescript
-interface UserListProps {
-  users: User[];                    // Lista de usuarios
-  onUserPress?: (user: User) => void;
-  showStatus?: boolean;              // Mostrar estado online
-  showActions?: boolean;             // Mostrar acciones
-  loading?: boolean;                 // Estado de carga
-}
+<Card padding={16} elevation={4}>
+  <Text>Contenido de la tarjeta</Text>
+</Card>
 ```
-
-**Características**:
-- Avatares circulares
-- Estados online/offline
-- Acciones contextuales
-- Carga lazy de imágenes
 
 ## 📱 **Componentes de Navegación**
 
@@ -182,19 +174,20 @@ interface UserListProps {
 ```typescript
 interface HeaderProps {
   title?: string;                   // Título del header
-  leftComponent?: ReactNode;        // Componente izquierdo
-  rightComponent?: ReactNode;       // Componente derecho
-  transparent?: boolean;             // Fondo transparente
-  showBackButton?: boolean;         // Mostrar botón atrás
-  onBackPress?: () => void;         // Acción del botón atrás
+  leftComponent?: React.ReactNode;  // Componente izquierdo
+  rightComponent?: React.ReactNode; // Componente derecho
+  transparent?: boolean;            // Header transparente
+  style?: ViewStyle;                // Estilos personalizados
+  showBackButton?: boolean;         // Mostrar botón de atrás
+  onBackPress?: () => void;        // Función de atrás
 }
 ```
 
 **Características**:
 - Fondo con blur effect
-- Navegación automática
-- Componentes personalizables
-- Safe area handling
+- Botones de navegación
+- Título centrado
+- Acciones personalizables
 
 ### BottomNavigation.tsx
 **Propósito**: Navegación inferior con tabs.
@@ -202,29 +195,29 @@ interface HeaderProps {
 **Props**:
 ```typescript
 interface BottomNavigationProps {
-  tabs: Tab[];                      // Lista de tabs
+  tabs: TabItem[];                  // Lista de tabs
   activeTab: string;                // Tab activo
-  onTabPress: (tab: string) => void;
-  showLabels?: boolean;              // Mostrar etiquetas
+  onTabPress: (tabId: string) => void;
+  style?: ViewStyle;                // Estilos personalizados
 }
 ```
 
 **Características**:
 - Iconos animados
 - Indicador de tab activo
-- Transiciones suaves
 - Badges para notificaciones
+- Transiciones suaves
 
 ### BottomMenu.tsx
-**Propósito**: Menú inferior expandible.
+**Propósito**: Menú inferior con opciones adicionales.
 
 **Características**:
-- Animación de expansión
-- Opciones configurables
-- Feedback táctil
-- Cierre automático
+- Opciones contextuales
+- Animaciones de entrada/salida
+- Acciones rápidas
+- Integración con FAB
 
-## ⏳ **Componentes de Carga**
+## 🔄 **Componentes de Estado**
 
 ### LoadingSpinner.tsx
 **Propósito**: Indicador de carga con animación.
@@ -232,18 +225,19 @@ interface BottomNavigationProps {
 **Props**:
 ```typescript
 interface LoadingSpinnerProps {
-  size?: 'small' | 'large';         // Tamaño del spinner
-  color?: string;                    // Color del spinner
-  text?: string;                     // Texto de carga
-  overlay?: boolean;                 // Fondo overlay
+  size?: 'small' | 'medium' | 'large';
+  color?: string;                   // Color del spinner
+  style?: ViewStyle;                // Estilos personalizados
+  text?: string;                    // Texto de carga
+  showText?: boolean;               // Mostrar texto
 }
 ```
 
 **Características**:
 - Animación de rotación
+- Tamaños predefinidos
+- Colores adaptables
 - Texto opcional
-- Overlay configurable
-- Colores personalizables
 
 ### LoadingModal.tsx
 **Propósito**: Modal de carga para operaciones largas.
@@ -251,63 +245,82 @@ interface LoadingSpinnerProps {
 **Props**:
 ```typescript
 interface LoadingModalProps {
-  visible: boolean;                  // Visibilidad del modal
-  title?: string;                    // Título del modal
-  message?: string;                  // Mensaje descriptivo
-  progress?: number;                 // Progreso (0-100)
-  cancelable?: boolean;              // Permite cancelar
-  onCancel?: () => void;             // Acción de cancelar
+  visible: boolean;                 // Estado visible
+  message?: string;                 // Mensaje de carga
+  onCancel?: () => void;           // Función de cancelar
+  cancelable?: boolean;             // Permitir cancelar
 }
 ```
 
 **Características**:
-- Indicador de progreso
-- Mensajes dinámicos
-- Opción de cancelación
-- Bloqueo de interacciones
+- Overlay semi-transparente
+- Spinner centrado
+- Mensaje personalizable
+- Opción de cancelar
 
-## 🎯 **Componentes de Acción**
+## 🎨 **Componentes Especializados**
 
-### FAB.tsx
-**Propósito**: Botón de acción flotante.
+### Logo.tsx
+**Propósito**: Logo de la aplicación con diferentes variantes.
 
 **Props**:
 ```typescript
-interface FABProps {
-  onPress: () => void;              // Acción del botón
-  icon: string;                      // Icono del botón
-  color?: string;                    // Color del botón
-  size?: number;                     // Tamaño del botón
-  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+interface LogoProps {
+  size?: number;                    // Tamaño del logo
+  showText?: boolean;               // Mostrar texto
+  variant?: 'default' | 'minimal';  // Variante del logo
+  style?: ViewStyle;                // Estilos personalizados
 }
 ```
 
 **Características**:
-- Posicionamiento configurable
-- Animación de entrada
-- Elevación automática
-- Safe area handling
+- SVG vectorial escalable
+- Colores adaptables al tema
+- Variantes con/sin texto
+- Animaciones de entrada
 
-## 🌍 **Componentes de Configuración**
+### NotificationSnackbar.tsx
+**Propósito**: Notificaciones tipo snackbar.
+
+**Props**:
+```typescript
+interface NotificationSnackbarProps {
+  visible: boolean;                 // Estado visible
+  message: string;                  // Mensaje
+  type?: 'success' | 'error' | 'warning' | 'info';
+  duration?: number;                // Duración en ms
+  onDismiss?: () => void;          // Función de cerrar
+  action?: {                       // Acción opcional
+    label: string;
+    onPress: () => void;
+  };
+}
+```
+
+**Características**:
+- Posicionamiento automático
+- Colores por tipo
+- Animaciones de entrada/salida
+- Acciones personalizables
 
 ### LanguageSelector.tsx
-**Propósito**: Selector de idioma con banderas.
+**Propósito**: Selector de idioma con interfaz moderna.
 
 **Props**:
 ```typescript
 interface LanguageSelectorProps {
-  currentLanguage: string;           // Idioma actual
+  currentLanguage: string;          // Idioma actual
   onLanguageChange: (lang: string) => void;
-  languages: Language[];             // Idiomas disponibles
-  showFlags?: boolean;               // Mostrar banderas
+  languages: Language[];            // Idiomas disponibles
+  style?: ViewStyle;                // Estilos personalizados
 }
 ```
 
 **Características**:
+- Lista de idiomas disponibles
 - Banderas de países
-- Animación de selección
-- Persistencia de preferencias
-- Detección automática
+- Animaciones de selección
+- Persistencia de preferencia
 
 ### DateTimeSelector.tsx
 **Propósito**: Selector de fecha y hora.
@@ -315,92 +328,225 @@ interface LanguageSelectorProps {
 **Props**:
 ```typescript
 interface DateTimeSelectorProps {
-  value: Date;                       // Fecha/hora seleccionada
-  onChange: (date: Date) => void;    // Callback de cambio
+  value: Date;                      // Fecha seleccionada
+  onValueChange: (date: Date) => void;
   mode?: 'date' | 'time' | 'datetime';
-  minimumDate?: Date;                // Fecha mínima
-  maximumDate?: Date;                // Fecha máxima
-  format?: string;                   // Formato de fecha
+  minimumDate?: Date;               // Fecha mínima
+  maximumDate?: Date;               // Fecha máxima
+  style?: ViewStyle;                // Estilos personalizados
 }
 ```
 
 **Características**:
-- Selector nativo
-- Validación de rangos
-- Formatos personalizables
-- Modo date/time/datetime
+- Selector nativo por plataforma
+- Validación de fechas
+- Formato localizado
+- Integración con calendario
 
-## 🎨 **Componentes de Estilo**
+### UserList.tsx
+**Propósito**: Lista de usuarios con avatares.
+
+**Props**:
+```typescript
+interface UserListProps {
+  users: User[];                    // Lista de usuarios
+  onUserPress?: (user: User) => void;
+  showStatus?: boolean;             // Mostrar estado online
+  showActions?: boolean;            // Mostrar acciones
+  style?: ViewStyle;                // Estilos personalizados
+}
+```
+
+**Características**:
+- Avatares circulares
+- Estados online/offline
+- Acciones contextuales
+- Scroll optimizado
+
+## 🎭 **Componentes Animados**
 
 ### AnimatedBackground.tsx
-**Propósito**: Fondo animado con gradientes.
+**Propósito**: Fondo animado para pantallas.
 
 **Características**:
 - Gradientes animados
-- Colores dinámicos
+- Partículas flotantes
+- Efectos de parallax
 - Performance optimizada
-- Configuración de temas
 
-## 📊 **Estados y Variantes**
+### FAB.tsx
+**Propósito**: Botón de acción flotante.
 
-### Estados de Componentes
-1. **Default**: Estado normal
-2. **Pressed**: Estado al presionar
-3. **Disabled**: Estado deshabilitado
-4. **Loading**: Estado de carga
-5. **Error**: Estado de error
-6. **Success**: Estado exitoso
+**Props**:
+```typescript
+interface FABProps {
+  onPress: () => void;              // Función de callback
+  icon: string;                     // Icono
+  style?: ViewStyle;                // Estilos personalizados
+  color?: string;                   // Color del FAB
+  size?: number;                    // Tamaño
+  visible?: boolean;                // Estado visible
+}
+```
 
-### Variantes de Tamaño
-- **Small**: Componentes pequeños
-- **Medium**: Tamaño estándar
-- **Large**: Componentes grandes
-- **Custom**: Tamaño personalizado
+**Características**:
+- Posicionamiento flotante
+- Animaciones de entrada/salida
+- Elevación dinámica
+- Integración con scroll
 
-## 🎯 **Accesibilidad**
+## 🎨 **Sistema de Temas**
 
-### Características Implementadas
-- **Screen Reader Support**: Labels y descripciones
-- **Keyboard Navigation**: Navegación por teclado
-- **High Contrast**: Soporte para alto contraste
-- **Font Scaling**: Escalado de fuentes
-- **Touch Targets**: Tamaños mínimos de 44px
+### Integración con Tema
+Todos los componentes están integrados con el sistema de temas:
+
+```typescript
+// Uso del tema en componentes
+const { theme } = useTheme();
+
+<View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+  <Text style={[styles.text, { color: theme.colors.text.primary }]}>
+    Contenido
+  </Text>
+</View>
+```
+
+### Colores del Tema
+```typescript
+// Paleta de colores oficial
+const colors = {
+  primary: {
+    500: '#014aad',    // Azul principal
+    600: '#013e94',    // Azul oscuro
+    400: '#3385d7',    // Azul claro
+  },
+  secondary: {
+    500: '#444444',    // Gris medio
+    900: '#000000',    // Negro puro
+  },
+  accent: {
+    500: '#1aa3ff',    // Azul claro
+  }
+};
+```
+
+## ♿ **Accesibilidad**
+
+### Implementación de Accesibilidad
+Todos los componentes incluyen soporte para accesibilidad:
+
+```typescript
+// Ejemplo de accesibilidad en botón
+<TouchableOpacity
+  accessible={true}
+  accessibilityLabel="Botón de inicio de sesión"
+  accessibilityRole="button"
+  accessibilityHint="Presiona para iniciar sesión"
+  onPress={handleLogin}
+>
+  <Text>Iniciar Sesión</Text>
+</TouchableOpacity>
+```
+
+### Características de Accesibilidad
+- **Labels descriptivos**: Textos claros para screen readers
+- **Roles semánticos**: Roles apropiados para cada elemento
+- **Hints contextuales**: Información adicional para usuarios
+- **Contraste adecuado**: Colores con contraste suficiente
+- **Tamaños de toque**: Áreas de toque mínimas de 44x44px
+
+## 📱 **Responsive Design**
+
+### Adaptación a Diferentes Pantallas
+Los componentes se adaptan automáticamente a diferentes tamaños:
+
+```typescript
+// Uso de dimensiones responsivas
+import { Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  container: {
+    padding: width > 768 ? 24 : 16, // Tablet vs móvil
+    fontSize: width > 768 ? 18 : 16,
+  }
+});
+```
+
+### Breakpoints
+- **Móvil**: < 768px
+- **Tablet**: 768px - 1024px
+- **Desktop**: > 1024px
 
 ## 🧪 **Testing**
 
-### Estrategia de Testing
+### Tests de Componentes
 ```typescript
-// Ejemplo de test para Button
+// __tests__/components/Button.test.tsx
+import { render, fireEvent } from '@testing-library/react-native';
+import { Button } from '../Button';
+
 describe('Button Component', () => {
-  it('should render with correct title', () => {
-    render(<Button title="Test Button" onPress={jest.fn()} />);
-    expect(screen.getByText('Test Button')).toBeInTheDocument();
+  it('renders correctly with title', () => {
+    const { getByText } = render(
+      <Button title="Test Button" onPress={() => {}} />
+    );
+    
+    expect(getByText('Test Button')).toBeTruthy();
   });
 
-  it('should call onPress when pressed', () => {
+  it('calls onPress when pressed', () => {
     const onPress = jest.fn();
-    render(<Button title="Test" onPress={onPress} />);
-    fireEvent.press(screen.getByText('Test'));
+    const { getByText } = render(
+      <Button title="Test Button" onPress={onPress} />
+    );
+    
+    fireEvent.press(getByText('Test Button'));
     expect(onPress).toHaveBeenCalled();
+  });
+
+  it('shows loading state', () => {
+    const { getByTestId } = render(
+      <Button title="Test Button" onPress={() => {}} loading={true} />
+    );
+    
+    expect(getByTestId('loading-spinner')).toBeTruthy();
   });
 });
 ```
 
-## 📈 **Performance**
+## 📚 **Documentación de Uso**
 
-### Optimizaciones Implementadas
-- **React.memo**: Memoización de componentes
-- **useMemo**: Memoización de cálculos
-- **useCallback**: Memoización de funciones
-- **Lazy Loading**: Carga diferida de iconos
+### Guías de Implementación
+1. **Importar componente**: `import { Button } from '@components/ui/Button';`
+2. **Usar props básicas**: `title`, `onPress`
+3. **Personalizar estilo**: `style`, `type`
+4. **Agregar funcionalidad**: `loading`, `disabled`, `icon`
 
-### Métricas Objetivo
-- **Render Time**: < 16ms por componente
-- **Memory Usage**: < 50MB para componentes UI
-- **Bundle Size**: < 100KB para librería de componentes
+### Mejores Prácticas
+- Usar tipos predefinidos para consistencia
+- Implementar accesibilidad en todos los componentes
+- Mantener performance con memoización cuando sea necesario
+- Documentar props complejas
+- Probar todos los estados del componente
+
+## 🔄 **Mantenimiento**
+
+### Actualizaciones de Componentes
+- **Versiones**: Control de versiones semántico
+- **Breaking Changes**: Documentados claramente
+- **Migración**: Guías de migración para cambios importantes
+- **Deprecación**: Avisos de deprecación con tiempo suficiente
+
+### Performance
+- **Memoización**: React.memo para componentes pesados
+- **Lazy Loading**: Carga diferida de componentes complejos
+- **Optimización**: Re-renders optimizados
+- **Bundle Size**: Tamaño de bundle controlado
 
 ---
 
 **Última actualización**: Diciembre 2024  
-**Diseñador UI**: Equipo de Desarrollo MussikOn  
-**Versión de Componentes**: 1.0.0 
+**Versión de componentes**: 2.0.0  
+**Estado**: Implementado y documentado 

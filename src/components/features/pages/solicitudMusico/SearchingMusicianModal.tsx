@@ -4,7 +4,7 @@ import LottieView from 'lottie-react-native';
 import { useMusicianRequestSocket } from '@hooks/useMusicianRequestSocket';
 import { useTheme } from '@contexts/ThemeContext';
 import { typography, spacing } from '../../../../theme';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 // Animaciones Lottie disponibles actualmente
 // Si agregas nuevas animaciones, reemplaza la ruta correspondiente
