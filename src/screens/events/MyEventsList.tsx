@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { eventService } from '@services/events';
 import { Event } from '@services/events';
+import TestApiComponent from '@components/features/pages/event/TestApiComponent';
 
 // Tabs para organizadores (eventCreator)
 const TABS_ORG = [
@@ -38,6 +39,7 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingEvent, setEditingEvent] = useState<string | null>(null);
+  const [showTestApi, setShowTestApi] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -396,6 +398,30 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
 
       {/* Contenido */}
       <View style={{ flex: 1, paddingHorizontal: 20 }}>
+        {/* TEMPORAL: Componente de prueba para debug */}
+        <View style={{ marginBottom: 20 }}>
+          <TouchableOpacity
+            onPress={() => setShowTestApi(!showTestApi)}
+            style={{
+              backgroundColor: theme.colors.warning[500],
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 8,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+              {showTestApi ? 'Ocultar' : 'Mostrar'} Test API
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {showTestApi && (
+          <View style={{ marginBottom: 20, height: 300 }}>
+            <TestApiComponent />
+          </View>
+        )}
+
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color={theme.colors.primary[500]} />
