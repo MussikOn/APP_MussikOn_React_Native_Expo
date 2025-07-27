@@ -65,7 +65,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
       ...(['musico', 'eventCreator'].includes(globalUser.roll) ? [{
         icon: 'list',
         label: t('sidebar.my_requests'),
-        route: 'MyEventsList',
+        route: 'MyRequestsList',
         color: theme.colors.primary[500]
       }] : []),
       // Mostrar Dashboard solo si el usuario es musico
@@ -77,12 +77,12 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
       { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: theme.colors.error[500] },
     ];
     const specificMenu = [];
-    // Mostrar Agenda/Eventos para todos los roles logueados
+    // Mostrar Agenda/Solicitudes para todos los roles logueados
     if (['musico', 'eventCreator'].includes(globalUser.roll)) {
       specificMenu.push({
         icon: 'calendar',
-        label: globalUser.roll === 'eventCreator' ? t('sidebar.events') : t('sidebar.agenda'),
-        route: 'EventList',
+        label: globalUser.roll === 'eventCreator' ? t('sidebar.requests') : t('sidebar.agenda'),
+        route: 'MyRequestsList',
         color: theme.colors.accent[500]
       });
     }

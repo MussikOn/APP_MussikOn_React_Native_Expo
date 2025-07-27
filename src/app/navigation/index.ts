@@ -1,1 +1,1 @@
-import MyEventsList from '@screens/events/MyEventsList';
+import MyRequestsList from '@screens/events/MyRequestsList';

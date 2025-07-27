@@ -29,11 +29,10 @@ import MainSidebar from '@components/features/pages/Sidebar/MainSidebar';
 import { Profile } from '@screens/profile/Profile';
 import SettingsScreen from '@screens/settings/SettingsScreen';
 import ShareMusician from '@components/features/pages/event/ShareMusician';
-import EventList from '@screens/events/EventList';
 import Dashboard from '@screens/dashboard/Dashboard';
 import NotificationSnackbar from '@components/ui/NotificationSnackbar';
-import MyEventsList from '@screens/events/MyEventsList';
-import EditEvent from '@screens/events/EditEvent';
+import MyRequestsList from '@screens/events/MyRequestsList';
+import EditRequest from '@screens/events/EditRequest';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -262,9 +261,8 @@ function AppContent() {
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="ShareMusician" component={ShareMusician} />
-          <Stack.Screen name="EventList" component={EventList} />
-          <Stack.Screen name="MyEventsList" component={MyEventsList} options={{ title: 'Mis Solicitudes' }} />
-          <Stack.Screen name="EditEvent" component={EditEvent} options={{ title: 'Editar Evento' }} />
+          <Stack.Screen name="MyRequestsList" component={MyRequestsList} options={{ title: 'Mis Solicitudes' }} />
+          <Stack.Screen name="EditRequest" component={EditRequest} options={{ title: 'Editar Solicitud' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

@@ -10,7 +10,7 @@ import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { ActivityIndicator } from 'react-native';
 import { useUser } from '@contexts/UserContext';
-import { eventService } from '@services/events';
+import { requestService } from '@services/requests';
 import { socket, registerSocketUser } from '@utils/socket';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -496,8 +496,8 @@ const ShareMusician = () => {
     setIsLoading(true);
     try {
       const payload = {
-        eventName: form.eventName,
-        eventType: form.eventType,
+        requestName: form.requestName,
+        requestType: form.requestType,
         date: typeof form.date === 'string' ? form.date : form.date?.toISOString().split('T')[0],
         time: `${form.startTime} - ${form.endTime}`,
         location: {
@@ -515,7 +515,7 @@ const ShareMusician = () => {
         description: '',
         user: user.userEmail,
       };
-      const response = await eventService.createEventRequest(payload);
+      const response = await requestService.createRequest(payload);
       if (response && response.data && response.data.id) {
         setRequestData({ ...payload, id: response.data.id });
         setModalVisible(true);

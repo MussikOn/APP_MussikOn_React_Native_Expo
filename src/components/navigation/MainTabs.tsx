@@ -6,7 +6,7 @@ import ShareMusician from '../features/pages/event/ShareMusician';
 import { Profile } from '../../screens/profile/Profile';
 import SettingsScreen from '../../screens/settings/SettingsScreen';
 import Maps from '../features/pages/Maps/MapsMovil';
-import EventListScreen from '../../screens/events/EventList';
+import MyRequestsList from '../../screens/events/MyRequestsList';
 import MainSidebar from '../features/pages/Sidebar/MainSidebar';
 import { Token } from '../../appTypes/DatasTypes';
 import { bg_white, color_primary, color_secondary } from '../../styles/Styles';
@@ -37,7 +37,7 @@ const MainTabs: React.FC<MainTabsProps> = ({ user, activeScreen, setActiveScreen
   const screenComponents: { [key: string]: React.ComponentType<any> } = {
     'Dashboard': Dashboard,
     'ShareMusician': ShareMusician,
-    'EventList': EventListScreen,
+    'MyRequestsList': MyRequestsList,
     'Profile': Profile,
     'Settings': SettingsScreen,
     'Maps': Maps,

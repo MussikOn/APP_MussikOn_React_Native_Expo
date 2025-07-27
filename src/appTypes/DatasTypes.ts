@@ -6,11 +6,9 @@ export type RootStackParamList = {
   Register: undefined;
   MainTabs: undefined;
   Dashboard: undefined;
-  CreateEvent: undefined;
   ShareMusician: undefined;
-  EventList: undefined;
-  MyEventsList: undefined;
-  EditEvent: { eventId: string };
+  MyRequestsList: undefined;
+  EditRequest: { requestId: string };
   Profile: undefined;
   Settings: undefined;
   Maps: undefined;

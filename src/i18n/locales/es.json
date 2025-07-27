@@ -244,6 +244,19 @@
     "hello": "¡Hola!",
     "new_message": "¡Tienes un nuevo mensaje!"
   },
+  "sidebar": {
+    "home": "Inicio",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "my_requests": "Mis Solicitudes",
+    "dashboard": "Panel de Control",
+    "profile": "Perfil",
+    "configuration": "Configuración",
+    "logout": "Cerrar Sesión",
+    "events": "Solicitudes",
+    "agenda": "Agenda",
+    "request_musician": "Solicitar Músico"
+  },
   "dashboard": {
     "disconnected": "Desconectado",
     "connecting": "Conectando...",

@@ -9,7 +9,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { X } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 interface DataModalEvents {
     photo?:string;
     name:string;
@@ -37,7 +37,7 @@ const EventRequestModal: React.FC<TypeEventRequestModal> = ({ visible, onClose, 
           <View style={styles.header}>
             <Text style={styles.title}>Solicitud de Evento</Text>
             <TouchableOpacity onPress={onClose}>
-              <X size={24} color="#73737a" />
+              <Ionicons name="close" size={24} color="#73737a" />
             </TouchableOpacity>
           </View>
 

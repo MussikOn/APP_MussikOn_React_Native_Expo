@@ -231,6 +231,19 @@
     "hello": "Hello!",
     "new_message": "You have a new message!"
   },
+  "sidebar": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "my_requests": "My Requests",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "configuration": "Settings",
+    "logout": "Logout",
+    "events": "Requests",
+    "agenda": "Agenda",
+    "request_musician": "Request Musician"
+  },
   "events": {
     "example_birthday": "Birthday Party",
     "example_birthday_desc": "Celebration with live music",
