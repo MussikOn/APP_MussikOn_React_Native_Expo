@@ -46,41 +46,61 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
   const loadEvents = async () => {
     setLoading(true);
     try {
+      console.log('🔍 Cargando eventos para:', { user: user?.userEmail, role: user?.roll, tab: activeTab });
+      
       let response;
       switch (activeTab) {
         case 'my-pending':
+          console.log('📋 Obteniendo eventos pendientes...');
           response = await eventService.getMyPendingEvents();
           break;
         case 'my-assigned':
+          console.log('📋 Obteniendo eventos asignados...');
           response = await eventService.getMyAssignedEvents();
           break;
         case 'my-scheduled':
+          console.log('📋 Obteniendo eventos agendados...');
           response = await eventService.getMyScheduledEvents();
           break;
         case 'my-events':
         default:
+          console.log('📋 Obteniendo todos los eventos...');
           response = await eventService.getMyEvents();
           break;
       }
       
+      console.log('📦 Respuesta de la API:', response);
+      
       // Filtrar eventos según el rol del usuario
       let filteredEvents = response?.data || [];
+      console.log('📊 Eventos antes del filtrado:', filteredEvents.length);
       
       if (isOrg) {
         // Para organizadores: mostrar solo eventos que ellos crearon
-        filteredEvents = filteredEvents.filter(event => 
-          event.organizerId === user?.userEmail
-        );
+        filteredEvents = filteredEvents.filter(event => {
+          const matches = event.organizerId === user?.userEmail;
+          console.log(`🔍 Evento ${event.id}: organizerId=${event.organizerId}, userEmail=${user?.userEmail}, matches=${matches}`);
+          return matches;
+        });
       } else {
         // Para músicos: mostrar solo eventos que ellos aceptaron
-        filteredEvents = filteredEvents.filter(event => 
-          event.musicianId === user?.userEmail
-        );
+        filteredEvents = filteredEvents.filter(event => {
+          const matches = event.musicianId === user?.userEmail;
+          console.log(`🔍 Evento ${event.id}: musicianId=${event.musicianId}, userEmail=${user?.userEmail}, matches=${matches}`);
+          return matches;
+        });
       }
       
-      setEvents(filteredEvents);
+      console.log('📊 Eventos después del filtrado:', filteredEvents.length);
+      
+      // TEMPORAL: Mostrar todos los eventos sin filtrar para debug
+      console.log('🔧 MODO DEBUG: Mostrando todos los eventos sin filtrar');
+      setEvents(response?.data || []);
+      
+      // TODO: Restaurar el filtrado cuando se confirme que funciona
+      // setEvents(filteredEvents);
     } catch (error) {
-      console.error('Error loading events:', error);
+      console.error('❌ Error loading events:', error);
       Alert.alert('Error', 'No se pudieron cargar las solicitudes');
     } finally {
       setLoading(false);
