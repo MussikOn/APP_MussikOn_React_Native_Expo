@@ -172,10 +172,23 @@ export const eventService = {
 
   /**
    * Cancelar un evento
-   * DELETE /events/:eventId
+   * PATCH /events/:eventId/cancel (alternativa si DELETE no está implementado)
    */
   async cancelEvent(eventId: string): Promise<ApiResponse<void>> {
-    return apiService.delete(`/events/${eventId}`);
+    try {
+      // Intentar primero con DELETE
+      return await apiService.delete(`/events/${eventId}`);
+    } catch (error: any) {
+      // Si DELETE falla, intentar con PATCH
+      console.log('DELETE falló, intentando con PATCH...');
+      try {
+        return await apiService.patch(`/events/${eventId}/cancel`);
+      } catch (patchError: any) {
+        // Si PATCH también falla, intentar actualizar el estado
+        console.log('PATCH también falló, intentando actualizar estado...');
+        return await apiService.patch(`/events/${eventId}`, { status: 'cancelled' });
+      }
+    }
   },
 
   /**

@@ -131,11 +131,14 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('🔄 Intentando cancelar evento:', eventId);
               await eventService.cancelEvent(eventId);
               Alert.alert('Éxito', 'Evento cancelado correctamente');
               loadEvents();
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo cancelar el evento');
+            } catch (error: any) {
+              console.error('❌ Error al cancelar evento:', error);
+              const errorMessage = error.message || 'No se pudo cancelar el evento';
+              Alert.alert('Error', errorMessage);
             }
           }
         }
@@ -153,11 +156,14 @@ const MyEventsList: React.FC<MyEventsListProps> = ({ navigation }) => {
           text: 'Sí, completar',
           onPress: async () => {
             try {
+              console.log('🔄 Intentando completar evento:', eventId);
               await eventService.completeEvent(eventId);
               Alert.alert('Éxito', 'Evento marcado como completado');
               loadEvents();
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo completar el evento');
+            } catch (error: any) {
+              console.error('❌ Error al completar evento:', error);
+              const errorMessage = error.message || 'No se pudo completar el evento';
+              Alert.alert('Error', errorMessage);
             }
           }
         }
