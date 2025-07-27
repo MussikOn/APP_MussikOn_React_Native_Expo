@@ -12,6 +12,9 @@ export type RootStackParamList = {
   Profile: undefined;
   Settings: undefined;
   Maps: undefined;
+  ChatList: undefined;
+  Chat: { conversationId: string };
+  Conversation: { conversationId: string; otherUserId: string };
 };
 
 
@@ -35,3 +38,31 @@ export type User = {
       delete_at:string;
       status:boolean;
     };
+
+// Chat Types
+export type Message = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  status: 'sent' | 'delivered' | 'read';
+  type: 'text' | 'image' | 'audio' | 'file';
+};
+
+export type Conversation = {
+  id: string;
+  participants: string[];
+  lastMessage?: Message;
+  unreadCount: number;
+  updatedAt: string;
+  isActive: boolean;
+};
+
+export type ChatFilters = {
+  search?: string;
+  unreadOnly?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+};

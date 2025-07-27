@@ -68,6 +68,8 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
         route: 'MyRequestsList',
         color: theme.colors.primary[500]
       }] : []),
+      // Chat para todos los usuarios
+      { icon: 'chatbubbles', label: t('sidebar.chat'), route: 'ChatList', color: theme.colors.secondary[500] },
       // Mostrar Dashboard solo si el usuario es musico
       ...(globalUser.roll === 'musico' ? [
         { icon: 'speedometer', label: t('sidebar.dashboard'), route: 'Dashboard', color: theme.colors.primary[500] },
