@@ -1,25 +1,27 @@
 // Configuración centralizada de URLs para diferentes entornos
+// Importar configuración centralizada
+import { API_CONFIG, SOCKET_CONFIG } from './apiConfig';
+
 export interface Environment {
   API_URL: string;
   SOCKET_URL: string;
   ENVIRONMENT: 'development' | 'production' | 'staging';
 }
-const URL_DEV = "http://192.168.100.101:3001";
-const URL_PROD = "http://192.168.100.101:3001";
-// Configuraciones por entorno
+
+// Configuraciones por entorno usando la configuración centralizada
 const environments: Record<string, Environment> = {
   development: {
-    API_URL: `${URL_DEV}`,
-    SOCKET_URL: `${URL_DEV}`, // Mismo servidor que API
+    API_URL: API_CONFIG.BASE_URL,
+    SOCKET_URL: SOCKET_CONFIG.SOCKET_URL,
     ENVIRONMENT: 'development',
   },
   production: {
-    API_URL: `${URL_PROD}`,
-    SOCKET_URL: `${URL_PROD}`,
+    API_URL: API_CONFIG.BASE_URL,
+    SOCKET_URL: SOCKET_CONFIG.SOCKET_URL,
     ENVIRONMENT: 'production',
   },
   staging: {
-    API_URL: 'http://192.168.100.65:10000',
+    API_URL: 'http://192.168.100.65:10000', // Mantener staging separado
     SOCKET_URL: 'http://192.168.100.65:10000',
     ENVIRONMENT: 'staging',
   },
@@ -44,18 +46,16 @@ export const config = getCurrentEnvironment();
 export const API_URL = config.API_URL;
 export const SOCKET_URL = config.SOCKET_URL;
 
-// Headers comunes
-export const DEFAULT_HEADERS = {
-  'Content-Type': 'application/json',
-};
+// Headers comunes (usar configuración centralizada)
+export const DEFAULT_HEADERS = API_CONFIG.DEFAULT_HEADERS;
 
-// Timeouts
-export const API_TIMEOUT = 10000; // 10 segundos
+// Timeouts (usar configuración centralizada)
+export const API_TIMEOUT = API_CONFIG.TIMEOUT;
 export const SOCKET_TIMEOUT = 5000; // 5 segundos
 
-// Configuración de reintentos
-export const MAX_RETRIES = 3;
-export const RETRY_DELAY = 1000; // 1 segundo
+// Configuración de reintentos (usar configuración centralizada)
+export const MAX_RETRIES = API_CONFIG.RETRY_CONFIG.maxRetries;
+export const RETRY_DELAY = API_CONFIG.RETRY_CONFIG.retryDelay;
 
 console.log(`🌍 Entorno actual: ${config.ENVIRONMENT}`);
 console.log(`🔗 API URL: ${config.API_URL}`);
