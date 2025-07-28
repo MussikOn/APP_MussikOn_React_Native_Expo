@@ -1,5 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { API_URL, DEFAULT_HEADERS, API_TIMEOUT, MAX_RETRIES, RETRY_DELAY } from '../config/environment';
+import { 
+  getApiConfig, 
+  getApiTimeout, 
+  getDefaultHeaders, 
+  getRetryConfig 
+} from '../config/apiConfig';
 import { getToken, deleteToken } from '../utils/functions';
 import { store } from '../store/store';
 import { logout } from '../store/slices/authSlice';
@@ -33,10 +38,11 @@ export class ApiError extends Error {
 
 // Configuración base de axios
 const createApiInstance = (): AxiosInstance => {
+  const apiConfig = getApiConfig();
   const instance = axios.create({
-    baseURL: API_URL,
-    timeout: API_TIMEOUT,
-    headers: DEFAULT_HEADERS,
+    baseURL: apiConfig.BASE_URL,
+    timeout: getApiTimeout(),
+    headers: getDefaultHeaders(),
   });
 
   // Interceptor para agregar token a todas las peticiones
@@ -102,24 +108,27 @@ export const api = createApiInstance();
 // Función para reintentos automáticos
 const retryRequest = async (
   requestFn: () => Promise<any>,
-  maxRetries: number = MAX_RETRIES,
-  delay: number = RETRY_DELAY
+  maxRetries?: number,
+  delay?: number
 ): Promise<any> => {
+  const retryConfig = getRetryConfig();
+  const maxRetriesValue = maxRetries || retryConfig.maxRetries;
+  const delayValue = delay || retryConfig.retryDelay;
   let lastError: any;
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let attempt = 1; attempt <= maxRetriesValue; attempt++) {
     try {
       return await requestFn();
     } catch (error) {
       lastError = error;
       
-      if (attempt === maxRetries) {
+      if (attempt === maxRetriesValue) {
         throw error;
       }
 
       // Esperar antes del siguiente intento
-      await new Promise(resolve => setTimeout(resolve, delay * attempt));
-      console.log(`🔄 Reintento ${attempt}/${maxRetries} para ${requestFn.name}`);
+      await new Promise(resolve => setTimeout(resolve, delayValue * attempt));
+      console.log(`🔄 Reintento ${attempt}/${maxRetriesValue} para ${requestFn.name}`);
     }
   }
 
