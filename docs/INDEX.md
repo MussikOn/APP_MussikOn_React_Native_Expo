@@ -122,6 +122,9 @@
 - [🎵 Flujo de Músico](./features/solicitud-musico-flujo-musico.md) - Flujo para músicos
 - [🔄 Estados de Matching](./features/solicitud-musico-flujo-matching-estados.md) - Estados del sistema
 
+### 🔔 **Sistema de Notificaciones**
+- [🔔 Sistema de Notificaciones](./features/notification-system.md) - **NUEVO** - Sistema completo de notificaciones en tiempo real
+
 ### 🎯 **Funcionalidades Implementadas**
 - ✅ **Sistema de Autenticación Completo**: Login, registro, JWT, persistencia
 - ✅ **Navegación Inteligente**: Stack, Tabs, Drawer con roles diferenciados
