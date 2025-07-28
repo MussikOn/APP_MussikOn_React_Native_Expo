@@ -1,442 +1,952 @@
 # 🎨 Componentes UI - MussikOn
 
-## 📋 **Descripción General**
+## 📋 Tabla de Contenidos
 
-Los componentes UI de MussikOn están diseñados siguiendo los principios de **Design System** y **Atomic Design**. Cada componente es reutilizable, accesible y mantiene consistencia visual en toda la aplicación.
+- [🎯 Descripción General](#-descripción-general)
+- [🔧 Componentes Base](#-componentes-base)
+- [📱 Componentes de Formularios](#-componentes-de-formularios)
+- [🎨 Componentes de Navegación](#-componentes-de-navegación)
+- [🔔 Componentes de Notificaciones](#-componentes-de-notificaciones)
+- [📊 Componentes de Datos](#-componentes-de-datos)
+- [🎭 Componentes de Feedback](#-componentes-de-feedback)
+- [📐 Sistema de Diseño](#-sistema-de-diseño)
+- [🎨 Guías de Uso](#-guías-de-uso)
 
-## 🏗️ **Arquitectura de Componentes**
+---
 
-### Estructura de Carpetas
-```
-src/components/ui/
-├── Button.tsx              # Botones principales
-├── Input.tsx               # Campos de entrada
-├── Card.tsx                # Tarjetas contenedoras
-├── Header.tsx              # Encabezados de pantalla
-├── LoadingSpinner.tsx      # Indicadores de carga
-├── LoadingModal.tsx        # Modales de carga
-├── FAB.tsx                 # Botón de acción flotante
-├── BottomNavigation.tsx    # Navegación inferior
-├── BottomMenu.tsx          # Menú inferior
-├── LanguageSelector.tsx    # Selector de idioma
-├── DateTimeSelector.tsx    # Selector de fecha/hora
-├── UserList.tsx            # Lista de usuarios
-├── Logo.tsx                # Logo de la aplicación
-├── NotificationSnackbar.tsx # Notificaciones
-├── buttons/                # Variantes de botones
-│   ├── OutlineButton.tsx   # Botón con borde
-│   └── SlideButton.tsx     # Botón deslizante
-└── styles/                 # Estilos animados
-    └── AnimatedBackground.tsx # Fondo animado
-```
+## 🎯 Descripción General
 
-## 🔘 **Componentes de Botones**
+Los componentes UI de MussikOn están diseñados para ser **reutilizables**, **consistentes** y **accesibles**. Todos los componentes siguen el sistema de diseño unificado y soportan temas claro/oscuro.
 
-### Button.tsx
-**Propósito**: Componente principal de botón con múltiples variantes.
+### 🎪 Principios de Diseño
 
-**Props**:
+- ✅ **Consistencia**: Mismos patrones en toda la app
+- ✅ **Reutilización**: Componentes modulares
+- ✅ **Accesibilidad**: Soporte para lectores de pantalla
+- ✅ **Performance**: Optimizados para renderizado
+- ✅ **Temas**: Soporte para claro/oscuro
+
+---
+
+## 🔧 Componentes Base
+
+### 🎨 **Button Component**
+
 ```typescript
+// src/components/ui/Button.tsx
 interface ButtonProps {
-  title: string;                    // Texto del botón
-  onPress: () => void;             // Función de callback
-  type?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger';
-  loading?: boolean;                // Estado de carga
-  disabled?: boolean;               // Estado deshabilitado
-  icon?: string;                    // Icono (Ionicons)
-  iconPosition?: 'left' | 'right'; // Posición del icono
-  style?: ViewStyle;                // Estilos personalizados
-  textStyle?: TextStyle;            // Estilos del texto
+  variant: 'primary' | 'secondary' | 'outline' | 'danger';
+  size: 'small' | 'medium' | 'large';
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  children: React.ReactNode;
 }
+
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'medium',
+  onPress,
+  disabled = false,
+  loading = false,
+  children,
+}) => {
+  const { theme } = useTheme();
+  
+  const buttonStyles = [
+    styles.button,
+    styles[variant],
+    styles[size],
+    disabled && styles.disabled,
+  ];
+
+  return (
+    <TouchableOpacity
+      style={buttonStyles}
+      onPress={onPress}
+      disabled={disabled || loading}
+      activeOpacity={0.8}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color="#fff" />
+      ) : (
+        <Text style={[styles.text, styles[`${variant}Text`]]}>
+          {children}
+        </Text>
+      )}
+    </TouchableOpacity>
+  );
+};
 ```
 
-**Variantes**:
-- **Primary**: Botón principal con color de marca
-- **Secondary**: Botón secundario con color gris
-- **Outline**: Botón con borde y fondo transparente
-- **Success**: Botón para acciones exitosas (verde)
-- **Danger**: Botón para acciones peligrosas (rojo)
+#### **Variantes Disponibles**
+- **Primary**: Azul principal para acciones principales
+- **Secondary**: Gris para acciones secundarias
+- **Outline**: Borde con fondo transparente
+- **Danger**: Rojo para acciones destructivas
 
-**Ejemplo de Uso**:
+### 📝 **Input Component**
+
 ```typescript
-<Button
-  title="Iniciar Sesión"
-  onPress={handleLogin}
-  type="primary"
-  loading={isLoading}
-  icon="log-in-outline"
-/>
-```
-
-### OutlineButton.tsx
-**Propósito**: Botón con estilo outline para acciones secundarias.
-
-**Características**:
-- Borde visible con color primario
-- Fondo transparente
-- Texto en color primario
-- Hover effect con opacidad
-
-### SlideButton.tsx
-**Propósito**: Botón deslizante para confirmaciones importantes.
-
-**Características**:
-- Animación de deslizamiento
-- Feedback táctil
-- Indicador de progreso
-- Confirmación visual
-
-## 📝 **Componentes de Entrada**
-
-### Input.tsx
-**Propósito**: Campo de entrada de texto con validación integrada.
-
-**Props**:
-```typescript
+// src/components/ui/Input.tsx
 interface InputProps {
-  label?: string;                   // Etiqueta del campo
-  placeholder?: string;             // Texto de placeholder
-  value: string;                    // Valor del campo
+  label?: string;
+  value: string;
   onChangeText: (text: string) => void;
-  error?: string;                   // Mensaje de error
-  secureTextEntry?: boolean;        // Campo de contraseña
+  placeholder?: string;
+  error?: string;
+  secureTextEntry?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  autoCorrect?: boolean;
-  multiline?: boolean;              // Campo de múltiples líneas
-  numberOfLines?: number;           // Número de líneas
-  style?: ViewStyle;                // Estilos personalizados
-  containerStyle?: ViewStyle;       // Estilos del contenedor
 }
+
+const Input: React.FC<InputProps> = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  error,
+  secureTextEntry = false,
+  keyboardType = 'default',
+  autoCapitalize = 'sentences',
+}) => {
+  const { theme } = useTheme();
+  
+  return (
+    <View style={styles.container}>
+      {label && (
+        <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+          {label}
+        </Text>
+      )}
+      <TextInput
+        style={[
+          styles.input,
+          { 
+            borderColor: error ? theme.colors.error[500] : theme.colors.border.primary,
+            color: theme.colors.text.primary,
+          },
+        ]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={theme.colors.text.tertiary}
+        secureTextEntry={secureTextEntry}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+      />
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+          {error}
+        </Text>
+      )}
+    </View>
+  );
+};
 ```
 
-**Características**:
-- Validación en tiempo real
-- Estados de error visuales
-- Soporte para campos de contraseña
-- Iconos de acción (limpiar, mostrar/ocultar)
-- Animaciones suaves
+### 🃏 **Card Component**
 
-**Ejemplo de Uso**:
 ```typescript
-<Input
-  label="Email"
-  placeholder="Ingresa tu email"
-  value={email}
-  onChangeText={setEmail}
-  error={emailError}
-  keyboardType="email-address"
-  autoCapitalize="none"
-/>
-```
-
-## 🃏 **Componentes de Contenedores**
-
-### Card.tsx
-**Propósito**: Tarjeta contenedora para agrupar contenido relacionado.
-
-**Props**:
-```typescript
+// src/components/ui/Card.tsx
 interface CardProps {
-  children: React.ReactNode;        // Contenido de la tarjeta
-  style?: ViewStyle;                // Estilos personalizados
-  padding?: number;                 // Padding interno
-  margin?: number;                  // Margen externo
-  elevation?: number;               // Elevación (Android)
-  shadowColor?: string;             // Color de sombra
-  shadowOffset?: { width: number; height: number };
-  shadowOpacity?: number;           // Opacidad de sombra
-  shadowRadius?: number;            // Radio de sombra
-  borderRadius?: number;            // Radio de borde
-  backgroundColor?: string;         // Color de fondo
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  onPress?: () => void;
+  disabled?: boolean;
 }
+
+const Card: React.FC<CardProps> = ({ children, style, onPress, disabled }) => {
+  const { theme } = useTheme();
+  
+  const cardStyles = [
+    styles.card,
+    {
+      backgroundColor: theme.colors.background.card,
+      borderColor: theme.colors.border.primary,
+      shadowColor: theme.colors.primary[500],
+    },
+    style,
+  ];
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        style={cardStyles}
+        onPress={onPress}
+        disabled={disabled}
+        activeOpacity={0.8}
+      >
+        {children}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View style={cardStyles}>{children}</View>;
+};
 ```
 
-**Características**:
-- Sombras consistentes
-- Bordes redondeados
-- Padding configurable
-- Colores adaptables al tema
+---
 
-**Ejemplo de Uso**:
+## 📱 Componentes de Formularios
+
+### 📋 **FormInput Component**
+
 ```typescript
-<Card padding={16} elevation={4}>
-  <Text>Contenido de la tarjeta</Text>
-</Card>
-```
-
-## 📱 **Componentes de Navegación**
-
-### Header.tsx
-**Propósito**: Encabezado de pantalla con navegación y acciones.
-
-**Props**:
-```typescript
-interface HeaderProps {
-  title?: string;                   // Título del header
-  leftComponent?: React.ReactNode;  // Componente izquierdo
-  rightComponent?: React.ReactNode; // Componente derecho
-  transparent?: boolean;            // Header transparente
-  style?: ViewStyle;                // Estilos personalizados
-  showBackButton?: boolean;         // Mostrar botón de atrás
-  onBackPress?: () => void;        // Función de atrás
+// src/components/forms/FormInput.tsx
+interface FormInputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  error?: string;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  multiline?: boolean;
+  numberOfLines?: number;
 }
+
+const FormInput: React.FC<FormInputProps> = ({
+  label,
+  value,
+  onChangeText,
+  error,
+  placeholder,
+  secureTextEntry = false,
+  keyboardType = 'default',
+  autoCapitalize = 'sentences',
+  multiline = false,
+  numberOfLines = 1,
+}) => {
+  const { theme } = useTheme();
+  
+  return (
+    <View style={styles.container}>
+      <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+        {label}
+      </Text>
+      <TextInput
+        style={[
+          styles.input,
+          multiline && styles.multiline,
+          {
+            borderColor: error ? theme.colors.error[500] : theme.colors.border.primary,
+            color: theme.colors.text.primary,
+          },
+        ]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={theme.colors.text.tertiary}
+        secureTextEntry={secureTextEntry}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+      />
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+          {error}
+        </Text>
+      )}
+    </View>
+  );
+};
 ```
 
-**Características**:
-- Fondo con blur effect
-- Botones de navegación
-- Título centrado
-- Acciones personalizables
+### 📅 **DateTimePicker Component**
 
-### BottomNavigation.tsx
-**Propósito**: Navegación inferior con tabs.
-
-**Props**:
 ```typescript
-interface BottomNavigationProps {
-  tabs: TabItem[];                  // Lista de tabs
-  activeTab: string;                // Tab activo
-  onTabPress: (tabId: string) => void;
-  style?: ViewStyle;                // Estilos personalizados
+// src/components/forms/DateTimePicker.tsx
+interface DateTimePickerProps {
+  label: string;
+  value: Date;
+  onChange: (date: Date) => void;
+  mode: 'date' | 'time';
+  error?: string;
 }
-```
 
-**Características**:
-- Iconos animados
-- Indicador de tab activo
-- Badges para notificaciones
-- Transiciones suaves
+const DateTimePicker: React.FC<DateTimePickerProps> = ({
+  label,
+  value,
+  onChange,
+  mode,
+  error,
+}) => {
+  const { theme } = useTheme();
+  const [showPicker, setShowPicker] = useState(false);
 
-### BottomMenu.tsx
-**Propósito**: Menú inferior con opciones adicionales.
-
-**Características**:
-- Opciones contextuales
-- Animaciones de entrada/salida
-- Acciones rápidas
-- Integración con FAB
-
-## 🔄 **Componentes de Estado**
-
-### LoadingSpinner.tsx
-**Propósito**: Indicador de carga con animación.
-
-**Props**:
-```typescript
-interface LoadingSpinnerProps {
-  size?: 'small' | 'medium' | 'large';
-  color?: string;                   // Color del spinner
-  style?: ViewStyle;                // Estilos personalizados
-  text?: string;                    // Texto de carga
-  showText?: boolean;               // Mostrar texto
-}
-```
-
-**Características**:
-- Animación de rotación
-- Tamaños predefinidos
-- Colores adaptables
-- Texto opcional
-
-### LoadingModal.tsx
-**Propósito**: Modal de carga para operaciones largas.
-
-**Props**:
-```typescript
-interface LoadingModalProps {
-  visible: boolean;                 // Estado visible
-  message?: string;                 // Mensaje de carga
-  onCancel?: () => void;           // Función de cancelar
-  cancelable?: boolean;             // Permitir cancelar
-}
-```
-
-**Características**:
-- Overlay semi-transparente
-- Spinner centrado
-- Mensaje personalizable
-- Opción de cancelar
-
-## 🎨 **Componentes Especializados**
-
-### Logo.tsx
-**Propósito**: Logo de la aplicación con diferentes variantes.
-
-**Props**:
-```typescript
-interface LogoProps {
-  size?: number;                    // Tamaño del logo
-  showText?: boolean;               // Mostrar texto
-  variant?: 'default' | 'minimal';  // Variante del logo
-  style?: ViewStyle;                // Estilos personalizados
-}
-```
-
-**Características**:
-- SVG vectorial escalable
-- Colores adaptables al tema
-- Variantes con/sin texto
-- Animaciones de entrada
-
-### NotificationSnackbar.tsx
-**Propósito**: Notificaciones tipo snackbar.
-
-**Props**:
-```typescript
-interface NotificationSnackbarProps {
-  visible: boolean;                 // Estado visible
-  message: string;                  // Mensaje
-  type?: 'success' | 'error' | 'warning' | 'info';
-  duration?: number;                // Duración en ms
-  onDismiss?: () => void;          // Función de cerrar
-  action?: {                       // Acción opcional
-    label: string;
-    onPress: () => void;
+  const handlePress = () => {
+    setShowPicker(true);
   };
-}
+
+  const handleConfirm = (event: any, selectedDate?: Date) => {
+    setShowPicker(false);
+    if (selectedDate) {
+      onChange(selectedDate);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+        {label}
+      </Text>
+      <TouchableOpacity
+        style={[
+          styles.pickerButton,
+          {
+            borderColor: error ? theme.colors.error[500] : theme.colors.border.primary,
+          },
+        ]}
+        onPress={handlePress}
+      >
+        <Text style={[styles.pickerText, { color: theme.colors.text.primary }]}>
+          {mode === 'date' 
+            ? value.toLocaleDateString('es-ES')
+            : value.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })
+          }
+        </Text>
+        <Ionicons 
+          name="calendar" 
+          size={20} 
+          color={theme.colors.text.secondary} 
+        />
+      </TouchableOpacity>
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+          {error}
+        </Text>
+      )}
+      {showPicker && (
+        <DateTimePickerModal
+          value={value}
+          mode={mode}
+          isVisible={showPicker}
+          onConfirm={handleConfirm}
+          onCancel={() => setShowPicker(false)}
+        />
+      )}
+    </View>
+  );
+};
 ```
 
-**Características**:
-- Posicionamiento automático
-- Colores por tipo
-- Animaciones de entrada/salida
-- Acciones personalizables
+---
 
-### LanguageSelector.tsx
-**Propósito**: Selector de idioma con interfaz moderna.
+## 🎨 Componentes de Navegación
 
-**Props**:
+### 📱 **Header Component**
+
 ```typescript
-interface LanguageSelectorProps {
-  currentLanguage: string;          // Idioma actual
-  onLanguageChange: (lang: string) => void;
-  languages: Language[];            // Idiomas disponibles
-  style?: ViewStyle;                // Estilos personalizados
+// src/components/navigation/Header.tsx
+interface HeaderProps {
+  title: string;
+  showBack?: boolean;
+  onBackPress?: () => void;
+  rightComponent?: React.ReactNode;
+  subtitle?: string;
 }
+
+const Header: React.FC<HeaderProps> = ({
+  title,
+  showBack = false,
+  onBackPress,
+  rightComponent,
+  subtitle,
+}) => {
+  const { theme } = useTheme();
+  const navigation = useNavigation();
+
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  return (
+    <View style={[styles.header, { backgroundColor: theme.colors.background.card }]}>
+      <View style={styles.leftContainer}>
+        {showBack && (
+          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+            <Ionicons 
+              name="arrow-back" 
+              size={24} 
+              color={theme.colors.text.primary} 
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+      
+      <View style={styles.centerContainer}>
+        <Text style={[styles.title, { color: theme.colors.text.primary }]}>
+          {title}
+        </Text>
+        {subtitle && (
+          <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
+      
+      <View style={styles.rightContainer}>
+        {rightComponent}
+      </View>
+    </View>
+  );
+};
 ```
 
-**Características**:
-- Lista de idiomas disponibles
-- Banderas de países
-- Animaciones de selección
-- Persistencia de preferencia
+### 🔔 **FloatingNotificationButton Component**
 
-### DateTimeSelector.tsx
-**Propósito**: Selector de fecha y hora.
-
-**Props**:
 ```typescript
-interface DateTimeSelectorProps {
-  value: Date;                      // Fecha seleccionada
-  onValueChange: (date: Date) => void;
-  mode?: 'date' | 'time' | 'datetime';
-  minimumDate?: Date;               // Fecha mínima
-  maximumDate?: Date;               // Fecha máxima
-  style?: ViewStyle;                // Estilos personalizados
+// src/components/ui/FloatingNotificationButton.tsx
+interface FloatingNotificationButtonProps {
+  onPress: () => void;
 }
+
+const FloatingNotificationButton: React.FC<FloatingNotificationButtonProps> = ({ onPress }) => {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [pulseAnim] = useState(new Animated.Value(1));
+
+  useEffect(() => {
+    loadUnreadCount();
+  }, []);
+
+  useEffect(() => {
+    if (unreadCount > 0) {
+      startPulseAnimation();
+    }
+  }, [unreadCount]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const unreadNotifications = await notificationService.getUnreadNotifications();
+      setUnreadCount(unreadNotifications.length);
+    } catch (error) {
+      console.error('Error al cargar notificaciones:', error);
+    }
+  };
+
+  const startPulseAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  return (
+    <Animated.View style={[
+      styles.container,
+      {
+        transform: [{ scale: pulseAnim }],
+        top: insets.top + 10,
+      }
+    ]}>
+      <TouchableOpacity
+        style={[
+          styles.button,
+          {
+            backgroundColor: unreadCount > 0 
+              ? theme.colors.primary[500] 
+              : theme.colors.background.card,
+            borderColor: theme.colors.border.primary,
+          }
+        ]}
+        onPress={onPress}
+        activeOpacity={0.8}
+      >
+        <Ionicons 
+          name="notifications" 
+          size={18}
+          color={unreadCount > 0 ? "#fff" : theme.colors.text.secondary} 
+        />
+        {unreadCount > 0 && (
+          <View style={[styles.badge, { backgroundColor: theme.colors.error[500] }]}>
+            <Text style={styles.badgeText}>
+              {unreadCount > 99 ? '99+' : unreadCount.toString()}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 ```
 
-**Características**:
-- Selector nativo por plataforma
-- Validación de fechas
-- Formato localizado
-- Integración con calendario
+---
 
-### UserList.tsx
-**Propósito**: Lista de usuarios con avatares.
+## 🔔 Componentes de Notificaciones
 
-**Props**:
+### 📢 **NotificationItem Component**
+
 ```typescript
-interface UserListProps {
-  users: User[];                    // Lista de usuarios
-  onUserPress?: (user: User) => void;
-  showStatus?: boolean;             // Mostrar estado online
-  showActions?: boolean;            // Mostrar acciones
-  style?: ViewStyle;                // Estilos personalizados
+// src/components/notifications/NotificationItem.tsx
+interface NotificationItemProps {
+  notification: Notification;
+    onPress: () => void;
+  onDelete: () => void;
 }
+
+const NotificationItem: React.FC<NotificationItemProps> = ({
+  notification,
+  onPress,
+  onDelete,
+}) => {
+  const { theme } = useTheme();
+
+  const getNotificationIcon = () => {
+    switch (notification.type) {
+      case 'request_cancelled':
+        return 'close-circle';
+      case 'request_cancelled_by_musician':
+        return 'musical-notes';
+      case 'request_deleted':
+        return 'trash';
+      case 'musician_accepted':
+        return 'checkmark-circle';
+      default:
+        return 'notifications';
+    }
+  };
+
+  const getNotificationColor = () => {
+    switch (notification.type) {
+      case 'request_cancelled':
+      case 'request_cancelled_by_musician':
+      case 'request_deleted':
+        return theme.colors.error[500];
+      case 'musician_accepted':
+        return theme.colors.success[500];
+      default:
+        return theme.colors.primary[500];
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background.card,
+          borderColor: theme.colors.border.primary,
+        },
+        !notification.read && styles.unread,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.iconContainer}>
+        <Ionicons 
+          name={getNotificationIcon() as any} 
+          size={24} 
+          color={getNotificationColor()} 
+        />
+      </View>
+      
+      <View style={styles.content}>
+        <Text style={[styles.title, { color: theme.colors.text.primary }]}>
+          {notification.title}
+        </Text>
+        <Text style={[styles.message, { color: theme.colors.text.secondary }]}>
+          {notification.message}
+        </Text>
+        <Text style={[styles.timestamp, { color: theme.colors.text.tertiary }]}>
+          {new Date(notification.timestamp).toLocaleString('es-ES')}
+        </Text>
+      </View>
+      
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+      >
+        <Ionicons 
+          name="close" 
+          size={20} 
+          color={theme.colors.text.tertiary} 
+        />
+      </TouchableOpacity>
+      
+      <Ionicons 
+        name="chevron-forward" 
+        size={20} 
+        color={theme.colors.text.tertiary} 
+        style={styles.chevron}
+      />
+    </TouchableOpacity>
+  );
+};
 ```
 
-**Características**:
-- Avatares circulares
-- Estados online/offline
-- Acciones contextuales
-- Scroll optimizado
+---
 
-## 🎭 **Componentes Animados**
+## 📊 Componentes de Datos
 
-### AnimatedBackground.tsx
-**Propósito**: Fondo animado para pantallas.
+### 📋 **RequestCard Component**
 
-**Características**:
-- Gradientes animados
-- Partículas flotantes
-- Efectos de parallax
-- Performance optimizada
-
-### FAB.tsx
-**Propósito**: Botón de acción flotante.
-
-**Props**:
 ```typescript
-interface FABProps {
-  onPress: () => void;              // Función de callback
-  icon: string;                     // Icono
-  style?: ViewStyle;                // Estilos personalizados
-  color?: string;                   // Color del FAB
-  size?: number;                    // Tamaño
-  visible?: boolean;                // Estado visible
+// src/components/requests/RequestCard.tsx
+interface RequestCardProps {
+  request: Request;
+  onPress: () => void;
+  onMenuPress: () => void;
+  showMenu?: boolean;
 }
+
+const RequestCard: React.FC<RequestCardProps> = ({
+  request,
+  onPress,
+  onMenuPress,
+  showMenu = false,
+}) => {
+  const { theme } = useTheme();
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending_musician':
+        return theme.colors.warning[500];
+      case 'musician_assigned':
+        return theme.colors.success[500];
+      case 'completed':
+        return theme.colors.accent[500];
+      case 'cancelled':
+      case 'musician_cancelled':
+        return theme.colors.error[500];
+      default:
+        return theme.colors.text.secondary;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending_musician':
+        return 'Pendiente';
+      case 'musician_assigned':
+        return 'Asignado';
+      case 'completed':
+        return 'Completado';
+      case 'cancelled':
+        return 'Cancelado';
+      case 'musician_cancelled':
+        return 'Cancelado por Músico';
+      default:
+        return 'Desconocido';
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.colors.background.card,
+          borderColor: theme.colors.border.primary,
+          shadowColor: theme.colors.primary[500],
+        },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.colors.text.primary }]}>
+          {request.name}
+        </Text>
+        <View style={styles.headerRight}>
+          <View style={[
+            styles.statusBadge,
+            { backgroundColor: getStatusColor(request.status) }
+          ]}>
+            <Text style={styles.statusText}>
+              {getStatusText(request.status)}
+            </Text>
+          </View>
+          {showMenu && (
+            <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
+              <Ionicons 
+                name="ellipsis-vertical" 
+                size={22} 
+                color={theme.colors.text.secondary} 
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Details */}
+      <View style={styles.details}>
+        <View style={styles.detailRow}>
+          <Ionicons name="calendar" size={16} color={theme.colors.primary[500]} />
+          <Text style={[styles.detailText, { color: theme.colors.text.secondary }]}>
+            {new Date(request.date).toLocaleDateString('es-ES')} - {request.time}
+          </Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Ionicons name="location" size={16} color={theme.colors.primary[500]} />
+          <Text style={[styles.detailText, { color: theme.colors.text.secondary }]}>
+            {request.location.address}
+          </Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Ionicons name="musical-notes" size={16} color={theme.colors.primary[500]} />
+          <Text style={[styles.detailText, { color: theme.colors.text.secondary }]}>
+            {request.instrument}
+          </Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Ionicons name="cash" size={16} color={theme.colors.primary[500]} />
+          <Text style={[styles.detailText, { color: theme.colors.text.secondary }]}>
+            ${request.budget.toLocaleString()}
+          </Text>
+        </View>
+      </View>
+
+      {/* Comments */}
+      {request.comments && (
+        <View style={styles.comments}>
+          <Ionicons name="chatbubble-outline" size={16} color={theme.colors.primary[500]} />
+          <Text style={[styles.commentText, { color: theme.colors.text.secondary }]}>
+            {request.comments}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 ```
 
-**Características**:
-- Posicionamiento flotante
-- Animaciones de entrada/salida
-- Elevación dinámica
-- Integración con scroll
+---
 
-## 🎨 **Sistema de Temas**
+## 🎭 Componentes de Feedback
 
-### Integración con Tema
-Todos los componentes están integrados con el sistema de temas:
+### ⏳ **LoadingSpinner Component**
 
 ```typescript
-// Uso del tema en componentes
+// src/components/ui/LoadingSpinner.tsx
+interface LoadingSpinnerProps {
+  size?: 'small' | 'large';
+  color?: string;
+  text?: string;
+}
+
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'large',
+  color,
+  text,
+}) => {
+  const { theme } = useTheme();
+  const spinnerColor = color || theme.colors.primary[500];
+
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size={size} color={spinnerColor} />
+      {text && (
+        <Text style={[styles.text, { color: theme.colors.text.secondary }]}>
+          {text}
+        </Text>
+      )}
+    </View>
+  );
+};
+```
+
+### ❌ **ErrorMessage Component**
+
+```typescript
+// src/components/ui/ErrorMessage.tsx
+interface ErrorMessageProps {
+  message: string;
+  onRetry?: () => void;
+}
+
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onRetry }) => {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.container}>
+      <Ionicons 
+        name="alert-circle" 
+        size={48} 
+        color={theme.colors.error[500]} 
+      />
+      <Text style={[styles.message, { color: theme.colors.text.primary }]}>
+        {message}
+      </Text>
+      {onRetry && (
+        <Button variant="primary" onPress={onRetry}>
+          Reintentar
+        </Button>
+      )}
+    </View>
+  );
+};
+```
+
+### ✅ **SuccessMessage Component**
+
+```typescript
+// src/components/ui/SuccessMessage.tsx
+interface SuccessMessageProps {
+  message: string;
+  onContinue?: () => void;
+}
+
+const SuccessMessage: React.FC<SuccessMessageProps> = ({ message, onContinue }) => {
 const { theme } = useTheme();
 
-<View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-  <Text style={[styles.text, { color: theme.colors.text.primary }]}>
-    Contenido
+  return (
+    <View style={styles.container}>
+      <Ionicons 
+        name="checkmark-circle" 
+        size={48} 
+        color={theme.colors.success[500]} 
+      />
+      <Text style={[styles.message, { color: theme.colors.text.primary }]}>
+        {message}
   </Text>
+      {onContinue && (
+        <Button variant="primary" onPress={onContinue}>
+          Continuar
+        </Button>
+      )}
 </View>
+  );
+};
 ```
 
-### Colores del Tema
+---
+
+## 📐 Sistema de Diseño
+
+### 🎨 **Paleta de Colores**
+
 ```typescript
-// Paleta de colores oficial
-const colors = {
+// src/theme/colors.ts
+export const colors = {
   primary: {
+    50: '#e3f2fd',
+    100: '#bbdefb',
     500: '#014aad',    // Azul principal
     600: '#013e94',    // Azul oscuro
-    400: '#3385d7',    // Azul claro
+    700: '#012b6b',
   },
   secondary: {
+    50: '#f5f5f5',
+    100: '#eeeeee',
     500: '#444444',    // Gris medio
     900: '#000000',    // Negro puro
   },
   accent: {
+    50: '#e1f5fe',
+    100: '#b3e5fc',
     500: '#1aa3ff',    // Azul claro
-  }
+    600: '#0099e6',
+  },
+  success: {
+    50: '#e8f5e8',
+    500: '#4caf50',
+    600: '#388e3c',
+  },
+  warning: {
+    50: '#fff8e1',
+    500: '#ff9800',
+    600: '#f57c00',
+  },
+  error: {
+    50: '#ffebee',
+    500: '#f44336',
+    600: '#d32f2f',
+  },
 };
 ```
 
-## ♿ **Accesibilidad**
-
-### Implementación de Accesibilidad
-Todos los componentes incluyen soporte para accesibilidad:
+### 📏 **Espaciado**
 
 ```typescript
-// Ejemplo de accesibilidad en botón
+// src/theme/spacing.ts
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  '2xl': 48,
+  '3xl': 64,
+};
+```
+
+### 📐 **Tipografía**
+
+```typescript
+// src/theme/typography.ts
+export const typography = {
+  sizes: {
+    xs: 12,
+    sm: 14,
+    md: 16,
+    lg: 18,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 30,
+    '4xl': 36,
+  },
+  weights: {
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  },
+  lineHeights: {
+    tight: 1.2,
+    normal: 1.5,
+    relaxed: 1.75,
+  },
+};
+```
+
+---
+
+## 🎨 Guías de Uso
+
+### 📋 **Mejores Prácticas**
+
+#### **1. Uso de Temas**
+```typescript
+// ✅ Correcto
+const { theme } = useTheme();
+<View style={{ backgroundColor: theme.colors.background.primary }}>
+
+// ❌ Incorrecto
+<View style={{ backgroundColor: '#ffffff' }}>
+```
+
+#### **2. Accesibilidad**
+```typescript
+// ✅ Correcto
 <TouchableOpacity
   accessible={true}
   accessibilityLabel="Botón de inicio de sesión"
@@ -444,109 +954,77 @@ Todos los componentes incluyen soporte para accesibilidad:
   accessibilityHint="Presiona para iniciar sesión"
   onPress={handleLogin}
 >
-  <Text>Iniciar Sesión</Text>
-</TouchableOpacity>
+
+// ❌ Incorrecto
+<TouchableOpacity onPress={handleLogin}>
 ```
 
-### Características de Accesibilidad
-- **Labels descriptivos**: Textos claros para screen readers
-- **Roles semánticos**: Roles apropiados para cada elemento
-- **Hints contextuales**: Información adicional para usuarios
-- **Contraste adecuado**: Colores con contraste suficiente
-- **Tamaños de toque**: Áreas de toque mínimas de 44x44px
-
-## 📱 **Responsive Design**
-
-### Adaptación a Diferentes Pantallas
-Los componentes se adaptan automáticamente a diferentes tamaños:
-
+#### **3. Performance**
 ```typescript
-// Uso de dimensiones responsivas
-import { Dimensions } from 'react-native';
+// ✅ Correcto
+const MemoizedComponent = React.memo(MyComponent);
 
-const { width, height } = Dimensions.get('window');
+// ✅ Correcto
+const memoizedValue = useMemo(() => expensiveCalculation(data), [data]);
 
-const styles = StyleSheet.create({
-  container: {
-    padding: width > 768 ? 24 : 16, // Tablet vs móvil
-    fontSize: width > 768 ? 18 : 16,
-  }
-});
+// ✅ Correcto
+const memoizedCallback = useCallback(() => handlePress(id), [id]);
 ```
 
-### Breakpoints
-- **Móvil**: < 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: > 1024px
+### 🎯 **Patrones de Componentes**
 
-## 🧪 **Testing**
-
-### Tests de Componentes
+#### **1. Componente con Props Opcionales**
 ```typescript
-// __tests__/components/Button.test.tsx
-import { render, fireEvent } from '@testing-library/react-native';
-import { Button } from '../Button';
+interface MyComponentProps {
+  title: string;
+  subtitle?: string;
+  onPress?: () => void;
+  disabled?: boolean;
+}
 
-describe('Button Component', () => {
-  it('renders correctly with title', () => {
-    const { getByText } = render(
-      <Button title="Test Button" onPress={() => {}} />
-    );
-    
-    expect(getByText('Test Button')).toBeTruthy();
-  });
-
-  it('calls onPress when pressed', () => {
-    const onPress = jest.fn();
-    const { getByText } = render(
-      <Button title="Test Button" onPress={onPress} />
-    );
-    
-    fireEvent.press(getByText('Test Button'));
-    expect(onPress).toHaveBeenCalled();
-  });
-
-  it('shows loading state', () => {
-    const { getByTestId } = render(
-      <Button title="Test Button" onPress={() => {}} loading={true} />
-    );
-    
-    expect(getByTestId('loading-spinner')).toBeTruthy();
-  });
-});
+const MyComponent: React.FC<MyComponentProps> = ({
+  title,
+  subtitle,
+  onPress,
+  disabled = false,
+}) => {
+  // Implementación
+};
 ```
 
-## 📚 **Documentación de Uso**
+#### **2. Componente con Children**
+```typescript
+interface ContainerProps {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
 
-### Guías de Implementación
-1. **Importar componente**: `import { Button } from '@components/ui/Button';`
-2. **Usar props básicas**: `title`, `onPress`
-3. **Personalizar estilo**: `style`, `type`
-4. **Agregar funcionalidad**: `loading`, `disabled`, `icon`
+const Container: React.FC<ContainerProps> = ({ children, style }) => {
+  return <View style={[styles.container, style]}>{children}</View>;
+};
+```
 
-### Mejores Prácticas
-- Usar tipos predefinidos para consistencia
-- Implementar accesibilidad en todos los componentes
-- Mantener performance con memoización cuando sea necesario
-- Documentar props complejas
-- Probar todos los estados del componente
+#### **3. Componente con Context**
+```typescript
+const MyComponent: React.FC = () => {
+  const { theme } = useTheme();
+  const { user } = useUser();
+  const { t } = useTranslation();
 
-## 🔄 **Mantenimiento**
-
-### Actualizaciones de Componentes
-- **Versiones**: Control de versiones semántico
-- **Breaking Changes**: Documentados claramente
-- **Migración**: Guías de migración para cambios importantes
-- **Deprecación**: Avisos de deprecación con tiempo suficiente
-
-### Performance
-- **Memoización**: React.memo para componentes pesados
-- **Lazy Loading**: Carga diferida de componentes complejos
-- **Optimización**: Re-renders optimizados
-- **Bundle Size**: Tamaño de bundle controlado
+  return (
+    <View style={{ backgroundColor: theme.colors.background.primary }}>
+      <Text>{t('welcome')} {user?.userName}</Text>
+    </View>
+  );
+};
+```
 
 ---
 
-**Última actualización**: Diciembre 2024  
-**Versión de componentes**: 2.0.0  
-**Estado**: Implementado y documentado 
+<div align="center">
+
+**🎨 Componentes UI Optimizados para MussikOn 🎨**
+
+*Última actualización: Diciembre 2024*
+
+</div> 

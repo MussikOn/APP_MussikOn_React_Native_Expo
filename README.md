@@ -1,413 +1,599 @@
-# 🎵 MussikOn - Aplicación Móvil para Conectar Músicos y Eventos
+# 🎵 MussikOn - Plataforma de Conectividad Musical
 
-> **Plataforma móvil desarrollada en React Native + Expo para conectar músicos con organizadores de eventos musicales**
+<div align="center">
 
-## 🚀 **Estado Actual del Proyecto**
+![MussikOn Logo](assets/Logo_app.png)
 
-### ✅ **Funcionalidades Implementadas**
-- [x] **Sistema de Autenticación Completo** - Login, registro, JWT, persistencia segura
-- [x] **Navegación Inteligente** - Stack, Tabs, Drawer con roles diferenciados
-- [x] **Sistema de Temas** - Claro/oscuro con personalización completa
-- [x] **Internacionalización** - Soporte ES/EN con detección automática
-- [x] **Sistema de Solicitudes de Músicos** - Creación, gestión, filtros por rol
-- [x] **Notificaciones en Tiempo Real** - Socket.io con reconexión automática
-- [x] **UI/UX Foundation** - Componentes modernos, loading states, error handling
-- [x] **Configuración Robusta** - Entornos, APIs centralizadas, manejo de errores
-- [x] **Pantalla "Mis Solicitudes"** - Gestión centralizada con tabs y feedback visual
-- [x] **Edición de Solicitudes** - Organizadores pueden editar sus solicitudes creadas
-- [x] **Filtrado por Rol** - Organizadores ven solo sus solicitudes, músicos ven solo las aceptadas
+**Conectando Músicos y Organizadores de Eventos Musicales**
 
-### 🔄 **Funcionalidades en Desarrollo**
-- [~] **Sistema de Mapas Avanzado** - Geolocalización y marcadores personalizados
-- [~] **Chat en Tiempo Real** - Interfaz completa de mensajería
-- [~] **Gestión de Perfiles** - Subida de imágenes y preferencias avanzadas
-- [~] **Sistema de Pagos** - Integración con pasarelas de pago
+[![React Native](https://img.shields.io/badge/React%20Native-0.79.5-blue.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-53.0.0-black.svg)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
 
-### 📋 **Pendientes de Implementar**
-- [ ] **Sistema de Calificaciones** - Reviews y ratings
-- [ ] **Push Notifications** - Notificaciones push nativas
-- [ ] **Analytics** - Métricas y tracking de uso
-- [ ] **Modo Offline** - Funcionalidad sin conexión
+*Desarrollado con ❤️ para la comunidad musical*
+
+</div>
 
 ---
 
-## 🛠️ **Stack Tecnológico**
+## 📋 Tabla de Contenidos
 
-### **Framework Principal**
-- **React Native** 0.79.5 - Framework móvil multiplataforma
-- **Expo** 53.0.0 - Plataforma de desarrollo y herramientas
-- **TypeScript** 5.8.3 - Tipado estático para robustez
-
-### **Gestión de Estado**
-- **Redux Toolkit** 2.8.2 - Estado global con slices organizados
-- **React Context** - Contextos para tema, usuario, idioma
-
-### **Navegación**
-- **React Navigation** 7.x - Stack, Tabs, Drawer navigators
-- **Navegación por Roles** - Experiencias diferenciadas por tipo de usuario
-
-### **Comunicación**
-- **Socket.io Client** 4.8.1 - Comunicación en tiempo real
-- **Axios** 1.3.6 - Cliente HTTP con interceptores
-- **JWT Decode** - Manejo de tokens de autenticación
-
-### **UI/UX**
-- **Expo Vector Icons** - Iconografía consistente
-- **Expo Linear Gradient** - Gradientes y efectos visuales
-- **Expo Blur** - Efectos de desenfoque
-- **Lottie React Native** - Animaciones complejas
-
-### **Almacenamiento**
-- **Expo Secure Store** - Almacenamiento seguro de tokens
-- **AsyncStorage** - Persistencia de preferencias
-
-### **Internacionalización**
-- **i18next** + **react-i18next** - Soporte multiidioma
-- **expo-localization** - Detección automática de idioma
+- [🎯 Descripción del Proyecto](#-descripción-del-proyecto)
+- [🚀 Características Principales](#-características-principales)
+- [🏗️ Arquitectura del Sistema](#️-arquitectura-del-sistema)
+- [🛠️ Tecnologías Utilizadas](#️-tecnologías-utilizadas)
+- [📱 Funcionalidades por Rol](#-funcionalidades-por-rol)
+- [🔧 Configuración del Proyecto](#-configuración-del-proyecto)
+- [📦 Instalación y Configuración](#-instalación-y-configuración)
+- [🎨 Sistema de Temas y UI/UX](#-sistema-de-temas-y-uiux)
+- [🔌 Sistema de Notificaciones](#-sistema-de-notificaciones)
+- [🌐 Configuración de API Centralizada](#-configuración-de-api-centralizada)
+- [📊 Estado del Proyecto](#-estado-del-proyecto)
+- [🐛 Problemas Conocidos](#-problemas-conocidos)
+- [🔮 Roadmap y Mejoras Futuras](#-roadmap-y-mejoras-futuras)
+- [🤝 Contribución](#-contribución)
+- [📄 Licencia](#-licencia)
 
 ---
 
-## 📱 **Características Principales**
+## 🎯 Descripción del Proyecto
 
-### 🔐 **Autenticación Segura**
-- Login/registro con validación robusta
-- Tokens JWT con almacenamiento seguro
-- Persistencia de sesión automática
-- Manejo de tokens expirados
+**MussikOn** es una plataforma móvil innovadora que conecta organizadores de eventos con músicos profesionales. La aplicación facilita la gestión completa del ciclo de vida de las solicitudes musicales, desde la creación hasta la finalización, con un sistema de notificaciones en tiempo real y una interfaz de usuario moderna e intuitiva.
 
-### 🎵 **Sistema de Solicitudes de Músicos**
-- Creación de solicitudes de músicos para eventos
-- Filtros por instrumento, ubicación, fecha
-- Estados en tiempo real (pendiente, asignado, completado)
-- Historial de solicitudes por rol
-- Edición de solicitudes por organizadores
-- Filtrado inteligente por tipo de usuario
+### 🎪 Propósito Principal
 
-### 🌍 **Internacionalización Completa**
-- Soporte para español e inglés
-- Detección automática de idioma del dispositivo
-- Selector de idioma en configuración
-- Persistencia de preferencias
-
-### 🎨 **Sistema de Temas**
-- Modo claro/oscuro
-- Colores oficiales de MussikOn
-- Componentes adaptables al tema
-- Transiciones suaves
-
-### 📍 **Sistema de Mapas**
-- Integración con React Native Maps
-- Selección de ubicación para eventos
-- Geolocalización del usuario
-- Marcadores personalizados
-
-### 💬 **Comunicación en Tiempo Real**
-- Socket.io para notificaciones instantáneas
-- Estados de conexión en tiempo real
-- Reconexión automática
-- Eventos específicos por funcionalidad
+- **Conectar**: Organizadores de eventos con músicos profesionales
+- **Gestionar**: Solicitudes musicales de manera eficiente
+- **Comunicar**: Notificaciones en tiempo real
+- **Optimizar**: Flujo de trabajo para ambos roles
 
 ---
 
-## 🚀 **Instalación y Configuración**
+## 🚀 Características Principales
 
-### **Prerrequisitos**
-- Node.js 16+ 
-- npm o yarn
-- Expo CLI
-- Expo Go (para pruebas)
+### 🎵 **Gestión de Solicitudes Musicales**
+- ✅ Creación de solicitudes con detalles completos
+- ✅ Filtrado y búsqueda avanzada
+- ✅ Estados de solicitud (Pendiente, Asignado, Completado, Cancelado)
+- ✅ Gestión de comentarios y requisitos especiales
 
-### **Pasos de Instalación**
+### 🔔 **Sistema de Notificaciones Avanzado**
+- ✅ Notificaciones en tiempo real con Socket.IO
+- ✅ Notificaciones persistentes con AsyncStorage
+- ✅ Botón flotante de notificaciones en el header
+- ✅ Pantalla dedicada de notificaciones
+- ✅ Navegación directa a detalles desde notificaciones
 
-1. **Clonar el repositorio**
-```bash
-git clone [URL_DEL_REPOSITORIO]
-cd APP_MussikOn_React_Native_Expo
-```
+### 🎨 **Interfaz de Usuario Moderna**
+- ✅ Sistema de temas claro/oscuro
+- ✅ Diseño responsivo y accesible
+- ✅ Animaciones fluidas y feedback táctil
+- ✅ Componentes reutilizables y consistentes
 
-2. **Instalar dependencias**
-```bash
-npm install
-```
+### 🌐 **Configuración Centralizada**
+- ✅ API endpoints centralizados
+- ✅ Configuración de Socket.IO unificada
+- ✅ Gestión de entornos (Development, Production, Staging)
+- ✅ Un solo punto de cambio para URLs
 
-3. **Configurar entorno**
-```bash
-# Crear archivo .env en la raíz
-API_URL=http://tu-servidor-api.com
-SOCKET_URL=ws://tu-servidor-socket.com
-```
-
-4. **Iniciar desarrollo**
-```bash
-npm start
-# o
-npx expo start
-```
-
-5. **Ejecutar en dispositivo**
-- Escanear QR con Expo Go (Android)
-- Usar app Cámara en iOS
+### 🔐 **Autenticación y Seguridad**
+- ✅ JWT Token management
+- ✅ Persistencia de sesión
+- ✅ Validación de roles (Organizador/Músico)
+- ✅ Interceptores de API para manejo de errores
 
 ---
 
-## 📁 **Estructura del Proyecto**
+## 🏗️ Arquitectura del Sistema
 
+### 📱 **Frontend (React Native + Expo)**
 ```
 src/
-├── app/                    # Punto de entrada
-│   └── App.tsx            # Componente raíz
-├── components/            # Componentes reutilizables
-│   ├── ui/               # Componentes de interfaz
-│   ├── features/         # Componentes específicos
-│   └── navigation/       # Componentes de navegación
-├── screens/              # Pantallas de la aplicación
-│   ├── auth/            # Autenticación
-│   ├── dashboard/       # Panel principal
-│   ├── events/          # Gestión de eventos
-│   ├── profile/         # Perfiles de usuario
-│   └── settings/        # Configuraciones
-├── services/            # Servicios y APIs
-│   ├── api.ts           # Cliente HTTP centralizado
-│   ├── events.ts        # Servicios de eventos
-│   └── musicianRequests.ts # Servicios de músicos
-├── store/               # Estado global (Redux)
-│   ├── store.ts         # Configuración de store
-│   └── slices/          # Slices de Redux
-├── contexts/            # Contextos de React
-│   ├── ThemeContext.tsx # Contexto de tema
-│   ├── UserContext.tsx  # Contexto de usuario
-│   ├── LanguageContext.tsx # Contexto de idioma
-│   └── SidebarContext.tsx # Contexto de sidebar
-├── hooks/               # Custom hooks
-│   ├── useSocket.tsx    # Hook de sockets
-│   └── useMusicianRequestSocket.ts # Hook de solicitudes
-├── utils/               # Utilidades y helpers
-│   ├── functions.ts     # Funciones de token
-│   ├── auth.ts          # Utilidades de auth
-│   └── socket.ts        # Configuración de socket
-├── theme/               # Sistema de diseño
-│   ├── colors.ts        # Paleta de colores
-│   ├── typography.ts    # Tipografías
-│   └── spacing.ts       # Espaciado y layout
-├── i18n/                # Internacionalización
-│   ├── index.ts         # Configuración i18n
-│   └── locales/         # Archivos de traducción
-├── config/              # Configuración
-│   └── environment.ts   # Variables de entorno
-└── appTypes/            # Tipos TypeScript
-    └── DatasTypes.ts    # Tipos principales
+├── app/                    # Configuración principal de la app
+├── components/             # Componentes reutilizables
+│   ├── ui/                # Componentes de UI base
+│   └── forms/             # Componentes de formularios
+├── contexts/              # Contextos de React
+├── screens/               # Pantallas de la aplicación
+│   ├── auth/              # Autenticación
+│   ├── dashboard/         # Dashboard principal
+│   ├── events/            # Gestión de solicitudes
+│   └── notifications/     # Sistema de notificaciones
+├── services/              # Servicios de API
+├── config/                # Configuración centralizada
+├── hooks/                 # Hooks personalizados
+├── utils/                 # Utilidades y helpers
+└── types/                 # Definiciones de tipos TypeScript
+```
+
+### 🔧 **Backend (Node.js + Express + TypeScript)**
+```
+app_mussikon_express/
+├── src/
+│   ├── controllers/       # Controladores de la API
+│   ├── models/           # Modelos de datos
+│   ├── routes/           # Rutas de la API
+│   ├── middleware/       # Middleware personalizado
+│   ├── sockets/          # Configuración de Socket.IO
+│   ├── utils/            # Utilidades del backend
+│   └── types/            # Tipos TypeScript
 ```
 
 ---
 
-## 🔧 **Scripts Disponibles**
+## 🛠️ Tecnologías Utilizadas
 
-```bash
-# Desarrollo
-npm start              # Iniciar servidor de desarrollo
-npm run android        # Ejecutar en Android
-npm run ios           # Ejecutar en iOS
-npm run web           # Ejecutar en web
+### 📱 **Frontend**
+- **React Native**: Framework principal
+- **Expo**: Plataforma de desarrollo
+- **TypeScript**: Tipado estático
+- **React Navigation**: Navegación entre pantallas
+- **Socket.IO Client**: Comunicación en tiempo real
+- **AsyncStorage**: Almacenamiento local
+- **React i18next**: Internacionalización
 
-# Build y Deploy
-eas build --platform android  # Build para Android
-eas build --platform ios      # Build para iOS
+### 🎨 **UI/UX**
+- **React Native Elements**: Componentes de UI
+- **Expo Vector Icons**: Iconografía
+- **React Native Reanimated**: Animaciones
+- **React Native Safe Area**: Manejo de áreas seguras
+- **Expo Haptics**: Feedback táctil
 
-# Utilidades
-npx tsc --noEmit      # Verificar tipos TypeScript
-npx expo start --clear # Limpiar cache
-```
+### 🔧 **Backend**
+- **Node.js**: Runtime de JavaScript
+- **Express.js**: Framework web
+- **TypeScript**: Tipado estático
+- **Socket.IO**: Comunicación en tiempo real
+- **Firebase Firestore**: Base de datos
+- **JWT**: Autenticación
+
+### 🚀 **Herramientas de Desarrollo**
+- **ESLint**: Linting de código
+- **Prettier**: Formateo de código
+- **Git**: Control de versiones
+- **GitHub**: Repositorio remoto
 
 ---
 
-## 🌐 **Configuración de APIs**
+## 📱 Funcionalidades por Rol
 
-### **Variables de Entorno**
+### 🎪 **Organizador de Eventos**
+
+#### **Gestión de Solicitudes**
+- ✅ Crear solicitudes musicales detalladas
+- ✅ Editar solicitudes existentes
+- ✅ Cancelar solicitudes
+- ✅ Eliminar solicitudes completadas
+- ✅ Ver detalles completos de solicitudes
+
+#### **Seguimiento de Estado**
+- ✅ Solicitudes pendientes
+- ✅ Solicitudes asignadas
+- ✅ Solicitudes canceladas
+- ✅ Solicitudes completadas
+
+#### **Comunicación**
+- ✅ Notificaciones en tiempo real
+- ✅ Chat con músicos asignados
+- ✅ Historial de conversaciones
+
+### 🎵 **Músico Profesional**
+
+#### **Exploración de Oportunidades**
+- ✅ Ver solicitudes disponibles
+- ✅ Filtrar por instrumento, ubicación, fecha
+- ✅ Aceptar solicitudes de interés
+- ✅ Ver detalles completos antes de aceptar
+
+#### **Gestión de Compromisos**
+- ✅ Solicitudes agendadas
+- ✅ Historial de actuaciones
+- ✅ Cancelar compromisos (con notificación)
+
+#### **Comunicación**
+- ✅ Notificaciones de nuevas solicitudes
+- ✅ Notificaciones de cancelaciones
+- ✅ Chat con organizadores
+
+---
+
+## 🔧 Configuración del Proyecto
+
+### 🌐 **Configuración de API Centralizada**
+
+#### **Archivo Principal: `src/config/apiConfig.ts`**
 ```typescript
-// src/config/environment.ts
-export const API_URL = "http://tu-servidor-api.com";
-export const SOCKET_URL = "ws://tu-servidor-socket.com";
+export const API_CONFIG = {
+  BASE_URL: 'http://192.168.100.101:3001',
+  ENDPOINTS: {
+    // Todos los endpoints centralizados
+  },
+  TIMEOUT: 10000,
+  DEFAULT_HEADERS: {
+    'Content-Type': 'application/json',
+  },
+  RETRY_CONFIG: {
+    maxRetries: 3,
+    retryDelay: 1000,
+  },
+};
 ```
 
-### **Endpoints Principales**
-- `POST /auth/login` - Autenticación de usuarios
-- `POST /events/request-musician` - Crear solicitud de músico
-- `GET /events/my-pending` - Eventos pendientes del organizador
-- `GET /events/my-assigned` - Eventos asignados del organizador
-- `GET /events/available-requests` - Solicitudes disponibles para músicos
-- `POST /events/:eventId/accept` - Aceptar solicitud (músico)
-
----
-
-## 🎨 **Sistema de Diseño**
-
-### **Colores Oficiales**
+#### **Entornos: `src/config/environment.ts`**
 ```typescript
-// Paleta principal de MussikOn
-primary: {
-  500: '#014aad',    // Azul principal
-  600: '#013e94',    // Azul oscuro
-  400: '#3385d7',    // Azul claro
-}
-
-secondary: {
-  500: '#444444',    // Gris medio
-  900: '#000000',    // Negro puro
-}
-
-accent: {
-  500: '#1aa3ff',    // Azul claro
-}
+// Development y Production usan configuración centralizada
+// Staging mantiene configuración específica
 ```
 
-### **Componentes UI**
-- **Button** - Botones con múltiples variantes
-- **Input** - Campos de entrada con validación
-- **Card** - Tarjetas contenedoras
-- **LoadingSpinner** - Indicadores de carga
-- **Header** - Encabezados de pantalla
-- **BottomNavigation** - Navegación inferior
+### 🔌 **Sistema de Notificaciones**
+
+#### **Componentes Principales**
+- **`FloatingNotificationButton`**: Botón flotante en header
+- **`NotificationsScreen`**: Pantalla de notificaciones
+- **`notificationService`**: Servicio de gestión local
+- **`SocketContext`**: Comunicación en tiempo real
+
+#### **Flujo de Notificaciones**
+1. **Recepción**: Socket.IO recibe evento del servidor
+2. **Procesamiento**: Se crea notificación local
+3. **Persistencia**: Se guarda en AsyncStorage
+4. **Visualización**: Se muestra en botón flotante
+5. **Navegación**: Al tocar, va a detalles de solicitud
 
 ---
 
-## 🔐 **Seguridad**
+## 📦 Instalación y Configuración
 
-- **Tokens JWT** - Autenticación segura
-- **Expo Secure Store** - Almacenamiento encriptado
-- **Validación de Datos** - Sanitización de inputs
-- **Manejo de Errores** - Logging centralizado
-- **Interceptores HTTP** - Headers automáticos
-
----
-
-## 🌍 **Internacionalización**
-
-### **Idiomas Soportados**
-- **Español (ES)** - Idioma por defecto
-- **Inglés (EN)** - Idioma secundario
-
-### **Uso en Componentes**
-```typescript
-import { useTranslation } from 'react-i18next';
-
-const { t } = useTranslation();
-<Text>{t('login.title')}</Text>
-```
-
----
-
-## 📊 **Performance**
-
-- **Lazy Loading** - Carga diferida de componentes
-- **Optimización de Imágenes** - Compresión automática
-- **Caché Inteligente** - Almacenamiento local
-- **Bundle Splitting** - División de código
-- **Memory Management** - Limpieza de recursos
-
----
-
-## 🧪 **Testing**
-
+### 🔧 **Requisitos Previos**
 ```bash
-# Ejecutar tests
-npm test
+# Node.js (v16 o superior)
+node --version
 
-# Tests en modo watch
-npm run test:watch
+# npm o yarn
+npm --version
 
-# Coverage
-npm run test:coverage
+# Expo CLI
+npm install -g @expo/cli
 ```
 
----
-
-## 📦 **Build y Despliegue**
-
-### **Android**
+### 🚀 **Instalación del Proyecto**
 ```bash
-eas build --platform android
+# Clonar repositorio
+git clone https://github.com/MussikOn/APP_MussikOn_React_Native_Expo.git
+cd APP_MussikOn_React_Native_Expo
+
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con las URLs correctas
 ```
 
-### **iOS**
+### 🔧 **Configuración de Desarrollo**
 ```bash
-eas build --platform ios
+# Iniciar servidor de desarrollo
+npm start
+
+# Ejecutar en Android
+npm run android
+
+# Ejecutar en iOS
+npm run ios
 ```
 
-### **Configuración EAS**
-El proyecto incluye configuración completa para EAS Build. Revisa `eas.json` para más detalles.
+### 🌐 **Configuración de Backend**
+```bash
+# Navegar al directorio del backend
+cd ../app_mussikon_express
+
+# Instalar dependencias
+npm install
+
+# Iniciar servidor
+npm run dev
+```
 
 ---
 
-## 🤝 **Contribución**
+## 🎨 Sistema de Temas y UI/UX
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+### 🎨 **Sistema de Temas**
+- ✅ **Tema Claro**: Colores vibrantes y legibles
+- ✅ **Tema Oscuro**: Colores suaves para uso nocturno
+- ✅ **Transiciones Suaves**: Cambio automático de tema
+- ✅ **Consistencia Visual**: Paleta de colores unificada
 
-### **Guías de Contribución**
-- Sigue las convenciones de TypeScript
-- Mantén la consistencia del código
-- Documenta nuevas funcionalidades
-- Añade tests para nuevas features
+### 🎯 **Principios de Diseño**
+- ✅ **Accesibilidad**: Contraste adecuado y tamaños de texto
+- ✅ **Responsividad**: Adaptación a diferentes tamaños de pantalla
+- ✅ **Feedback Visual**: Animaciones y estados de interacción
+- ✅ **Navegación Intuitiva**: Flujo lógico entre pantallas
 
----
-
-## 📚 **Documentación**
-
-### **Archivos de Documentación**
-- [📚 Documentación Completa](./docs/INDEX.md)
-- [🛠️ Guías de Desarrollo](./DEVELOPMENT_GUIDELINES.md)
-- [📊 Análisis de Estado](./PROJECT_STATUS_ANALYSIS.md)
-- [🚀 Guía de Modernización](./MODERNIZATION_GUIDE.md)
-
-### **Secciones Principales**
-- [🏗️ Arquitectura](./docs/architecture/README.md)
-- [🛠️ Tecnologías](./docs/technologies/tech-stack.md)
-- [🎨 Componentes](./docs/components/ui-components.md)
-- [🔐 Autenticación](./docs/features/authentication.md)
-- [📱 Pantallas](./docs/screens/)
+### 🎨 **Componentes de UI**
+- ✅ **Botones**: Estados consistentes y feedback táctil
+- ✅ **Cards**: Diseño moderno con sombras y bordes redondeados
+- ✅ **Formularios**: Validación visual y mensajes de error
+- ✅ **Modales**: Overlays elegantes para acciones importantes
 
 ---
 
-## 🐛 **Reportar Bugs**
+## 🔌 Sistema de Notificaciones
 
-Si encuentras un bug, por favor:
+### 🔔 **Características Principales**
+- ✅ **Tiempo Real**: Socket.IO para notificaciones instantáneas
+- ✅ **Persistencia**: AsyncStorage para notificaciones offline
+- ✅ **Navegación**: Acceso directo a detalles de solicitudes
+- ✅ **Gestión**: Marcar como leídas, eliminar, limpiar todas
 
-1. Revisa si ya existe un issue similar
-2. Crea un nuevo issue con:
-   - Descripción detallada del problema
-   - Pasos para reproducir
-   - Información del dispositivo/OS
-   - Screenshots si es relevante
+### 🎯 **Flujo de Usuario**
+1. **Recepción**: Notificación llega vía Socket.IO
+2. **Almacenamiento**: Se guarda localmente
+3. **Indicación**: Botón flotante muestra contador
+4. **Acceso**: Usuario toca botón para ver notificaciones
+5. **Navegación**: Al tocar notificación, va a detalles
 
----
-
-## 📞 **Soporte**
-
-- **Documentación:** [DEVELOPMENT_GUIDELINES.md](./DEVELOPMENT_GUIDELINES.md)
-- **Issues:** Usa la sección de Issues de GitHub
-- **Discusiones:** Usa la sección de Discussions
-
----
-
-## 📄 **Licencia**
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+### 🎨 **Componentes Visuales**
+- ✅ **Botón Flotante**: Pequeño, en header, no intrusivo
+- ✅ **Contador**: Badge con número de no leídas
+- ✅ **Animación**: Pulso cuando hay notificaciones nuevas
+- ✅ **Pantalla Dedicada**: Lista completa con acciones
 
 ---
 
-## 🙏 **Agradecimientos**
+## 🌐 Configuración de API Centralizada
 
-- Equipo de Expo por la excelente plataforma
-- Comunidad de React Native
-- Contribuidores del proyecto
-- Músicos y organizadores que inspiran la plataforma
+### 🎯 **Ventajas del Sistema Centralizado**
+- ✅ **Un Solo Punto**: Cambiar URL en un archivo
+- ✅ **Consistencia**: Todos los servicios usan misma configuración
+- ✅ **Mantenimiento**: Fácil actualización de endpoints
+- ✅ **Flexibilidad**: Soporte para múltiples entornos
+
+### 📁 **Estructura de Configuración**
+```
+src/config/
+├── apiConfig.ts          # Configuración principal
+├── environment.ts        # Entornos (dev, prod, staging)
+└── types/               # Tipos TypeScript
+```
+
+### 🔧 **Funciones Helper**
+- ✅ **`getApiUrl()`**: Construir URLs con parámetros
+- ✅ **`getSocketUrl()`**: Obtener URL de Socket.IO
+- ✅ **`getApiConfig()`**: Configuración completa de API
+- ✅ **`getSocketEvents()`**: Eventos de Socket.IO
 
 ---
 
-**Desarrollado con ❤️ para la comunidad musical**
+## 📊 Estado del Proyecto
 
-*Última actualización: Diciembre 2024*  
-*Versión del proyecto: 1.0.0*
+### ✅ **Funcionalidades Completadas**
+
+#### **Autenticación y Usuarios**
+- ✅ Login/Registro con validación
+- ✅ Gestión de sesión con JWT
+- ✅ Roles de usuario (Organizador/Músico)
+- ✅ Perfil de usuario editable
+
+#### **Gestión de Solicitudes**
+- ✅ Creación de solicitudes musicales
+- ✅ Edición y eliminación
+- ✅ Estados de solicitud (Pendiente, Asignado, Completado, Cancelado)
+- ✅ Filtrado y búsqueda
+- ✅ Detalles completos de solicitudes
+
+#### **Sistema de Notificaciones**
+- ✅ Notificaciones en tiempo real
+- ✅ Notificaciones persistentes
+- ✅ Botón flotante de notificaciones
+- ✅ Pantalla de gestión de notificaciones
+- ✅ Navegación desde notificaciones
+
+#### **UI/UX y Temas**
+- ✅ Sistema de temas claro/oscuro
+- ✅ Componentes reutilizables
+- ✅ Animaciones fluidas
+- ✅ Diseño responsivo
+
+#### **Configuración y Arquitectura**
+- ✅ Configuración centralizada de API
+- ✅ Sistema de entornos
+- ✅ Tipado TypeScript completo
+- ✅ Estructura modular
+
+### 🚧 **En Desarrollo**
+- 🔄 Chat en tiempo real
+- 🔄 Subida de archivos
+- 🔄 Geolocalización avanzada
+- 🔄 Analytics y métricas
+
+### 📋 **Pendiente**
+- ⏳ Sistema de pagos
+- ⏳ Calificaciones y reseñas
+- ⏳ Integración con redes sociales
+- ⏳ Modo offline completo
+
+---
+
+## 🐛 Problemas Conocidos
+
+### 🔧 **Problemas Técnicos**
+- ⚠️ **Navegación**: Ocasional error de navegación en Android
+- ⚠️ **Socket.IO**: Reconexión automática en algunos casos
+- ⚠️ **Performance**: Carga lenta en dispositivos antiguos
+
+### 🎨 **Problemas de UI/UX**
+- ⚠️ **Responsividad**: Algunos elementos en pantallas muy pequeñas
+- ⚠️ **Accesibilidad**: Mejoras necesarias en lectores de pantalla
+
+### 🔌 **Problemas de API**
+- ⚠️ **Timeout**: Ocasionales timeouts en conexiones lentas
+- ⚠️ **Caché**: Mejoras necesarias en caché de datos
+
+---
+
+## 🔮 Roadmap y Mejoras Futuras
+
+### 🚀 **Versión 2.0 (Próximos 3 meses)**
+- 🎯 **Chat Avanzado**: Mensajes de voz, imágenes, archivos
+- 🎯 **Geolocalización**: Búsqueda por proximidad
+- 🎯 **Subida de Archivos**: Portfolios, demos, contratos
+- 🎯 **Analytics**: Métricas de uso y rendimiento
+
+### 🌟 **Versión 3.0 (Próximos 6 meses)**
+- 🎯 **Sistema de Pagos**: Integración con pasarelas de pago
+- 🎯 **Calificaciones**: Sistema de reseñas y ratings
+- 🎯 **Redes Sociales**: Integración con Facebook, Instagram
+- 🎯 **Modo Offline**: Funcionalidad completa sin conexión
+
+### 🎪 **Versión 4.0 (Próximos 12 meses)**
+- 🎯 **IA y ML**: Recomendaciones inteligentes
+- 🎯 **Realidad Aumentada**: Visualización de eventos
+- 🎯 **Streaming**: Transmisiones en vivo
+- 🎯 **Marketplace**: Tienda de instrumentos y equipos
+
+---
+
+## 🤝 Contribución
+
+### 📋 **Cómo Contribuir**
+1. **Fork** el repositorio
+2. **Crea** una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** a la rama (`git push origin feature/AmazingFeature`)
+5. **Abre** un Pull Request
+
+### 📝 **Estándares de Código**
+- ✅ **TypeScript**: Tipado estático obligatorio
+- ✅ **ESLint**: Linting de código
+- ✅ **Prettier**: Formateo automático
+- ✅ **Commits**: Mensajes descriptivos en español
+
+### 🧪 **Testing**
+- ✅ **Unit Tests**: Jest para lógica de negocio
+- ✅ **Integration Tests**: Testing de API
+- ✅ **E2E Tests**: Detox para flujos completos
+
+---
+
+## 📚 Documentación Completa
+
+### 📖 **Guías Principales**
+- [📚 Documentación Completa](docs/README.md) - Guía principal de documentación
+- [🛠️ Guías de Desarrollo](DEVELOPMENT_GUIDELINES.md) - Mejores prácticas y estándares
+- [📊 Análisis de Estado](PROJECT_STATUS_ANALYSIS.md) - Estado actual detallado
+- [🚀 Guía de Modernización](MODERNIZATION_GUIDE.md) - Plan de mejora
+
+### 🏗️ **Arquitectura y Estructura**
+- [🏗️ Arquitectura del Proyecto](docs/architecture/README.md) - Visión general de la arquitectura
+- [📁 Estructura de Carpetas](docs/architecture/folder-structure.md) - Organización del código
+- [🎨 Patrones de Diseño](docs/architecture/design-patterns.md) - Patrones implementados
+- [🔄 Flujo de Datos](docs/architecture/data-flow.md) - Flujo de información
+
+### 🛠️ **Tecnologías y Dependencias**
+- [🛠️ Stack Tecnológico](docs/technologies/tech-stack.md) - Tecnologías utilizadas
+- [📦 Dependencias Principales](docs/technologies/dependencies.md) - Librerías y paquetes
+- [⚙️ Configuración de Entorno](docs/technologies/environment-setup.md) - Setup del proyecto
+- [🔧 Herramientas de Desarrollo](docs/technologies/development-tools.md) - Herramientas utilizadas
+
+### 🎨 **UI/UX y Componentes**
+- [🎨 Sistema de Diseño](docs/ui-ux/design-system.md) - Principios de diseño
+- [🧩 Componentes UI](docs/components/ui-components.md) - Componentes de interfaz
+- [🎨 Temas y Colores](docs/ui-ux/themes-colors.md) - Sistema de colores
+- [🧭 Navegación](docs/ui-ux/navigation.md) - Sistema de navegación
+
+### 🔧 **Funcionalidades Core**
+- [🔐 Autenticación](docs/features/authentication.md) - Sistema de autenticación
+- [📅 Gestión de Eventos](docs/features/events-management.md) - Manejo de eventos
+- [🎵 Búsqueda de Músicos](docs/features/musician-search.md) - Búsqueda y filtros
+- [💬 Chat en Tiempo Real](docs/features/real-time-chat.md) - Comunicación instantánea
+- [🗺️ Sistema de Mapas](docs/features/maps-system.md) - Integración de mapas
+
+### 📱 **Pantallas y Navegación**
+- [🔐 Pantallas de Autenticación](docs/screens/auth-screens.md) - Login y registro
+- [🏠 Pantallas Principales](docs/screens/main-screens.md) - Pantallas core
+- [📅 Pantallas de Eventos](docs/screens/event-screens.md) - Gestión de eventos
+- [👤 Pantallas de Perfil](docs/screens/profile-screens.md) - Perfiles de usuario
+
+### 🔌 **APIs y Servicios**
+- [🔌 Integración con Backend](docs/BACKEND_INTEGRATION.md) - Documentación completa de la API REST y Socket.IO
+- [⚙️ Configuración de API](docs/api/api-configuration.md) - Setup de APIs
+- [🔐 Servicios de Autenticación](docs/api/auth-services.md) - Servicios de auth
+- [📅 Servicios de Eventos](docs/api/event-services.md) - Servicios de eventos
+- [❌ Manejo de Errores](docs/api/error-handling.md) - Gestión de errores
+
+### 🗄️ **Estado y Gestión de Datos**
+- [🔄 Redux Store](docs/state-management/redux-store.md) - Configuración de Redux
+- [📦 Slices de Estado](docs/state-management/state-slices.md) - Slices implementados
+- [🌐 Contextos de React](docs/state-management/react-contexts.md) - Contextos utilizados
+- [💾 Persistencia de Datos](docs/state-management/data-persistence.md) - Almacenamiento
+
+### 🌍 **Internacionalización**
+- [🌐 Configuración i18n](docs/i18n/i18n-setup.md) - Setup de internacionalización
+- [📄 Archivos de Traducción](docs/i18n/translation-files.md) - Archivos de idiomas
+- [🔧 Contexto de Idioma](docs/i18n/language-context.md) - Contexto de idioma
+
+### 🧪 **Testing y Calidad**
+- [🧪 Estrategia de Testing](docs/testing/testing-strategy.md) - Plan de testing
+- [🔬 Tests Unitarios](docs/testing/unit-tests.md) - Tests de componentes
+- [🔗 Tests de Integración](docs/testing/integration-tests.md) - Tests de integración
+- [📋 Guías de Calidad](docs/testing/quality-guidelines.md) - Estándares de calidad
+
+### 🚀 **Despliegue y Build**
+- [⚙️ Configuración de Build](docs/deployment/build-configuration.md) - Configuración de build
+- [📱 EAS Build](docs/deployment/eas-build.md) - Build con Expo
+- [🌐 Configuración de Producción](docs/deployment/production-setup.md) - Setup de producción
+- [📊 Monitoreo y Analytics](docs/deployment/monitoring.md) - Monitoreo de la app
+
+### 📖 **Guías de Desarrollo**
+- [📝 Guías de Estilo](docs/development/style-guides.md) - Convenciones de código
+- [🔧 Convenciones de Código](docs/development/coding-conventions.md) - Estándares de desarrollo
+- [🔄 Proceso de Desarrollo](docs/development/development-process.md) - Flujo de trabajo
+- [🔧 Troubleshooting](docs/development/troubleshooting.md) - Solución de problemas
+
+### 📝 **Documentación de Componentes**
+- [🧩 Componentes UI](docs/components/ui-components.md) - Componentes de interfaz
+- [🧭 Componentes de Navegación](docs/components/navigation-components.md) - Componentes de navegación
+- [📝 Componentes de Formularios](docs/components/form-components.md) - Componentes de formularios
+- [📅 Componentes de Eventos](docs/components/event-components.md) - Componentes de eventos
+- [📋 Detalles de Componentes](docs/components/component-details.md) - Documentación detallada
+
+### 🔍 **Análisis de Estado Actual**
+- [📊 Estado del Proyecto](docs/project-status/current-status.md) - Estado actual
+- [✅ Funcionalidades Implementadas](docs/project-status/implemented-features.md) - Features completadas
+- [⏳ Funcionalidades Pendientes](docs/project-status/pending-features.md) - Features por implementar
+- [🐛 Bugs Conocidos](docs/project-status/known-bugs.md) - Problemas identificados
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE.md` para más detalles.
+
+---
+
+## 📞 Contacto
+
+- **Desarrollador Principal**: Jefry Agustin Astacio Sanchez
+- **Email**: astaciosanchezjefryagustin@gmail.com
+- **GitHub**: [@MussikOn](https://github.com/MussikOn)
+
+---
+
+## 🙏 Agradecimientos
+
+- **Expo Team**: Por la excelente plataforma de desarrollo
+- **React Native Community**: Por el ecosistema robusto
+- **Socket.IO**: Por la comunicación en tiempo real
+- **Firebase**: Por la infraestructura de backend
+
+---
+
+<div align="center">
+
+**🎵 MussikOn - Conectando Música y Eventos 🎵**
+
+*Desarrollado con ❤️ para la comunidad musical*
+
+</div>
