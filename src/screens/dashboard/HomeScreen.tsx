@@ -63,7 +63,7 @@ const HomeScreen = ({ navigation }: any) => {
       title: t('navigation.events'),
       description: 'Explora eventos musicales',
       icon: 'calendar',
-      route: 'EventList',
+      route: 'MyRequestsList',
       color: theme.colors.secondary[500],
     },
     {

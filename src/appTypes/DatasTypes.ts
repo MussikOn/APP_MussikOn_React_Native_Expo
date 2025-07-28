@@ -7,8 +7,10 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Dashboard: undefined;
   ShareMusician: undefined;
+  ShareMusicianScreen: undefined;
   MyRequestsList: undefined;
   EditRequest: { requestId: string };
+  RequestDetail: { requestId: string };
   Profile: undefined;
   Settings: undefined;
   Maps: undefined;

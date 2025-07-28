@@ -33,6 +33,8 @@ import Dashboard from '@screens/dashboard/Dashboard';
 import NotificationSnackbar from '@components/ui/NotificationSnackbar';
 import MyRequestsList from '@screens/events/MyRequestsList';
 import EditRequest from '@screens/events/EditRequest';
+import RequestDetail from '@screens/events/RequestDetail';
+import ShareMusicianScreen from '@screens/events/ShareMusicianScreen';
 import { ChatListScreen } from '@screens/chat/ChatListScreen';
 import { ChatScreen } from '@screens/chat/ChatScreen';
 
@@ -265,6 +267,8 @@ function AppContent() {
           <Stack.Screen name="ShareMusician" component={ShareMusician} />
           <Stack.Screen name="MyRequestsList" component={MyRequestsList} options={{ title: 'Mis Solicitudes' }} />
           <Stack.Screen name="EditRequest" component={EditRequest} options={{ title: 'Editar Solicitud' }} />
+          <Stack.Screen name="RequestDetail" component={RequestDetail} options={{ title: 'Detalles de Solicitud' }} />
+          <Stack.Screen name="ShareMusicianScreen" component={ShareMusicianScreen} options={{ title: 'Solicitar Músico' }} />
           <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: 'Conversaciones' }} />
           <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
         </Stack.Navigator>
