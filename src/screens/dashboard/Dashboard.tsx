@@ -35,6 +35,7 @@ import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { typography, spacing, borderRadius } from '../../theme';
 import Logo from '../../components/ui/Logo';
+import FloatingNotificationButton from '@components/ui/FloatingNotificationButton';
 
 // Animaciones Lottie (puedes reemplazar los paths por los tuyos propios)
 const lottiePower = require('../../../assets/lottie/Power.json');
@@ -848,6 +849,11 @@ const Dashboard = ({ navigation }: any) => {
           )}
         </View>
       </ScrollView>
+      
+      {/* Botón flotante de notificaciones */}
+      <FloatingNotificationButton 
+        onPress={() => navigation.navigate('Notifications')}
+      />
     </View>
   );
 };

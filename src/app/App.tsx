@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { store } from '../store/store';
+import { SocketProvider } from '@contexts/SocketContext';
 
 import HomeScreen from '@screens/dashboard/HomeScreen';
 import { RootStackParamList } from '@appTypes/DatasTypes';
@@ -31,10 +32,14 @@ import SettingsScreen from '@screens/settings/SettingsScreen';
 import ShareMusician from '@components/features/pages/event/ShareMusician';
 import Dashboard from '@screens/dashboard/Dashboard';
 import NotificationSnackbar from '@components/ui/NotificationSnackbar';
+import NavigationWrapper from '@components/ui/NavigationWrapper';
 import MyRequestsList from '@screens/events/MyRequestsList';
 import EditRequest from '@screens/events/EditRequest';
 import RequestDetail from '@screens/events/RequestDetail';
 import ShareMusicianScreen from '@screens/events/ShareMusicianScreen';
+import NotificationsScreen from '@screens/notifications/NotificationsScreen';
+import FloatingNotificationButton from '@components/ui/FloatingNotificationButton';
+import { useInitialNotifications } from '@hooks/useInitialNotifications';
 import { ChatListScreen } from '@screens/chat/ChatListScreen';
 import { ChatScreen } from '@screens/chat/ChatScreen';
 
@@ -54,6 +59,9 @@ function AppContent() {
   const { sidebarVisible, openSidebar, closeSidebar } = useSidebar();
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  
+  // Cargar notificaciones iniciales
+  useInitialNotifications();
 
   // Crear un ref global para la navegación
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
@@ -221,7 +229,8 @@ function AppContent() {
           },
         }}
       >
-        <Stack.Navigator
+        <NavigationWrapper>
+          <Stack.Navigator
           screenOptions={({ navigation, route }) => ({
             ...screenOptions,
             headerLeft: () =>
@@ -269,9 +278,18 @@ function AppContent() {
           <Stack.Screen name="EditRequest" component={EditRequest} options={{ title: 'Editar Solicitud' }} />
           <Stack.Screen name="RequestDetail" component={RequestDetail} options={{ title: 'Detalles de Solicitud' }} />
           <Stack.Screen name="ShareMusicianScreen" component={ShareMusicianScreen} options={{ title: 'Solicitar Músico' }} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notificaciones' }} />
           <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: 'Conversaciones' }} />
           <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
         </Stack.Navigator>
+        </NavigationWrapper>
+        
+        {/* Botón flotante de notificaciones */}
+        {user && (
+          <FloatingNotificationButton 
+            onPress={() => navigationRef.current?.navigate('Notifications')}
+          />
+        )}
       </NavigationContainer>
     </>
   );
@@ -353,7 +371,9 @@ export default function App() {
             <ThemeProvider>
               <UserProvider>
                 <SidebarProvider>
-                  <AppContent />
+                  <SocketProvider>
+                    <AppContent />
+                  </SocketProvider>
                 </SidebarProvider>
               </UserProvider>
             </ThemeProvider>

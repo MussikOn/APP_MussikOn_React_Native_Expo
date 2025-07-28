@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,8 @@ import { getData } from '@utils/functions';
 import { Token } from '@appTypes/DatasTypes';
 import AnimatedBackground from '@components/ui/styles/AnimatedBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import FloatingNotificationButton from '@components/ui/FloatingNotificationButton';
+import { createTestNotifications } from '@utils/testNotifications';
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +49,13 @@ const HomeScreen = ({ navigation }: any) => {
       navigation.navigate(route);
     } else {
       navigation.navigate('Login');
+    }
+  };
+
+  const handleCreateTestNotifications = async () => {
+    if (user?.userEmail) {
+      await createTestNotifications(user.userEmail);
+      Alert.alert('Éxito', 'Notificaciones de prueba creadas. Revisa el botón flotante.');
     }
   };
 
@@ -199,9 +209,27 @@ const HomeScreen = ({ navigation }: any) => {
                 </View>
               </View>
             </View>
+
+            {/* Botón de prueba para notificaciones */}
+            <View style={styles.section}>
+              <TouchableOpacity
+                style={[styles.testButton, { backgroundColor: theme.colors.primary[500] }]}
+                onPress={handleCreateTestNotifications}
+              >
+                <Ionicons name="notifications" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={[styles.testButtonText, { color: '#fff' }]}>
+                  Crear Notificaciones de Prueba
+                </Text>
+              </TouchableOpacity>
+            </View>
           </>
         )}
       </ScrollView>
+      
+      {/* Botón flotante de notificaciones */}
+      <FloatingNotificationButton 
+        onPress={() => navigation.navigate('Notifications')}
+      />
     </View>
   );
 };
@@ -361,6 +389,19 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     fontSize: 16,
+    fontWeight: '600',
+  },
+  testButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  testButtonText: {
+    fontSize: 14,
     fontWeight: '600',
   },
 });

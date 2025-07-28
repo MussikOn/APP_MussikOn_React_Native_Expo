@@ -11,6 +11,7 @@ export type RootStackParamList = {
   MyRequestsList: undefined;
   EditRequest: { requestId: string };
   RequestDetail: { requestId: string };
+  Notifications: undefined;
   Profile: undefined;
   Settings: undefined;
   Maps: undefined;
