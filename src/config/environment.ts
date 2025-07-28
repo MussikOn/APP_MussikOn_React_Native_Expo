@@ -4,8 +4,8 @@ export interface Environment {
   SOCKET_URL: string;
   ENVIRONMENT: 'development' | 'production' | 'staging';
 }
-const URL_DEV = "http://172.20.10.2:3001";
-const URL_PROD = "http://192.168.100.101:3001";
+const URL_DEV = "http://192.168.54.44:3001";
+const URL_PROD = "http://192.168.54.44:3001";
 // Configuraciones por entorno
 const environments: Record<string, Environment> = {
   development: {
