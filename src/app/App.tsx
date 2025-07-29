@@ -37,6 +37,7 @@ import MyRequestsList from '@screens/events/MyRequestsList';
 import EditRequest from '@screens/events/EditRequest';
 import RequestDetail from '@screens/events/RequestDetail';
 import ShareMusicianScreen from '@screens/events/ShareMusicianScreen';
+import AvailableRequestsScreen from '@screens/events/AvailableRequestsScreen';
 import NotificationsScreen from '@screens/notifications/NotificationsScreen';
 import FloatingNotificationButton from '@components/ui/FloatingNotificationButton';
 import { useInitialNotifications } from '@hooks/useInitialNotifications';
@@ -275,6 +276,7 @@ function AppContent() {
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="ShareMusician" component={ShareMusician} />
           <Stack.Screen name="MyRequestsList" component={MyRequestsList} options={{ title: 'Mis Solicitudes' }} />
+          <Stack.Screen name="AvailableRequests" component={AvailableRequestsScreen} options={{ title: 'Solicitudes Disponibles' }} />
           <Stack.Screen name="EditRequest" component={EditRequest} options={{ title: 'Editar Solicitud' }} />
           <Stack.Screen name="RequestDetail" component={RequestDetail} options={{ title: 'Detalles de Solicitud' }} />
           <Stack.Screen name="ShareMusicianScreen" component={ShareMusicianScreen} options={{ title: 'Solicitar Músico' }} />
