@@ -16,6 +16,7 @@ La pantalla `AvailableRequestsScreen` es una nueva funcionalidad diseñada espec
 - **Navegación Intuitiva** - Acceso a detalles completos de cada solicitud
 - **Feedback Visual** - Estados de loading y confirmaciones
 - **Pull to Refresh** - Actualizar lista manualmente
+- **Verificaciones Null** - Protección contra errores de datos faltantes
 
 ---
 

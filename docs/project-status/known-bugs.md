@@ -6,6 +6,14 @@ Este documento detalla los bugs conocidos en la aplicación MussikOn, su estado 
 
 ## ✅ **Bugs Resueltos**
 
+### 🔧 **Error TypeError: Cannot read property 'toLocaleString' of null**
+- **Descripción**: Error crítico al mostrar detalles de solicitudes cuando `budget` es `null`
+- **Estado**: ✅ **RESUELTO**
+- **Solución**: Agregadas verificaciones null para `budget`, `date`, `time`, `location`, `instrument`, `duration` y `name`
+- **Archivos afectados**: `src/screens/events/RequestDetail.tsx`, `src/screens/events/AvailableRequestsScreen.tsx`, `src/screens/events/MyRequestsList.tsx`
+- **Fecha de resolución**: Diciembre 2024
+- **Impacto**: Prevenía que músicos y organizadores vieran detalles de solicitudes
+
 ### 🔧 **Error 404 en Endpoints de Solicitudes**
 - **Descripción**: Los endpoints `/requests/` devolvían 404 porque el backend usa `/events/`
 - **Estado**: ✅ **RESUELTO**
@@ -87,11 +95,11 @@ Todos los bugs críticos han sido resueltos en las últimas actualizaciones.
 - **Bugs Críticos**: 0
 - **Bugs Mayores**: 0
 - **Bugs Menores**: 2
-- **Bugs Resueltos**: 5
-- **Total de Bugs**: 7
+- **Bugs Resueltos**: 6
+- **Total de Bugs**: 8
 
 ### **Tendencia**
-- **Diciembre 2024**: 5 bugs resueltos, 2 bugs menores activos
+- **Diciembre 2024**: 6 bugs resueltos, 2 bugs menores activos
 - **Tendencia**: Mejorando significativamente
 - **Estabilidad**: Alta
 

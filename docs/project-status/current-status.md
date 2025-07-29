@@ -4,7 +4,7 @@
 
 MussikOn es una aplicación móvil en **fase de desarrollo activo** con una arquitectura sólida implementada. El proyecto tiene una base técnica robusta con funcionalidades core implementadas y está listo para el desarrollo de características avanzadas.
 
-**ACTUALIZADO:** El sistema de solicitudes de músicos está completamente implementado y funcional. Se eliminaron todas las funcionalidades de "eventos" y se mantuvieron solo las de "solicitudes de músicos". Los endpoints se actualizaron para usar `/events/` en lugar de `/requests/` para compatibilidad con el backend. La pantalla "Mis Solicitudes" permite filtrado por rol y edición de solicitudes.
+**ACTUALIZADO:** El sistema de solicitudes de músicos está completamente implementado y funcional. Se eliminaron todas las funcionalidades de "eventos" y se mantuvieron solo las de "solicitudes de músicos". Los endpoints se actualizaron para usar `/events/` en lugar de `/requests/` para compatibilidad con el backend. La pantalla "Mis Solicitudes" permite filtrado por rol y edición de solicitudes. **NUEVO:** Se resolvió el error crítico `TypeError: Cannot read property 'toLocaleString' of null` agregando verificaciones null en todas las pantallas de solicitudes.
 
 ## 📈 **Métricas del Proyecto**
 

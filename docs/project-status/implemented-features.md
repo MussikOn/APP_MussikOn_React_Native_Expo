@@ -80,6 +80,7 @@ Este documento detalla todas las características que han sido completamente imp
 - **Listado**: Pantalla "Mis Solicitudes" con filtros
 - **Edición**: Organizadores pueden editar sus solicitudes
 - **Estados**: Pendiente, asignado, completado, cancelado
+- **Verificaciones Null**: Protección completa contra errores de datos faltantes
 
 ### ✅ **Filtrado por Rol**
 - **Organizadores**: Ven solo sus solicitudes creadas

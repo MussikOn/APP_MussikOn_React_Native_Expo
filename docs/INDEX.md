@@ -39,6 +39,7 @@
 - [🐛 Problemas Conocidos](./project-status/known-bugs.md) - Bugs y limitaciones
 - [📋 Funcionalidades Pendientes](./project-status/pending-features.md) - Próximas implementaciones
 - [📈 Estado Actual](./project-status/current-status.md) - Métricas y progreso
+- [🛡️ Verificaciones Null](./features/null-safety-implementation.md) - **NUEVO** - Protección contra errores de datos faltantes
 
 ---
 
@@ -50,6 +51,7 @@
 - ✅ **Gestión de Solicitudes**: Creación, listado, filtros por rol
 - ✅ **Notificaciones en Tiempo Real**: Socket.io con reconexión automática
 - ✅ **Pantalla de Solicitudes Disponibles**: **NUEVA** - Para músicos ver y aceptar solicitudes
+- ✅ **Verificaciones Null**: **NUEVO** - Protección completa contra errores de datos faltantes
 - ✅ **UI/UX Foundation**: Componentes modernos, loading states, error handling
 - ✅ **Configuración Robusta**: Entornos, APIs centralizadas, manejo de errores
 

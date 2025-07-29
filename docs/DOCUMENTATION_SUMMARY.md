@@ -81,6 +81,12 @@ He realizado una **revisión exhaustiva** de todo el proyecto frontend y backend
    - Marcado como leídas y eliminación
    - Animaciones y feedback visual
 
+7. **Verificaciones Null** ⭐ **NUEVO**
+   - Protección completa contra errores de datos faltantes
+   - Verificaciones null en todas las pantallas de solicitudes
+   - Mensajes descriptivos para datos faltantes
+   - Estabilidad garantizada de la aplicación
+
 7. **UI/UX Foundation**
    - Componentes modernos
    - Loading states
