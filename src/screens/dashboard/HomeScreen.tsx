@@ -55,6 +55,7 @@ const HomeScreen = ({ navigation }: any) => {
   const handleCreateTestNotifications = async () => {
     if (user?.userEmail) {
       await createTestNotifications(user.userEmail);
+      console.log('./src/screens/dashboard/HomeScreen.tsx line 58');
       Alert.alert('Éxito', 'Notificaciones de prueba creadas. Revisa el botón flotante.');
     }
   };
@@ -65,7 +66,7 @@ const HomeScreen = ({ navigation }: any) => {
       title: t('navigation.request_musician'),
       description: 'Encuentra músicos para tu evento',
       icon: 'musical-notes',
-      route: 'ShareMusician',
+      route: 'ShareMusicianScreen',
       color: theme.colors.primary[500],
     },
     {

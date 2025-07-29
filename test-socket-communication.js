@@ -1,9 +1,9 @@
 const io = require('socket.io-client');
 
 // Configuración
-const SOCKET_URL = 'http://172.20.10.2:3001';
+const SOCKET_URL = 'http://192.168.54.48:3001';
 const API_URL = 'http://172.20.10.2:3001';
-
+console.log('./test-socket-communication.js line 5');
 console.log('🧪 Iniciando prueba de comunicación Socket.IO...');
 console.log('📍 Socket URL:', SOCKET_URL);
 console.log('📍 API URL:', API_URL);
@@ -36,6 +36,7 @@ function simulateMusician() {
       
       // Escuchar nueva solicitud
       socket.on('new_event_request', (data) => {
+        console.log('./test-socket-communication.js line 39');
         console.log('📢 Músico recibió nueva solicitud:', {
           id: data.id,
           eventType: data.eventType,
@@ -46,6 +47,7 @@ function simulateMusician() {
         
         // Simular aceptación después de 2 segundos
         setTimeout(() => {
+          console.log('./test-socket-communication.js line 50');
           console.log('✅ Músico acepta la solicitud');
           // Aquí se haría la petición HTTP para aceptar
           clearTimeout(timeout);
@@ -56,12 +58,14 @@ function simulateMusician() {
       
       // Simular creación de solicitud después de 3 segundos
       setTimeout(() => {
+        console.log('./test-socket-communication.js line 61');
         console.log('🔄 Simulando creación de solicitud desde organizador...');
         createTestRequest();
       }, 3000);
     });
 
     socket.on('connect_error', (error) => {
+      console.log('./test-socket-communication.js line 68');
       console.error('❌ Error de conexión del músico:', error.message);
       clearTimeout(timeout);
       socket.disconnect();
@@ -73,6 +77,7 @@ function simulateMusician() {
 // Crear una solicitud de prueba
 async function createTestRequest() {
   try {
+    console.log('./test-socket-communication.js line 79');
     console.log('\n📝 Creando solicitud de prueba...');
     
     const response = await fetch(`${API_URL}/events/request-musician`, {
@@ -102,28 +107,34 @@ async function createTestRequest() {
 
     if (response.ok) {
       const data = await response.json();
+      console.log('./test-socket-communication.js line 109');
       console.log('✅ Solicitud creada exitosamente:', data);
     } else {
       const error = await response.text();
+      console.log('./test-socket-communication.js line 114');
       console.error('❌ Error creando solicitud:', error);
     }
   } catch (error) {
+    console.log('./test-socket-communication.js line 119');
     console.error('❌ Error en creación de solicitud:', error.message);
   }
 }
 
 // Función principal
 async function runTest() {
+  console.log('./test-socket-communication.js line 125');
   console.log('🚀 Iniciando prueba completa...\n');
   
   // 1. Simular músico conectado
   const musicianSuccess = await simulateMusician();
   
   // Resumen
+  console.log('./test-socket-communication.js line 132');
   console.log('\n📊 RESUMEN DE LA PRUEBA:');
   console.log('🎵 Músico conectado:', musicianSuccess ? '✅ EXITOSO' : '❌ FALLIDO');
   
   if (musicianSuccess) {
+    console.log('./test-socket-communication.js line 138');
     console.log('\n🎉 ¡La comunicación Socket.IO está funcionando correctamente!');
     console.log('💡 El flujo completo funciona:');
     console.log('   1. ✅ Músico se conecta y autentica');
@@ -132,9 +143,11 @@ async function runTest() {
     console.log('   4. ✅ Músico recibe la notificación');
     console.log('   5. ✅ Músico puede aceptar la solicitud');
   } else {
+    console.log('./test-socket-communication.js line 146');
     console.log('\n⚠️  Problemas detectados en la comunicación');
   }
 }
 
 // Ejecutar prueba
+console.log('./test-socket-communication.js line 152');
 runTest().catch(console.error); 
