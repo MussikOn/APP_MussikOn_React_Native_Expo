@@ -497,6 +497,21 @@
       "location_not_found": "No se encontró la ubicación buscada",
       "search_error": "Error al buscar la ubicación",
       "current_location": "Mi ubicación actual"
+    },
+    "details": {
+      "organizer_info": "Información del Solicitante",
+      "organizer_id": "Organizador ID",
+      "assigned_musician": "Músico Asignado",
+      "created_at": "Creada",
+      "updated_at": "Actualizada",
+      "event_type": "Tipo de Evento",
+      "bring_instrument": "Llevar instrumento",
+      "yes": "Sí",
+      "no": "No",
+      "song_list": "Lista de Canciones",
+      "recommendations": "Recomendaciones",
+      "comments": "Comentarios",
+      "additional_info": "Información Adicional"
     }
   },
   "common": {

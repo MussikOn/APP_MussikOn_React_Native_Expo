@@ -484,6 +484,21 @@
       "location_not_found": "Location not found",
       "search_error": "Error searching location",
       "current_location": "My current location"
+    },
+    "details": {
+      "organizer_info": "Organizer Information",
+      "organizer_id": "Organizer ID",
+      "assigned_musician": "Assigned Musician",
+      "created_at": "Created",
+      "updated_at": "Updated",
+      "event_type": "Event Type",
+      "bring_instrument": "Bring instrument",
+      "yes": "Yes",
+      "no": "No",
+      "song_list": "Song List",
+      "recommendations": "Recommendations",
+      "comments": "Comments",
+      "additional_info": "Additional Information"
     }
   },
   "common": {
