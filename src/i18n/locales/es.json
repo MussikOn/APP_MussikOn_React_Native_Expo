@@ -135,27 +135,6 @@
     "my_events": "Mis Eventos",
     "request_musician": "Solicitar Músico"
   },
-  "sidebar": {
-    "user": "Usuario",
-    "new": "¡Nuevo!",
-    "home": "Inicio",
-    "create_event": "Crear Evento",
-    "request_musician": "Solicitar Músico",
-    "my_requests": "Mis Solicitudes",
-    "event_creator": "Creador de Eventos",
-    "musician": "Músico",
-    "evangelist": "Evangelista",
-    "my_events": "Mis Eventos",
-    "requests": "Solicitudes",
-    "events": "Eventos",
-    "agenda": "Agenda",
-    "profile": "Perfil",
-    "configuration": "Configuración",
-    "login": "Iniciar Sesión",
-    "register": "Registrarse",
-    "logout": "Cerrar Sesión",
-    "dashboard": "Panel de conexión"
-  },
   "common": {
     "loading": "Cargando...",
     "error": "Error",
@@ -339,7 +318,8 @@
     "date": "Fecha",
     "select_date": "Seleccionar fecha",
     "time": "Hora",
-    "select_time": "Seleccionar hora",
+    "select_initTime": "Seleccionar hora de inicio",
+    "select_fineTime": "Seleccionar hora de finalización",
     "duration_minutes": "Duración (minutos)",
     "location": "Ubicación",
     "address": "Dirección",
@@ -452,12 +432,6 @@
       "budget_required": "El presupuesto es obligatorio",
       "complete_required_fields": "Por favor completa todos los campos obligatorios"
     },
-    "budget": {
-      "low": "Económico",
-      "medium": "Intermedio",
-      "high": "Alto",
-      "premium": "Premium"
-    },
     "steps": {
       "event_name": "Nombre del Evento",
       "event_name_subtitle": "¿Cómo se llama tu evento?",
@@ -465,8 +439,10 @@
       "event_type_subtitle": "¿Qué tipo de evento vas a realizar?",
       "date": "Fecha del Evento",
       "date_subtitle": "¿Cuándo se realizará tu evento?",
-      "time": "Hora del Evento",
-      "time_subtitle": "¿A qué hora comenzará tu evento?",
+      "initTime": "Hora del Evento",
+      "initTime_subtitle": "¿A qué hora comenzará tu evento?",
+      "fineTime": "Hora final de Evento",
+      "fineTime_subtitle": "¿A qué hora terminará tu evento?",
       "duration": "Duración",
       "duration_subtitle": "¿Cuánto tiempo durará tu evento?",
       "instrument": "Instrumento",
@@ -513,13 +489,6 @@
       "comments": "Comentarios",
       "additional_info": "Información Adicional"
     }
-  },
-  "common": {
-    "error": "Error",
-    "success": "Éxito",
-    "no": "No",
-    "cancel": "Cancelar",
-    "access_denied": "Acceso denegado"
   }
 
 } 
