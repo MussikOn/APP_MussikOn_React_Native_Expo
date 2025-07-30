@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MussikOn Logo](assets/Logo_app.png)
+![MussikOn Logo](assets/Logo_rounded_letter.png)
 
 **Conectando Músicos y Organizadores de Eventos Musicales**
 
