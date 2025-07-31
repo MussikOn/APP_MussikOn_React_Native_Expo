@@ -178,6 +178,27 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Función para calcular la duración en minutos entre dos tiempos
+  const calculateDuration = (startTime: string, endTime: string): number => {
+    if (!startTime || !endTime) return 120; // Valor por defecto
+    
+    const parseTime = (timeStr: string): number => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    const startMinutes = parseTime(startTime);
+    const endMinutes = parseTime(endTime);
+    
+    // Si el tiempo de fin es menor que el de inicio, asumimos que es del día siguiente
+    let duration = endMinutes - startMinutes;
+    if (duration <= 0) {
+      duration += 24 * 60; // Agregar 24 horas
+    }
+    
+    return duration;
+  };
+
   const validateField = (field: string, value: any): string => {
     switch (field) {
       case 'requestName':
@@ -186,7 +207,9 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
         return !value ? t('requests.validation.event_type_required') : '';
       case 'date':
         return !value ? t('requests.validation.date_required') : '';
-      case 'time':
+      case 'initTime':
+        return !value ? t('requests.validation.time_required') : '';
+      case 'fineTime':
         return !value ? t('requests.validation.time_required') : '';
       case 'location.address':
         return !value ? t('requests.validation.address_required') : '';
@@ -486,7 +509,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
 
   const handleSubmit = async () => {
     // Validar todos los campos obligatorios
-    const requiredFields = ['requestName', 'requestType', 'date', 'time', 'location.address', 'budget'];
+    const requiredFields = ['requestName', 'requestType', 'date', 'initTime', 'fineTime', 'location.address', 'budget'];
     const newErrors: Record<string, string> = {};
     
     requiredFields.forEach(field => {
@@ -522,8 +545,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
           latitude: formData.location.latitude,
           longitude: formData.location.longitude,
         },
-        // duration: formData.initTime - formData.fineTime,
-        duration: formData.duration,
+        duration: calculateDuration(formData.initTime, formData.fineTime),
         instrument: formData.instrument,
         budget: Number(formData.budget),
         description: formData.description || '',
@@ -908,17 +930,43 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
               textAlign: 'center',
               marginBottom: 12 
             }}>
-              {formData.fineTime}
               {t(currentStepData.title)}
             </Text>
             <Text style={{ 
               fontSize: 16, 
               color: theme.colors.text.secondary, 
               textAlign: 'center',
-              marginBottom: 40 
+              marginBottom: 20 
             }}>
               {t(currentStepData.subtitle)}
             </Text>
+            
+            {/* Mostrar duración calculada automáticamente */}
+            {formData.initTime && formData.fineTime && (
+              <View style={{
+                backgroundColor: theme.colors.primary[100],
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 30,
+                alignItems: 'center'
+              }}>
+                <Text style={{
+                  fontSize: 14,
+                  color: theme.colors.primary[700],
+                  fontWeight: '600',
+                  marginBottom: 4
+                }}>
+                  Duración calculada automáticamente
+                </Text>
+                <Text style={{
+                  fontSize: 18,
+                  color: theme.colors.primary[800],
+                  fontWeight: 'bold'
+                }}>
+                  {Math.floor(calculateDuration(formData.initTime, formData.fineTime) / 60)}h {calculateDuration(formData.initTime, formData.fineTime) % 60}min
+                </Text>
+              </View>
+            )}
             
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
               {DURATION_OPTIONS.map((duration) => (
