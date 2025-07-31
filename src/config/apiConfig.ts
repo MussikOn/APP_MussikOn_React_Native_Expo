@@ -3,7 +3,7 @@
 
 export const API_CONFIG = {
   // URL base para todas las APIs
-  BASE_URL: 'http://192.168.54.39:3001',
+  BASE_URL: 'http://192.168.54.131:3001',
   
   // Endpoints de la API
   ENDPOINTS: {

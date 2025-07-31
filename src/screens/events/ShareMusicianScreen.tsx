@@ -210,7 +210,9 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
-    
+    console.info('./ShareMusicianScreen.tsx line 213');
+    console.info(formData.fineTime);
+    console.info(formData.initTime);
     // Limpiar error del campo
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -233,14 +235,26 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
     }
   };
 
-  const handleTimeChange = (event: any, selectedTime?: Date) => {
+  const handleinitTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
       setSelectedTime(selectedTime);
       const hours = String(selectedTime.getHours()).padStart(2, '0');
       const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
       const timeString = `${hours}:${minutes}`;
-      handleInputChange('time', timeString);
+      handleInputChange( "initTime",timeString);
+      // Avanzar automáticamente al siguiente paso
+      setTimeout(() => nextStep(), 500);
+    }
+  };
+  const handlefineTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setSelectedTime(selectedTime);
+      const hours = String(selectedTime.getHours()).padStart(2, '0');
+      const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      handleInputChange( "fineTime",timeString);
       // Avanzar automáticamente al siguiente paso
       setTimeout(() => nextStep(), 500);
     }
@@ -894,6 +908,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
               textAlign: 'center',
               marginBottom: 12 
             }}>
+              {formData.fineTime}
               {t(currentStepData.title)}
             </Text>
             <Text style={{ 
@@ -1400,7 +1415,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
             value={selectedTime}
             mode="time"
             display="default"
-            onChange={handleTimeChange}
+            onChange={handleinitTimeChange}
           />
         )}
 

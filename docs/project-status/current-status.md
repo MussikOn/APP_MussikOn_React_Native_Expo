@@ -246,7 +246,7 @@ MussikOn es una aplicación móvil en **fase de desarrollo activo** con una arqu
 Para cualquier duda sobre este análisis o el proyecto:
 - **Repositorio**: APP_MussikOn_React_Native_Expo
 - **Tecnologías**: React Native, Expo, TypeScript, Redux Toolkit
-- **API**: MusikOn RESTful API
+- **API**: MussikOn RESTful API
 - **Colores oficiales**: Implementados en `src/theme/colors.ts`
 
 ---
