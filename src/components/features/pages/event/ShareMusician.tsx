@@ -513,6 +513,14 @@ const ShareMusician = () => {
         minBudget: 0,
         maxBudget: 0,
         description: '',
+        musicGenre: '', // Propiedad requerida
+        guestCount: 0, // Propiedad requerida
+        specialRequirements: '', // Propiedad requerida
+        additionalComments: '', // Propiedad requerida
+        paymentMethod: '', // Propiedad requerida
+        paymentTerms: '', // Propiedad requerida
+        equipmentIncluded: '', // Propiedad requerida
+        budgetNotes: '', // Propiedad requerida
         user: user.userEmail,
       };
       const response = await requestService.createRequest(payload);

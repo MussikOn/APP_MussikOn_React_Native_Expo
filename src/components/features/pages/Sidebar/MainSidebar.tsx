@@ -75,6 +75,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
         { icon: 'speedometer', label: t('sidebar.dashboard'), route: 'Dashboard', color: theme.colors.primary[500] },
       ] : []),
       { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
+      { icon: 'notifications', label: t('sidebar.notifications'), route: 'PushNotifications', color: theme.colors.accent[500] },
       { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },
       { icon: 'log-out', label: t('sidebar.logout'), route: 'Logout', color: theme.colors.error[500] },
     ];
