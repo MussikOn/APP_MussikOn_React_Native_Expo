@@ -60,7 +60,7 @@ const AvailableRequestsScreen: React.FC<AvailableRequestsScreenProps> = ({ navig
   const handleAcceptRequest = async (request: Request) => {
     Alert.alert(
       'Aceptar Solicitud',
-      `¿Estás seguro de que quieres aceptar la solicitud "${request.name}"?`,
+      `¿Estás seguro de que quieres aceptar la solicitud "${request.eventName}"?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -143,7 +143,7 @@ const AvailableRequestsScreen: React.FC<AvailableRequestsScreenProps> = ({ navig
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleContainer}>
                   <Text style={[styles.cardTitle, { color: theme.colors.text.primary }]}>
-          {request.name || 'Solicitud sin nombre'}
+          {request.eventName || 'Solicitud sin nombre'}
         </Text>
           <View style={[
             styles.statusBadge,
@@ -176,7 +176,7 @@ const AvailableRequestsScreen: React.FC<AvailableRequestsScreenProps> = ({ navig
         <View style={styles.infoRow}>
           <Ionicons name="location" size={16} color={theme.colors.primary[500]} />
           <Text style={[styles.infoText, { color: theme.colors.text.secondary }]}>
-            {request.location?.address || 'Ubicación no especificada'}
+            {request.location || 'Ubicación no especificada'}
           </Text>
         </View>
 
@@ -208,7 +208,7 @@ const AvailableRequestsScreen: React.FC<AvailableRequestsScreenProps> = ({ navig
         <View style={styles.infoRow}>
           <Ionicons name="information-circle" size={16} color={theme.colors.primary[500]} />
           <Text style={[styles.infoText, { color: theme.colors.text.secondary }]}>
-            Tipo: {request.eventType || request.requestType || 'No especificado'}
+            Tipo: {request.eventType || 'No especificado'}
           </Text>
         </View>
 
@@ -233,11 +233,11 @@ const AvailableRequestsScreen: React.FC<AvailableRequestsScreenProps> = ({ navig
         </View>
 
         {/* Comentarios */}
-        {(request.comments || request.additionalComments) && (
-          <View style={styles.commentsContainer}>
-            <Ionicons name="chatbubble-outline" size={16} color={theme.colors.primary[500]} />
-            <Text style={[styles.commentsText, { color: theme.colors.text.tertiary }]}>
-              {request.comments || request.additionalComments}
+        {(request.comment) && (
+          <View style={styles.commentContainer}>
+            <Text style={styles.commentLabel}>Comentarios:</Text>
+            <Text style={styles.commentText}>
+              {request.comment}
             </Text>
           </View>
         )}
@@ -514,6 +514,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  commentContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  commentLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    color: '#4b5563',
+  },
+  commentText: {
+    fontSize: 13,
+    color: '#6b7280',
   },
 });
 

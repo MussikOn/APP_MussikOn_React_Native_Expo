@@ -19,9 +19,14 @@ export type RootStackParamList = {
   ChatList: undefined;
   Chat: { conversationId: string };
   Conversation: { conversationId: string; otherUserId: string };
+  // Nuevas rutas de pago
+  PaymentBalance: undefined;
+  BankAccounts: undefined;
+  Deposit: undefined;
+  Withdraw: undefined;
+  PaymentHistory: undefined;
+  BankAccountRegister: undefined;
 };
-
-
 
 export type Token = {
       iat:number;
@@ -69,4 +74,89 @@ export type ChatFilters = {
   unreadOnly?: boolean;
   dateFrom?: string;
   dateTo?: string;
-    };
+};
+
+// Payment Types - Alineados con el backend
+export interface UserBalance {
+  userId: string;
+  balance: number;
+  totalEarnings: number;
+  totalWithdrawals: number;
+  pendingWithdrawals: number;
+  lastUpdated: string;
+}
+
+export interface BankAccount {
+  id: string;
+  userId: string;
+  accountHolderName: string;
+  accountNumber: string;
+  bankName: string;
+  accountType: 'savings' | 'checking';
+  routingNumber?: string;
+  swiftCode?: string;
+  isDefault: boolean;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserDeposit {
+  id: string;
+  userId: string;
+  amount: number;
+  voucherUrl: string;
+  status: 'pending' | 'approved' | 'rejected';
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MusicianEarnings {
+  id: string;
+  musicianId: string;
+  eventId: string;
+  eventName: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'cancelled';
+  paymentDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WithdrawalRequest {
+  id: string;
+  userId: string;
+  bankAccountId: string;
+  amount: number;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  adminNotes?: string;
+  processedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Event Types - Alineados con el backend
+export interface Event {
+  id: string;
+  user: string; // Email del organizador
+  eventName: string;
+  eventType: string;
+  date: string;
+  time: string;
+  location: string; // String como espera el backend
+  duration: string; // String como espera el backend
+  instrument: string;
+  bringInstrument: boolean;
+  comment: string;
+  budget: string; // String como espera el backend
+  flyerUrl?: string;
+  songs: string[];
+  recommendations: string[];
+  mapsLink: string;
+  status: 'pending_musician' | 'musician_assigned' | 'completed' | 'cancelled' | 'musician_cancelled';
+  assignedMusicianId?: string;
+  interestedMusicians?: string[];
+  createdAt: string;
+  updatedAt: string;
+}

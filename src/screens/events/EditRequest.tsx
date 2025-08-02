@@ -50,7 +50,7 @@ const EditRequest: React.FC = () => {
       }
 
       // Verificar que el usuario es el organizador de la solicitud
-      if (requestData.organizerId !== user?.userEmail) {
+      if (requestData.user !== user?.userEmail) {
         Alert.alert('Acceso denegado', 'Solo puedes editar solicitudes que hayas creado');
         navigation.goBack();
         return;
@@ -58,20 +58,20 @@ const EditRequest: React.FC = () => {
 
       setRequest(requestData);
       setFormData({
-        requestName: requestData.name,
-        requestType: requestData.requestType,
+        eventName: requestData.eventName,
+        eventType: requestData.eventType,
         date: requestData.date,
         time: requestData.time,
         location: {
-          ...requestData.location,
-          city: 'Ciudad no especificada'
+          address: requestData.location,
+          city: 'Santo Domingo',
+          latitude: 18.4861,
+          longitude: -69.9312,
         },
-        duration: requestData.duration,
+        duration: Number(requestData.duration),
         instrument: requestData.instrument,
-        budget: requestData.budget,
-        additionalComments: requestData.additionalComments,
-        minBudget: requestData.budget,
-        maxBudget: requestData.budget,
+        budget: Number(requestData.budget),
+        comment: requestData.comment,
       });
     } catch (error) {
       console.error('Error loading request:', error);
@@ -187,8 +187,8 @@ const EditRequest: React.FC = () => {
               borderWidth: 1,
               borderColor: theme.colors.border.primary,
             }}
-            value={formData.requestName}
-            onChangeText={(text) => updateFormData('requestName', text)}
+            value={formData.eventName}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, eventName: text }))}
             placeholder="Nombre del evento"
             placeholderTextColor={theme.colors.text.tertiary}
           />
@@ -209,8 +209,8 @@ const EditRequest: React.FC = () => {
               borderWidth: 1,
               borderColor: theme.colors.border.primary,
             }}
-            value={formData.requestType}
-            onChangeText={(text) => updateFormData('requestType', text)}
+            value={formData.eventType}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, eventType: text }))}
             placeholder="Tipo de evento"
             placeholderTextColor={theme.colors.text.tertiary}
           />
@@ -344,8 +344,8 @@ const EditRequest: React.FC = () => {
               minHeight: 100,
               textAlignVertical: 'top',
             }}
-            value={formData.additionalComments}
-            onChangeText={(text) => updateFormData('additionalComments', text)}
+            value={formData.comment}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, comment: text }))}
             placeholder="Comentarios adicionales sobre el evento"
             placeholderTextColor={theme.colors.text.tertiary}
             multiline

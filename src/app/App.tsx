@@ -44,6 +44,14 @@ import { useInitialNotifications } from '@hooks/useInitialNotifications';
 import { ChatListScreen } from '@screens/chat/ChatListScreen';
 import { ChatScreen } from '@screens/chat/ChatScreen';
 
+// Importar pantallas de pagos
+import PaymentBalanceScreen from '@screens/payments/PaymentBalanceScreen';
+import DepositScreen from '@screens/payments/DepositScreen';
+import WithdrawScreen from '@screens/payments/WithdrawScreen';
+import PaymentHistoryScreen from '@screens/payments/PaymentHistoryScreen';
+import BankAccountsScreen from '@screens/payments/BankAccountsScreen';
+import BankAccountRegisterScreen from '@screens/payments/BankAccountRegisterScreen';
+
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
 
@@ -283,6 +291,14 @@ function AppContent() {
           <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notificaciones' }} />
           <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: 'Conversaciones' }} />
           <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
+          
+          {/* Pantallas de Pagos */}
+          <Stack.Screen name="PaymentBalance" component={PaymentBalanceScreen} options={{ title: 'Mi Balance' }} />
+          <Stack.Screen name="Deposit" component={DepositScreen} options={{ title: 'Depositar' }} />
+          <Stack.Screen name="Withdraw" component={WithdrawScreen} options={{ title: 'Retirar' }} />
+          <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Historial de Pagos' }} />
+          <Stack.Screen name="BankAccounts" component={BankAccountsScreen} options={{ title: 'Cuentas Bancarias' }} />
+          <Stack.Screen name="BankAccountRegister" component={BankAccountRegisterScreen} options={{ title: 'Registrar Cuenta' }} />
         </Stack.Navigator>
         </NavigationWrapper>
         

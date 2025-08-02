@@ -74,6 +74,10 @@ const MainSidebar: React.FC<SidebarProps> = ({ isVisible, user, onClose, onNavig
       ...(globalUser.roll === 'musico' ? [
         { icon: 'speedometer', label: t('sidebar.dashboard'), route: 'Dashboard', color: theme.colors.primary[500] },
       ] : []),
+      // Sistema de Pagos para todos los usuarios logueados
+      { icon: 'wallet', label: t('sidebar.payments'), route: 'PaymentBalance', color: theme.colors.accent[500] },
+      { icon: 'card', label: t('sidebar.bank_accounts'), route: 'BankAccounts', color: theme.colors.accent[500] },
+      { icon: 'time', label: t('sidebar.payment_history'), route: 'PaymentHistory', color: theme.colors.accent[500] },
       { icon: 'person', label: t('sidebar.profile'), route: 'Profile' },
       { icon: 'notifications', label: t('sidebar.notifications'), route: 'PushNotifications', color: theme.colors.accent[500] },
       { icon: 'settings', label: t('sidebar.configuration'), route: 'Settings' },

@@ -3,7 +3,7 @@
 
 export const API_CONFIG = {
   // URL base para todas las APIs
-  BASE_URL: 'http://192.168.100.101:3001',
+  BASE_URL: 'http://192.168.54.26:3001', // Cambiar a URL de producción
   
   // Endpoints de la API
   ENDPOINTS: {
@@ -39,6 +39,15 @@ export const API_CONFIG = {
     
     // Notificaciones
     NOTIFICATIONS: '/notifications',
+    
+    // Sistema de Pagos
+    PAYMENT_BALANCE: '/payments/my-balance',
+    BANK_ACCOUNTS: '/payments/bank-accounts',
+    BANK_ACCOUNTS_REGISTER: '/payments/bank-accounts/register',
+    DEPOSIT: '/payments/deposit',
+    WITHDRAW: '/payments/withdraw',
+    PAYMENT_HISTORY: '/payments/history',
+    MUSICIAN_EARNINGS: '/payments/musician-earnings',
   },
   
   // Configuración de timeout

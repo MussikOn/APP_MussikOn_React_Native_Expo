@@ -48,13 +48,13 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
   };
 
   const handleShareLocation = async () => {
-    if (!request?.location?.address) {
+    if (!request?.location) {
       Alert.alert('Error', 'No hay ubicación disponible para compartir');
       return;
     }
 
     try {
-      const locationText = `${request.location.address}\n\nCoordenadas: ${request.location.latitude}, ${request.location.longitude}`;
+      const locationText = `${request.location}\n\nCoordenadas: No disponibles`;
       await Share.share({
         message: `Ubicación del evento: ${locationText}`,
         title: 'Ubicación del evento'
@@ -65,13 +65,13 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
   };
 
   const handleOpenMaps = async () => {
-    if (!request?.location?.latitude || !request?.location?.longitude) {
+    if (!request?.location) {
       Alert.alert('Error', 'No hay coordenadas disponibles para abrir en el mapa');
       return;
     }
 
     try {
-      const url = `https://www.google.com/maps/search/?api=1&query=${request.location.latitude},${request.location.longitude}`;
+      const url = `https://www.google.com/maps/search/?api=1&query=${request.location}`;
       const supported = await Linking.canOpenURL(url);
       
       if (supported) {
@@ -86,13 +86,13 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
   };
 
   const handleOpenWhatsApp = async () => {
-    if (!request?.location?.address) {
+    if (!request?.location) {
       Alert.alert('Error', 'No hay ubicación disponible para compartir por WhatsApp');
       return;
     }
 
     try {
-      const locationText = `Ubicación del evento: ${request.location.address}\nCoordenadas: ${request.location.latitude}, ${request.location.longitude}`;
+      const locationText = `Ubicación del evento: ${request.location}\nCoordenadas: No disponibles`;
       const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(locationText)}`;
       
       const supported = await Linking.canOpenURL(whatsappUrl);
@@ -156,7 +156,7 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
         {/* Header */}
         <View style={{ marginBottom: 24 }}>
           <Text style={{ fontSize: 28, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 }}>
-            {request.name || 'Solicitud sin nombre'}
+            {request.eventName || 'Solicitud sin nombre'}
           </Text>
           <View style={{
             backgroundColor: getStatusColor(request.status),
@@ -229,13 +229,13 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
           </View>
 
           {/* Comentarios */}
-          {(request.comments || request.additionalComments) && (
+          {(request.comment) && (
             <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: theme.colors.border.secondary }}>
               <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 }}>
                 {t('requests.details.comments')}
               </Text>
               <Text style={{ fontSize: 14, color: theme.colors.text.secondary, lineHeight: 20 }}>
-                {request.comments || request.additionalComments}
+                {request.comment}
               </Text>
             </View>
           )}
@@ -257,7 +257,7 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
             <Ionicons name="location" size={20} color={theme.colors.primary[500]} />
             <Text style={{ marginLeft: 12, fontSize: 16, color: theme.colors.text.primary, flex: 1 }}>
-              {request.location?.address || 'Ubicación no especificada'}
+              {request.location || 'Ubicación no especificada'}
             </Text>
           </View>
 
@@ -341,16 +341,16 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
             <Ionicons name="person" size={20} color={theme.colors.primary[500]} />
             <Text style={{ marginLeft: 12, fontSize: 16, color: theme.colors.text.primary }}>
-              {t('requests.details.organizer_id')}: {request.organizerId || 'No especificado'}
+              {t('requests.details.organizer_id')}: {request.user || 'No especificado'}
             </Text>
           </View>
 
           {/* Músico Asignado */}
-          {request.musicianId && (
+          {request.assignedMusicianId && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
               <Ionicons name="musical-notes" size={20} color={theme.colors.primary[500]} />
                           <Text style={{ marginLeft: 12, fontSize: 16, color: theme.colors.text.primary }}>
-              {t('requests.details.assigned_musician')}: {request.musicianId}
+              {t('requests.details.assigned_musician')}: {request.assignedMusicianId}
             </Text>
             </View>
           )}
@@ -401,7 +401,7 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
             <Ionicons name="information-circle" size={20} color={theme.colors.primary[500]} />
             <Text style={{ marginLeft: 12, fontSize: 16, color: theme.colors.text.primary }}>
-              {t('requests.details.event_type')}: {request.eventType || request.requestType || 'No especificado'}
+              {t('requests.details.event_type')}: {request.eventType || 'No especificado'}
             </Text>
           </View>
 
@@ -433,21 +433,7 @@ const RequestDetail: React.FC<RequestDetailProps> = ({ route, navigation }) => {
               <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 }}>
                 {t('requests.details.song_list')}
               </Text>
-              {request.songs.map((song, index) => (
-                <Text key={index} style={{ fontSize: 14, color: theme.colors.text.secondary, marginBottom: 4 }}>
-                  • {song}
-                </Text>
-              ))}
-            </View>
-          )}
-
-          {/* Lista de Canciones (songList) */}
-          {request.songList && request.songList.length > 0 && (
-            <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: theme.colors.border.secondary }}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 }}>
-                {t('requests.details.song_list')}
-              </Text>
-              {request.songList.map((song, index) => (
+              {request.songs.map((song: string, index: number) => (
                 <Text key={index} style={{ fontSize: 14, color: theme.colors.text.secondary, marginBottom: 4 }}>
                   • {song}
                 </Text>

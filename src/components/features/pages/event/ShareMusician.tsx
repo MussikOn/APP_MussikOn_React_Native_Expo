@@ -12,6 +12,7 @@ import { ActivityIndicator } from 'react-native';
 import { useUser } from '@contexts/UserContext';
 import { requestService } from '@services/requests';
 import { socket, registerSocketUser } from '@utils/socket';
+import { CreateRequestData } from '../../../../services/requests';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MAX_FORM_WIDTH = 420;
@@ -495,33 +496,25 @@ const ShareMusician = () => {
     }
     setIsLoading(true);
     try {
-      const payload = {
-        requestName: form.requestName,
-        requestType: form.requestType,
-        date: typeof form.date === 'string' ? form.date : form.date?.toISOString().split('T')[0],
-        time: `${form.startTime} - ${form.endTime}`,
+      const payload: CreateRequestData = {
+        eventName: form.requestName,
+        eventType: form.requestType,
+        date: form.date,
+        time: form.time,
         location: {
-          address: typeof form.location === 'string' ? form.location : '',
-          city: '',
-          latitude: 0,
-          longitude: 0,
-          googleMapsUrl: '',
+          address: form.location,
+          city: 'Santo Domingo',
+          latitude: 18.4861,
+          longitude: -69.9312,
         },
-        duration: 60, // 1 hora por defecto
+        duration: Number(form.duration),
         instrument: form.instrument,
-        budget: 0,
-        minBudget: 0,
-        maxBudget: 0,
-        description: '',
-        musicGenre: '', // Propiedad requerida
-        guestCount: 0, // Propiedad requerida
-        specialRequirements: '', // Propiedad requerida
-        additionalComments: '', // Propiedad requerida
-        paymentMethod: '', // Propiedad requerida
-        paymentTerms: '', // Propiedad requerida
-        equipmentIncluded: '', // Propiedad requerida
-        budgetNotes: '', // Propiedad requerida
-        user: user.userEmail,
+        budget: Number(form.budget),
+        comment: form.additionalComments || '',
+        songs: [],
+        recommendations: [],
+        mapsLink: '',
+        bringInstrument: false,
       };
       const response = await requestService.createRequest(payload);
       if (response && response.data && response.data.id) {

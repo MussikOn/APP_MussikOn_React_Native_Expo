@@ -311,7 +311,7 @@ const MyRequestsList: React.FC<MyRequestsListProps> = ({ navigation }) => {
       {/* Header con título, estado y menú */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary, flex: 1 }}>
-          {request.name || 'Solicitud sin nombre'}
+          {request.eventName || 'Solicitud sin nombre'}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View
@@ -328,7 +328,7 @@ const MyRequestsList: React.FC<MyRequestsListProps> = ({ navigation }) => {
             </Text>
           </View>
           {/* Botón de menú solo para el organizador o para el músico (con opciones limitadas) */}
-          {(isOrg && request.organizerId === user?.userEmail) || (!isOrg && (request as any).assignedMusicianId === user?.userEmail) ? (
+          {(isOrg && request.user === user?.userEmail) || (!isOrg && request.assignedMusicianId === user?.userEmail) ? (
             <TouchableOpacity onPress={() => showRequestMenu(request)}>
               <Ionicons name="ellipsis-vertical" size={22} color={theme.colors.text.secondary} />
             </TouchableOpacity>
@@ -348,7 +348,7 @@ const MyRequestsList: React.FC<MyRequestsListProps> = ({ navigation }) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
           <Ionicons name="location" size={16} color={theme.colors.primary[500]} />
           <Text style={{ marginLeft: 8, color: theme.colors.text.secondary }}>
-            {request.location?.address || 'Ubicación no especificada'}
+            {request.location || 'Ubicación no especificada'}
           </Text>
         </View>
         
@@ -369,7 +369,7 @@ const MyRequestsList: React.FC<MyRequestsListProps> = ({ navigation }) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
           <Ionicons name="information-circle" size={16} color={theme.colors.primary[500]} />
           <Text style={{ marginLeft: 8, color: theme.colors.text.secondary }}>
-            Tipo: {request.eventType || request.requestType || 'No especificado'}
+            Tipo: {request.eventType || 'No especificado'}
           </Text>
         </View>
 
@@ -392,35 +392,35 @@ const MyRequestsList: React.FC<MyRequestsListProps> = ({ navigation }) => {
         </View>
         
         {/* Mostrar comentarios si existen */}
-        {(request.comments || request.additionalComments) && (
+        {(request.comment) && (
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 4 }}>
             <Ionicons name="chatbubble-outline" size={16} color={theme.colors.primary[500]} style={{ marginTop: 2 }} />
             <Text style={{ marginLeft: 8, color: theme.colors.text.secondary, flex: 1, fontSize: 12 }}>
-              {request.comments || request.additionalComments}
+              {request.comment}
             </Text>
           </View>
         )}
       </View>
 
       {/* Información adicional según el rol */}
-      {isOrg && request.musicianId && (
+      {isOrg && request.assignedMusicianId && (
         <View style={{ marginBottom: 12, padding: 12, backgroundColor: theme.colors.primary[50], borderRadius: 8 }}>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: theme.colors.primary[700] }}>
             {t('requests.assigned_musician')}
           </Text>
           <Text style={{ fontSize: 14, color: theme.colors.primary[600] }}>
-            {request.musicianId}
+            {request.assignedMusicianId}
           </Text>
         </View>
       )}
 
-      {!isOrg && request.organizerId && (
+      {!isOrg && request.user && (
         <View style={{ marginBottom: 12, padding: 12, backgroundColor: theme.colors.accent[50], borderRadius: 8 }}>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: theme.colors.accent[700] }}>
             {t('requests.organizer')}
           </Text>
           <Text style={{ fontSize: 14, color: theme.colors.accent[600] }}>
-            {request.organizerId}
+            {request.user}
           </Text>
         </View>
       )}

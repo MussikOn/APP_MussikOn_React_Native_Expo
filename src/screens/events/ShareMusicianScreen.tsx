@@ -31,11 +31,10 @@ interface ShareMusicianScreenProps {
 }
 
 interface FormData {
-  requestName: string;
-  requestType: string;
+  eventName: string; // Cambiado de requestName a eventName
+  eventType: string; // Cambiado de requestType a eventType
   date: string;
-  initTime: string;
-  fineTime: string;
+  time: string; // Cambiado de initTime a time
   location: {
     address: string;
     city: string;
@@ -44,19 +43,12 @@ interface FormData {
   };
   duration: number;
   instrument: string;
-  budget: string;
-  description: string;
-  locationDescription: string;
-  musicGenre: string;
-  guestCount: string;
-  specialRequirements: string;
-  additionalComments: string;
-  minBudget: number;
-  maxBudget: number;
-  paymentMethod: string;
-  paymentTerms: string;
-  equipmentIncluded: string;
-  budgetNotes: string;
+  budget: number; // Cambiado de string a number
+  comment: string; // Cambiado de description a comment
+  songs: string[]; // Nuevo campo requerido por el backend
+  recommendations: string[]; // Nuevo campo requerido por el backend
+  mapsLink: string; // Nuevo campo requerido por el backend
+  bringInstrument: boolean; // Nuevo campo requerido por el backend
 }
 
 const { width, height } = Dimensions.get('window');
@@ -148,11 +140,10 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
-    requestName: '',
-    requestType: '',
+    eventName: '',
+    eventType: '',
     date: '',
-    initTime: '',
-    fineTime: '',
+    time: '',
     location: {
       address: '',
       city: 'Santo Domingo',
@@ -161,19 +152,12 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
     },
     duration: 120,
     instrument: '',
-    budget: '',
-    description: '',
-    locationDescription: '',
-    musicGenre: '',
-    guestCount: '0',
-    specialRequirements: '',
-    additionalComments: '',
-    minBudget: 0,
-    maxBudget: 0,
-    paymentMethod: '',
-    paymentTerms: '',
-    equipmentIncluded: '',
-    budgetNotes: '',
+    budget: 0,
+    comment: '',
+    songs: [],
+    recommendations: [],
+    mapsLink: '',
+    bringInstrument: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -201,20 +185,20 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
 
   const validateField = (field: string, value: any): string => {
     switch (field) {
-      case 'requestName':
+      case 'eventName':
         return !value ? t('requests.validation.event_name_required') : '';
-      case 'requestType':
+      case 'eventType':
         return !value ? t('requests.validation.event_type_required') : '';
       case 'date':
         return !value ? t('requests.validation.date_required') : '';
-      case 'initTime':
-        return !value ? t('requests.validation.time_required') : '';
-      case 'fineTime':
+      case 'time':
         return !value ? t('requests.validation.time_required') : '';
       case 'location.address':
         return !value ? t('requests.validation.address_required') : '';
       case 'budget':
-        return !value ? t('requests.validation.budget_required') : '';
+        return !value || value <= 0 ? t('requests.validation.budget_required') : '';
+      case 'instrument':
+        return !value ? t('requests.validation.instrument_required') : '';
       default:
         return '';
     }
@@ -234,8 +218,8 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
       setFormData(prev => ({ ...prev, [field]: value }));
     }
     console.info('./ShareMusicianScreen.tsx line 213');
-    console.info(formData.fineTime);
-    console.info(formData.initTime);
+    console.info(formData.time);
+    console.info(formData.time);
     // Limpiar error del campo
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -258,26 +242,14 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
     }
   };
 
-  const handleinitTimeChange = (event: any, selectedTime?: Date) => {
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
       setSelectedTime(selectedTime);
       const hours = String(selectedTime.getHours()).padStart(2, '0');
       const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
       const timeString = `${hours}:${minutes}`;
-      handleInputChange( "initTime",timeString);
-      // Avanzar automáticamente al siguiente paso
-      setTimeout(() => nextStep(), 500);
-    }
-  };
-  const handlefineTimeChange = (event: any, selectedTime?: Date) => {
-    setShowTimePicker(false);
-    if (selectedTime) {
-      setSelectedTime(selectedTime);
-      const hours = String(selectedTime.getHours()).padStart(2, '0');
-      const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
-      const timeString = `${hours}:${minutes}`;
-      handleInputChange( "fineTime",timeString);
+      handleInputChange("time", timeString);
       // Avanzar automáticamente al siguiente paso
       setTimeout(() => nextStep(), 500);
     }
@@ -509,7 +481,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
 
   const handleSubmit = async () => {
     // Validar todos los campos obligatorios
-    const requiredFields = ['requestName', 'requestType', 'date', 'initTime', 'fineTime', 'location.address', 'budget'];
+    const requiredFields = ['eventName', 'eventType', 'date', 'time', 'location.address', 'budget', 'instrument'];
     const newErrors: Record<string, string> = {};
     
     requiredFields.forEach(field => {
@@ -535,30 +507,24 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
       setLoading(true);
 
       const requestData: CreateRequestData = {
-        requestName: formData.requestName,
-        requestType: formData.requestType,
+        eventName: formData.eventName,
+        eventType: formData.eventType,
         date: formData.date,
-        time: formData.initTime,
+        time: formData.time,
         location: {
           address: formData.location.address,
           city: formData.location.city,
           latitude: formData.location.latitude,
           longitude: formData.location.longitude,
         },
-        duration: calculateDuration(formData.initTime, formData.fineTime),
+        duration: formData.duration,
         instrument: formData.instrument,
-        budget: Number(formData.budget),
-        description: formData.description || '',
-        musicGenre: formData.musicGenre || '',
-        guestCount: Number(formData.guestCount) || 0,
-        specialRequirements: formData.specialRequirements || '',
-        additionalComments: formData.additionalComments || '',
-        minBudget: Number(formData.budget),
-        maxBudget: Number(formData.budget),
-        paymentMethod: formData.paymentMethod || '',
-        paymentTerms: formData.paymentTerms || '',
-        equipmentIncluded: formData.equipmentIncluded || '',
-        budgetNotes: formData.budgetNotes || '',
+        budget: formData.budget,
+        comment: formData.comment || '',
+        songs: formData.songs || [],
+        recommendations: formData.recommendations || [],
+        mapsLink: formData.mapsLink || '',
+        bringInstrument: formData.bringInstrument || false,
       };
 
                   const response = await requestService.createRequest(requestData);
@@ -580,27 +546,19 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
             text: t('requests.create_another'),
             onPress: () => {
               setFormData({
-                requestName: '',
-                requestType: '',
+                eventName: '',
+                eventType: '',
                 date: '',
-                initTime: '',
-                fineTime: '',
+                time: '',
                 location: { address: '', city: 'Santo Domingo', latitude: 18.4861, longitude: -69.9312 },
                 duration: 120,
                 instrument: '',
-                budget: '',
-                description: '',
-                locationDescription: '',
-                musicGenre: '',
-                guestCount: '0',
-                specialRequirements: '',
-                additionalComments: '',
-                minBudget: 0,
-                maxBudget: 0,
-                paymentMethod: '',
-                paymentTerms: '',
-                equipmentIncluded: '',
-                budgetNotes: '',
+                budget: 0,
+                comment: '',
+                songs: [],
+                recommendations: [],
+                mapsLink: '',
+                bringInstrument: false,
               });
               setErrors({});
               setCurrentStep(0);
@@ -645,7 +603,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
       <TextInput
         style={{
                 borderWidth: 2,
-                borderColor: errors.requestName ? theme.colors.error[500] : theme.colors.primary[500],
+                borderColor: errors.eventName ? theme.colors.error[500] : theme.colors.primary[500],
                 borderRadius: 16,
                 paddingHorizontal: 20,
                 paddingVertical: 16,
@@ -657,19 +615,19 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
         }}
               placeholder={t('requests.event_name_placeholder')}
               placeholderTextColor={theme.colors.text.secondary}
-              value={formData.requestName}
-              onChangeText={(text) => handleInputChange('requestName', text)}
+              value={formData.eventName}
+              onChangeText={(text) => handleInputChange('eventName', text)}
               autoFocus={true}
       />
             
-            {errors.requestName && (
+            {errors.eventName && (
         <Text style={{ 
           color: theme.colors.error[500], 
                 fontSize: 14, 
                 textAlign: 'center',
                 marginBottom: 20 
         }}>
-                {errors.requestName}
+                {errors.eventName}
         </Text>
       )}
     </View>
@@ -710,28 +668,28 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
                   key={item.id}
         style={{
                     width: '48%',
-                    backgroundColor: formData.requestType === item.id ? item.color : theme.colors.background.card,
+                    backgroundColor: formData.eventType === item.id ? item.color : theme.colors.background.card,
                     borderRadius: 16,
                     padding: 20,
                     marginBottom: 12,
                     borderWidth: 3,
-                    borderColor: formData.requestType === item.id ? item.color : theme.colors.border.primary,
+                    borderColor: formData.eventType === item.id ? item.color : theme.colors.border.primary,
           alignItems: 'center',
                     justifyContent: 'center',
                     minHeight: 120,
         }}
-                  onPress={() => handleSelection('requestType', item.id)}
+                  onPress={() => handleSelection('eventType', item.id)}
       >
                   <Ionicons 
                     name={item.icon as any} 
                     size={32} 
-                    color={formData.requestType === item.id ? '#fff' : theme.colors.text.secondary} 
+                    color={formData.eventType === item.id ? '#fff' : theme.colors.text.secondary} 
                     style={{ marginBottom: 12 }}
                   />
         <Text style={{ 
                     fontSize: 14,
                     fontWeight: '600',
-                    color: formData.requestType === item.id ? '#fff' : theme.colors.text.primary,
+                    color: formData.eventType === item.id ? '#fff' : theme.colors.text.primary,
                     textAlign: 'center',
                   }}>
                     {t(item.label)}
@@ -836,10 +794,10 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
               <Ionicons name="time" size={32} color={theme.colors.primary[500]} style={{ marginBottom: 12 }} />
         <Text style={{ 
                 fontSize: 18, 
-                color: formData.initTime ? theme.colors.text.primary : theme.colors.text.secondary,
+                color: formData.time ? theme.colors.text.primary : theme.colors.text.secondary,
                 textAlign: 'center',
         }}>
-                {formData.initTime || t('requests.select_initTime')}
+                {formData.time || t('requests.select_time')}
         </Text>
       </TouchableOpacity>
             
@@ -892,10 +850,10 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
               <Ionicons name="time" size={32} color={theme.colors.primary[500]} style={{ marginBottom: 12 }} />
         <Text style={{ 
                 fontSize: 18, 
-                color: formData.initTime ? theme.colors.text.primary : theme.colors.text.secondary,
+                color: formData.time ? theme.colors.text.primary : theme.colors.text.secondary,
                 textAlign: 'center',
         }}>
-                {formData.initTime || t('requests.select_initTime')}
+                {formData.time || t('requests.select_time')}
         </Text>
       </TouchableOpacity>
             
@@ -942,28 +900,20 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
             </Text>
             
             {/* Mostrar duración calculada automáticamente */}
-            {formData.initTime && formData.fineTime && (
+            {formData.time && (
               <View style={{
                 backgroundColor: theme.colors.primary[100],
-                borderRadius: 12,
                 padding: 16,
-                marginBottom: 30,
-                alignItems: 'center'
+                borderRadius: 12,
+                marginTop: 16,
               }}>
                 <Text style={{
-                  fontSize: 14,
-                  color: theme.colors.primary[700],
-                  fontWeight: '600',
-                  marginBottom: 4
-                }}>
-                  Duración calculada automáticamente
-                </Text>
-                <Text style={{
-                  fontSize: 18,
-                  color: theme.colors.primary[800],
+                  fontSize: 16,
+                  color: theme.colors.primary[600],
+                  textAlign: 'center',
                   fontWeight: 'bold'
                 }}>
-                  {Math.floor(calculateDuration(formData.initTime, formData.fineTime) / 60)}h {calculateDuration(formData.initTime, formData.fineTime) % 60}min
+                  {Math.floor(formData.duration / 60)}h {formData.duration % 60}min
                 </Text>
               </View>
             )}
@@ -1105,17 +1055,17 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
                 <TouchableOpacity
                   key={budget.id}
                   style={{
-                    backgroundColor: formData.budget === budget.id ? budget.color : theme.colors.background.card,
+                    backgroundColor: formData.budget === budget.value ? budget.color : theme.colors.background.card,
             borderRadius: 16,
             padding: 20,
                     borderWidth: 3,
-                    borderColor: formData.budget === budget.id ? budget.color : theme.colors.border.primary,
+                    borderColor: formData.budget === budget.value ? budget.color : theme.colors.border.primary,
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}
                   onPress={() => {
-                    handleInputChange('budget', budget.id);
+                    handleInputChange('budget', budget.value);
                     handleInputChange('minBudget', budget.value);
                     handleInputChange('maxBudget', budget.value);
                     setTimeout(() => nextStep(), 300);
@@ -1125,21 +1075,21 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
                     <Text style={{
                       fontSize: 18,
                       fontWeight: '600',
-                      color: formData.budget === budget.id ? '#fff' : theme.colors.text.primary,
+                      color: formData.budget === budget.value ? '#fff' : theme.colors.text.primary,
                     }}>
                       {t(budget.label)}
             </Text>
                     <Text style={{
                       fontSize: 14,
-                      color: formData.budget === budget.id ? '#fff' : theme.colors.text.secondary,
+                      color: formData.budget === budget.value ? '#fff' : theme.colors.text.secondary,
                     }}>
                       {budget.range}
                     </Text>
               </View>
                   <Ionicons 
-                    name={formData.budget === budget.id ? 'checkmark-circle' : 'ellipse-outline'} 
+                    name={formData.budget === budget.value ? 'checkmark-circle' : 'ellipse-outline'} 
                     size={28} 
-                    color={formData.budget === budget.id ? '#fff' : theme.colors.text.secondary} 
+                    color={formData.budget === budget.value ? '#fff' : theme.colors.text.secondary} 
                   />
                 </TouchableOpacity>
               ))}
@@ -1241,8 +1191,8 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
               }}
               placeholder={t('requests.location_description_placeholder')}
               placeholderTextColor={theme.colors.text.secondary}
-              value={formData.locationDescription}
-              onChangeText={(text) => handleInputChange('locationDescription', text)}
+              value={formData.comment}
+              onChangeText={(text) => handleInputChange('comment', text)}
               multiline={true}
               numberOfLines={4}
               autoFocus={true}
@@ -1287,8 +1237,8 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
               }}
               placeholder={t('requests.description_placeholder')}
               placeholderTextColor={theme.colors.text.secondary}
-              value={formData.description}
-              onChangeText={(text) => handleInputChange('description', text)}
+              value={formData.comment}
+              onChangeText={(text) => handleInputChange('comment', text)}
               multiline={true}
               numberOfLines={4}
             />
@@ -1463,7 +1413,7 @@ const ShareMusicianScreen: React.FC<ShareMusicianScreenProps> = ({ navigation })
             value={selectedTime}
             mode="time"
             display="default"
-            onChange={handleinitTimeChange}
+            onChange={handleTimeChange}
           />
         )}
 

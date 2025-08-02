@@ -1,39 +1,35 @@
 import { apiService, ApiResponse } from './api';
 import { getApiUrl, API_CONFIG } from '../config/apiConfig';
+import { Event } from '../appTypes/DatasTypes';
 
-// Tipos para solicitudes
+// Tipos para solicitudes - Alineados con el backend
 export interface Request {
   id: string;
-  name: string;
-  requestType: string;
-  eventType: string; // Siempre requerido
+  user: string; // Email del organizador
+  eventName: string; // Cambiado de 'name' a 'eventName'
+  eventType: string;
   date: string;
   time: string;
-  location: {
-    address: string;
-    latitude: number;
-    longitude: number;
-    googleMapsUrl?: string;
-  };
-  duration: number; // en minutos
+  location: string; // Cambiado de objeto a string como espera el backend
+  duration: string; // Cambiado de number a string como espera el backend
   instrument: string;
   bringInstrument: boolean;
-  budget: number;
-  additionalComments: string; // Siempre requerido, puede ser vacío
-  comments: string; // Siempre requerido, puede ser vacío
-  songList: string[]; // Siempre requerido, puede ser array vacío
-  songs: string[]; // Siempre requerido, puede ser array vacío
-  recommendations: string[]; // Siempre requerido, puede ser array vacío
+  comment: string;
+  budget: string; // Cambiado de number a string como espera el backend
+  flyerUrl?: string;
+  songs: string[];
+  recommendations: string[];
+  mapsLink: string;
   status: 'pending_musician' | 'musician_assigned' | 'completed' | 'cancelled' | 'musician_cancelled';
-  organizerId: string;
-  musicianId: string; // Siempre requerido, puede ser vacío
+  assignedMusicianId?: string;
+  interestedMusicians?: string[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateRequestData {
-  requestName: string;
-  requestType: string;
+  eventName: string; // Cambiado de 'requestName' a 'eventName'
+  eventType: string;
   date: string;
   time: string;
   location: {
@@ -43,20 +39,14 @@ export interface CreateRequestData {
     longitude: number;
     googleMapsUrl?: string;
   };
-  duration: number;
+  duration: number; // Mantenemos number en frontend para validación
   instrument: string;
-  budget: number;
-  description: string; // Siempre requerido, puede ser vacío
-  musicGenre: string; // Siempre requerido, puede ser vacío
-  guestCount: number; // Siempre requerido, puede ser 0
-  specialRequirements: string; // Siempre requerido, puede ser vacío
-  additionalComments: string; // Siempre requerido, puede ser vacío
-  minBudget: number;
-  maxBudget: number;
-  paymentMethod: string; // Siempre requerido, puede ser vacío
-  paymentTerms: string; // Siempre requerido, puede ser vacío
-  equipmentIncluded: string; // Siempre requerido, puede ser vacío
-  budgetNotes: string; // Siempre requerido, puede ser vacío
+  bringInstrument: boolean;
+  budget: number; // Mantenemos number en frontend para validación
+  comment: string;
+  songs: string[];
+  recommendations: string[];
+  mapsLink: string;
 }
 
 export interface RequestFilters {
@@ -78,7 +68,25 @@ export const requestService = {
    * POST /events/request-musician
    */
   async createRequest(requestData: CreateRequestData): Promise<ApiResponse<Request>> {
-    return apiService.post(API_CONFIG.ENDPOINTS.CREATE_REQUEST, requestData);
+    // Mapear datos del frontend al formato esperado por el backend
+    const eventData = {
+      eventName: requestData.eventName,
+      eventType: requestData.eventType,
+      date: requestData.date,
+      time: requestData.time,
+      location: requestData.location.address, // Backend espera string
+      duration: requestData.duration.toString(), // Backend espera string
+      instrument: requestData.instrument,
+      bringInstrument: requestData.bringInstrument,
+      comment: requestData.comment,
+      budget: requestData.budget.toString(), // Backend espera string
+      songs: requestData.songs,
+      recommendations: requestData.recommendations,
+      mapsLink: requestData.mapsLink,
+    };
+
+    console.log('src/services/requests.ts:createRequest - Enviando datos al backend:', eventData);
+    return apiService.post(API_CONFIG.ENDPOINTS.CREATE_REQUEST, eventData);
   },
 
   /**

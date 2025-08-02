@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, Platform } from 'react-native';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as Notifications from 'expo-notifications';
+import { Platform, Alert } from 'react-native';
+import { useUser } from '../contexts/UserContext';
 import { pushNotificationService, PushNotificationSettings, PushNotificationSubscription } from '@services/pushNotificationService';
-import { useAuth } from '@contexts/AuthContext';
 
 export interface PushNotificationState {
   isInitialized: boolean;
@@ -37,7 +37,7 @@ export interface PushNotificationActions {
 }
 
 export const usePushNotifications = (): PushNotificationState & PushNotificationActions => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [state, setState] = useState<PushNotificationState>({
     isInitialized: false,
     isSubscribed: false,
@@ -70,8 +70,8 @@ export const usePushNotifications = (): PushNotificationState & PushNotification
     error: null,
   });
 
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   // Inicializar el servicio de notificaciones push
   const initialize = useCallback(async (): Promise<boolean> => {
@@ -98,7 +98,7 @@ export const usePushNotifications = (): PushNotificationState & PushNotification
       // Obtener suscripciones si hay usuario
       let subscriptions: PushNotificationSubscription[] = [];
       let isSubscribed = false;
-      if (user?.id) {
+      if (user?.userEmail) {
         subscriptions = await pushNotificationService.getUserSubscriptions();
         isSubscribed = subscriptions.length > 0;
       }
@@ -127,19 +127,19 @@ export const usePushNotifications = (): PushNotificationState & PushNotification
       }));
       return false;
     }
-  }, [user?.id]);
+  }, [user?.userEmail]);
 
   // Suscribirse a notificaciones push
   const subscribe = useCallback(async (): Promise<boolean> => {
     try {
-      if (!user?.id) {
+      if (!user?.userEmail) {
         Alert.alert('Error', 'Debes estar autenticado para suscribirte a notificaciones');
         return false;
       }
 
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      const success = await pushNotificationService.subscribeToPushNotifications(user.id);
+      const success = await pushNotificationService.subscribeToPushNotifications(user.userEmail);
       if (success) {
         // Refrescar suscripciones
         const subscriptions = await pushNotificationService.getUserSubscriptions();
@@ -167,7 +167,7 @@ export const usePushNotifications = (): PushNotificationState & PushNotification
       }));
       return false;
     }
-  }, [user?.id]);
+  }, [user?.userEmail]);
 
   // Desuscribirse de notificaciones push
   const unsubscribe = useCallback(async (subscriptionId: string): Promise<boolean> => {
@@ -334,17 +334,17 @@ export const usePushNotifications = (): PushNotificationState & PushNotification
 
   // Inicializar automáticamente cuando hay usuario
   useEffect(() => {
-    if (user?.id && !state.isInitialized) {
+    if (user?.userEmail && !state.isInitialized) {
       initialize();
     }
-  }, [user?.id, state.isInitialized, initialize]);
+  }, [user?.userEmail, state.isInitialized, initialize]);
 
   // Refrescar suscripciones cuando cambia el usuario
   useEffect(() => {
-    if (user?.id && state.isInitialized) {
+    if (user?.userEmail && state.isInitialized) {
       refreshSubscriptions();
     }
-  }, [user?.id, state.isInitialized, refreshSubscriptions]);
+  }, [user?.userEmail, state.isInitialized, refreshSubscriptions]);
 
   return {
     ...state,

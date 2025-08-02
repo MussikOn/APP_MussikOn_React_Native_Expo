@@ -248,6 +248,130 @@
     "hello": "¡Hola!",
     "new_message": "¡Tienes un nuevo mensaje!"
   },
+  "payments": {
+    "balance": {
+      "title": "Mi Balance",
+      "available_balance": "Balance Disponible",
+      "total_earnings": "Ganancias Totales",
+      "pending_earnings": "Ganancias Pendientes",
+      "total_deposits": "Depósitos Totales",
+      "total_withdrawals": "Retiros Totales",
+      "quick_actions": "Acciones Rápidas",
+      "deposit": "Depositar",
+      "withdraw": "Retirar",
+      "view_history": "Ver Historial",
+      "manage_accounts": "Gestionar Cuentas",
+      "bank_accounts": "Cuentas Bancarias",
+      "no_accounts": "No tienes cuentas registradas",
+      "add_account": "Agregar Cuenta",
+      "recent_transactions": "Transacciones Recientes",
+      "no_transactions": "No hay transacciones recientes"
+    },
+    "deposit": {
+      "title": "Depositar",
+      "subtitle": "Sube un comprobante de pago para agregar fondos a tu cuenta",
+      "amount": "Monto",
+      "amount_placeholder": "Ingresa el monto",
+      "voucher": "Comprobante de Pago",
+      "upload_voucher": "Subir Comprobante",
+      "select_image": "Seleccionar Imagen",
+      "image_selected": "Imagen seleccionada",
+      "submit": "Enviar Depósito",
+      "success": "Depósito enviado correctamente",
+      "error": "Error al enviar el depósito",
+      "validation": {
+        "amount_required": "El monto es obligatorio",
+        "amount_positive": "El monto debe ser mayor a 0",
+        "voucher_required": "Debes subir un comprobante de pago"
+      }
+    },
+    "withdraw": {
+      "title": "Retirar",
+      "subtitle": "Solicita un retiro a tu cuenta bancaria",
+      "available_balance": "Balance Disponible",
+      "amount": "Monto",
+      "amount_placeholder": "Ingresa el monto a retirar",
+      "bank_account": "Cuenta Bancaria",
+      "select_account": "Seleccionar cuenta",
+      "no_accounts": "No tienes cuentas registradas",
+      "add_account": "Agregar Cuenta",
+      "submit": "Solicitar Retiro",
+      "success": "Solicitud de retiro enviada correctamente",
+      "error": "Error al solicitar el retiro",
+      "validation": {
+        "amount_required": "El monto es obligatorio",
+        "amount_positive": "El monto debe ser mayor a 0",
+        "amount_exceeds_balance": "El monto excede tu balance disponible",
+        "account_required": "Debes seleccionar una cuenta bancaria"
+      }
+    },
+    "history": {
+      "title": "Historial de Pagos",
+      "subtitle": "Todas tus transacciones",
+      "filters": {
+        "all": "Todas",
+        "deposits": "Depósitos",
+        "withdrawals": "Retiros",
+        "earnings": "Ganancias"
+      },
+      "deposit": "Depósito",
+      "withdrawal": "Retiro",
+      "earning": "Ganancia",
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Aprobado",
+        "rejected": "Rechazado",
+        "completed": "Completado"
+      },
+      "no_transactions": "No hay transacciones para mostrar"
+    },
+    "bank_accounts": {
+      "title": "Cuentas Bancarias",
+      "subtitle": "Gestiona tus cuentas para retiros",
+      "add_account": "Agregar Cuenta",
+      "default_account": "Cuenta Principal",
+      "set_default": "Establecer como Principal",
+      "delete_account": "Eliminar Cuenta",
+      "delete_confirm": "¿Estás seguro de que quieres eliminar esta cuenta?",
+      "no_accounts": "No tienes cuentas registradas",
+      "register_account": "Registrar Cuenta",
+      "account_info": "Información de la Cuenta",
+      "account_holder": "Titular de la Cuenta",
+      "account_number": "Número de Cuenta",
+      "bank_name": "Banco",
+      "account_type": "Tipo de Cuenta",
+      "routing_number": "Número de Ruta",
+      "swift_code": "Código SWIFT",
+      "savings": "Ahorros",
+      "checking": "Corriente"
+    },
+    "register_account": {
+      "title": "Registrar Cuenta",
+      "subtitle": "Agrega una nueva cuenta bancaria",
+      "account_holder": "Titular de la Cuenta",
+      "account_holder_placeholder": "Nombre completo del titular",
+      "account_number": "Número de Cuenta",
+      "account_number_placeholder": "Número de cuenta",
+      "bank_name": "Banco",
+      "select_bank": "Seleccionar banco",
+      "account_type": "Tipo de Cuenta",
+      "select_type": "Seleccionar tipo",
+      "routing_number": "Número de Ruta",
+      "routing_number_placeholder": "Número de ruta bancaria",
+      "swift_code": "Código SWIFT",
+      "swift_code_placeholder": "Código SWIFT (opcional)",
+      "submit": "Registrar Cuenta",
+      "success": "Cuenta registrada correctamente",
+      "error": "Error al registrar la cuenta",
+      "validation": {
+        "account_holder_required": "El titular de la cuenta es obligatorio",
+        "account_number_required": "El número de cuenta es obligatorio",
+        "bank_name_required": "Debes seleccionar un banco",
+        "account_type_required": "Debes seleccionar el tipo de cuenta",
+        "routing_number_required": "El número de ruta es obligatorio"
+      }
+    }
+  },
   "sidebar": {
     "home": "Inicio",
     "login": "Iniciar Sesión",
@@ -255,6 +379,9 @@
     "my_requests": "Mis Solicitudes",
     "chat": "Chat",
     "dashboard": "Panel de Control",
+    "payments": "Pagos",
+    "bank_accounts": "Cuentas Bancarias",
+    "payment_history": "Historial de Pagos",
     "profile": "Perfil",
     "configuration": "Configuración",
     "logout": "Cerrar Sesión",
