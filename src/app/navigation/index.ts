@@ -1,1 +1,0 @@
-import MyRequestsList from '@screens/events/MyRequestsList';

@@ -10,6 +10,7 @@ export type RootStackParamList = {
   ShareMusicianScreen: undefined;
   MyRequestsList: undefined;
   AvailableRequests: undefined;
+  CreateRequest: undefined;
   EditRequest: { requestId: string };
   RequestDetail: { requestId: string };
   Notifications: undefined;
