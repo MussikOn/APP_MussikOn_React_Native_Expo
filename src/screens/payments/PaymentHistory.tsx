@@ -4,15 +4,15 @@ import { useTheme } from '@hooks/useAppTheme';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-const ShareMusicianScreen: React.FC = () => {
+const PaymentHistory: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
 
-        return (
+  return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
       <View style={styles.content}>
-                  <Ionicons 
-          name="share-outline" 
+        <Ionicons 
+          name="time-outline" 
           size={80} 
           color={theme.colors.text.secondary} 
         />
@@ -20,12 +20,12 @@ const ShareMusicianScreen: React.FC = () => {
           Función No Disponible
         </Text>
         <Text style={[styles.message, { color: theme.colors.text.secondary }]}>
-          La función de compartir músicos no está disponible en esta versión.
+          El historial de pagos no está disponible en esta versión.
         </Text>
         <Text style={[styles.subMessage, { color: theme.colors.text.secondary }]}>
           Esta funcionalidad será implementada en futuras actualizaciones.
         </Text>
-    </View>
+      </View>
     </View>
   );
 };
@@ -33,32 +33,32 @@ const ShareMusicianScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-              justifyContent: 'center', 
-                    alignItems: 'center',
-            padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   content: {
-                    alignItems: 'center',
+    alignItems: 'center',
     maxWidth: 300,
   },
   title: {
     fontSize: 24,
-              fontWeight: 'bold', 
+    fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
-              textAlign: 'center',
+    textAlign: 'center',
   },
   message: {
-              fontSize: 16, 
-              textAlign: 'center',
+    fontSize: 16,
+    textAlign: 'center',
     marginBottom: 10,
     lineHeight: 24,
   },
   subMessage: {
-                fontSize: 14, 
-                textAlign: 'center',
+    fontSize: 14,
+    textAlign: 'center',
     lineHeight: 20,
   },
 });
 
-export default ShareMusicianScreen; 
+export default PaymentHistory; 

@@ -175,9 +175,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
       // Mostrar alerta nativa
       Alert.alert(
-        '¡Músico Aceptó tu Solicitud!',
-        `${data.musician?.name || 'Un músico'} ha aceptado tu solicitud "${data.event?.eventName || 'Solicitud de músico'}"`,
+        'Músico Aceptado',
+        `Un músico ha aceptado tu solicitud "${data.event?.eventName || 'Solicitud de músico'}"`,
         [
+          {
+            text: 'Ver Detalles',
+            onPress: () => {
+              // TODO: Navegar a detalles de la solicitud
+            },
+          },
           {
             text: 'Cerrar',
             style: 'cancel',
@@ -191,7 +197,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       console.log('📢 Nueva solicitud recibida:', data);
       
       // Solo mostrar a músicos
-      if (user.roll === 'musico') {
+      if (user.roll === 'musician') {
         // Crear notificación usando el servicio
         const notification = notificationService.createNotificationFromServer(
           data, 

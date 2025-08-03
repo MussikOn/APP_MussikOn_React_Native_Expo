@@ -39,18 +39,19 @@ import RequestDetail from '@screens/events/RequestDetail';
 import ShareMusicianScreen from '@screens/events/ShareMusicianScreen';
 import AvailableRequestsScreen from '@screens/events/AvailableRequestsScreen';
 import NotificationsScreen from '@screens/notifications/NotificationsScreen';
+// Importar pantallas de pagos
+import PaymentBalance from '@screens/payments/PaymentBalance';
+import BankAccounts from '@screens/payments/BankAccounts';
+import Deposit from '@screens/payments/Deposit';
+import Withdraw from '@screens/payments/Withdraw';
+import PaymentHistory from '@screens/payments/PaymentHistory';
+import BankAccountRegister from '@screens/payments/BankAccountRegister';
+import MusicianEarnings from '@screens/payments/MusicianEarnings';
+import WithdrawEarnings from '@screens/payments/WithdrawEarnings';
 import FloatingNotificationButton from '@components/ui/FloatingNotificationButton';
 import { useInitialNotifications } from '@hooks/useInitialNotifications';
 import { ChatListScreen } from '@screens/chat/ChatListScreen';
 import { ChatScreen } from '@screens/chat/ChatScreen';
-
-// Importar pantallas de pagos
-import PaymentBalanceScreen from '@screens/payments/PaymentBalanceScreen';
-import DepositScreen from '@screens/payments/DepositScreen';
-import WithdrawScreen from '@screens/payments/WithdrawScreen';
-import PaymentHistoryScreen from '@screens/payments/PaymentHistoryScreen';
-import BankAccountsScreen from '@screens/payments/BankAccountsScreen';
-import BankAccountRegisterScreen from '@screens/payments/BankAccountRegisterScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -269,13 +270,13 @@ function AppContent() {
           })}
           initialRouteName={
             user
-              ? (user.roll === 'musico' ? 'Dashboard' : 'Home')
+              ? (user.roll === 'musician' ? 'Dashboard' : 'Home')
               : 'Login'
           }
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           {/* Solo registrar Dashboard si el usuario es musico */}
-          {user && user.roll === 'musico' && (
+          {user && user.roll === 'musician' && (
             <Stack.Screen name="Dashboard" component={Dashboard} />
           )}
           <Stack.Screen name="Register" component={Register} />
@@ -289,16 +290,17 @@ function AppContent() {
           <Stack.Screen name="RequestDetail" component={RequestDetail} options={{ title: 'Detalles de Solicitud' }} />
           <Stack.Screen name="ShareMusicianScreen" component={ShareMusicianScreen} options={{ title: 'Solicitar Músico' }} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notificaciones' }} />
+          {/* Rutas de sistema de pagos */}
+          <Stack.Screen name="PaymentBalance" component={PaymentBalance} options={{ title: 'Balance de Pagos' }} />
+          <Stack.Screen name="BankAccounts" component={BankAccounts} options={{ title: 'Cuentas Bancarias' }} />
+          <Stack.Screen name="Deposit" component={Deposit} options={{ title: 'Depositar' }} />
+          <Stack.Screen name="Withdraw" component={Withdraw} options={{ title: 'Retirar' }} />
+          <Stack.Screen name="PaymentHistory" component={PaymentHistory} options={{ title: 'Historial de Pagos' }} />
+          <Stack.Screen name="BankAccountRegister" component={BankAccountRegister} options={{ title: 'Registrar Cuenta' }} />
+          <Stack.Screen name="MusicianEarnings" component={MusicianEarnings} options={{ title: 'Ganancias' }} />
+          <Stack.Screen name="WithdrawEarnings" component={WithdrawEarnings} options={{ title: 'Retirar Ganancias' }} />
           <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: 'Conversaciones' }} />
           <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
-          
-          {/* Pantallas de Pagos */}
-          <Stack.Screen name="PaymentBalance" component={PaymentBalanceScreen} options={{ title: 'Mi Balance' }} />
-          <Stack.Screen name="Deposit" component={DepositScreen} options={{ title: 'Depositar' }} />
-          <Stack.Screen name="Withdraw" component={WithdrawScreen} options={{ title: 'Retirar' }} />
-          <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Historial de Pagos' }} />
-          <Stack.Screen name="BankAccounts" component={BankAccountsScreen} options={{ title: 'Cuentas Bancarias' }} />
-          <Stack.Screen name="BankAccountRegister" component={BankAccountRegisterScreen} options={{ title: 'Registrar Cuenta' }} />
         </Stack.Navigator>
         </NavigationWrapper>
         

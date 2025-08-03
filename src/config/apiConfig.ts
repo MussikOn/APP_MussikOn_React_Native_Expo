@@ -1,68 +1,133 @@
 // Configuración centralizada para API y sockets
-// Solo editar aquí para cambiar la URL base
+// Alineada completamente con el backend Express
 
 export const API_CONFIG = {
   // URL base para todas las APIs
-  BASE_URL: 'http://192.168.54.26:3001', // Cambiar a URL de producción
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.101:3001', // Corregido al puerto correcto del backend
   
-  // Endpoints de la API
+  // Endpoints de la API - ALINEADOS CON BACKEND
   ENDPOINTS: {
     // Autenticación
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     REFRESH_TOKEN: '/auth/refresh',
+    GOOGLE_AUTH: '/auth/google',
     
     // Usuarios
     PROFILE: '/users/profile',
     UPDATE_PROFILE: '/users/profile',
     
-    // Eventos/Solicitudes
+    // Solicitudes de Músicos - ALINEADO CON BACKEND
+    MUSICIAN_REQUESTS: '/musician-requests',
+    MY_MUSICIAN_REQUESTS: '/musician-requests/my-requests',
+    AVAILABLE_MUSICIAN_REQUESTS: '/musician-requests/available',
+    ASSIGNED_MUSICIAN_REQUESTS: '/musician-requests/assigned',
+    ACCEPT_MUSICIAN_REQUEST: '/musician-requests/accept',
+    CANCEL_MUSICIAN_REQUEST: '/musician-requests/cancel',
+    COMPLETE_MUSICIAN_REQUEST: '/musician-requests/:requestId/complete',
+    MUSICIAN_REQUEST_STATUS: '/musician-requests/:id/status',
+    MUSICIAN_REQUEST_STATS: '/musician-requests/stats',
+    SEARCH_MUSICIAN_REQUESTS: '/musician-requests/search',
+    
+    // Eventos (DESHABILITADOS - Solo para referencia)
     EVENTS: '/events',
     MY_EVENTS: '/events/my-events',
-    MY_PENDING: '/events/my-pending',
-    MY_ASSIGNED: '/events/my-assigned',
-    MY_COMPLETED: '/events/my-completed',
-    MY_CANCELLED: '/events/my-cancelled',
-    MY_SCHEDULED: '/events/my-scheduled',
-    MY_PAST_PERFORMANCES: '/events/my-past-performances',
-    AVAILABLE_REQUESTS: '/events/available-requests',
-    CREATE_REQUEST: '/events/request-musician',
-    ACCEPT_REQUEST: '/events/:eventId/accept',
-    CANCEL_REQUEST: '/events/:requestId/cancel',
-    COMPLETE_REQUEST: '/events/:requestId/complete',
-    DELETE_REQUEST: '/events/:requestId',
-    REQUEST_DETAIL: '/events/:eventId',
+    CREATE_EVENT: '/events',
+    UPDATE_EVENT: '/events/:id',
+    DELETE_EVENT: '/events/:id',
     
     // Chat
     CONVERSATIONS: '/conversations',
     MESSAGES: '/conversations/:conversationId/messages',
+    SEND_MESSAGE: '/conversations/:conversationId/messages',
     
     // Notificaciones
     NOTIFICATIONS: '/notifications',
+    MARK_READ: '/notifications/:id/read',
+    MARK_ALL_READ: '/notifications/mark-all-read',
     
-    // Sistema de Pagos
-    PAYMENT_BALANCE: '/payments/my-balance',
-    BANK_ACCOUNTS: '/payments/bank-accounts',
-    BANK_ACCOUNTS_REGISTER: '/payments/bank-accounts/register',
-    DEPOSIT: '/payments/deposit',
-    WITHDRAW: '/payments/withdraw',
-    PAYMENT_HISTORY: '/payments/history',
-    MUSICIAN_EARNINGS: '/payments/musician-earnings',
+    // Sistema de Pagos - COMPLETO ALINEADO CON BACKEND
+    PAYMENT_BALANCE: '/payment-system/my-balance',
+    PAYMENT_STATISTICS: '/payment-system/statistics',
+    
+    // Cuentas Bancarias
+    BANK_ACCOUNTS: '/bank-accounts/my-accounts',
+    BANK_ACCOUNT_REGISTER: '/bank-accounts/register',
+    BANK_ACCOUNT_UPDATE: '/bank-accounts/:id',
+    BANK_ACCOUNT_DELETE: '/bank-accounts/:id',
+    BANK_ACCOUNT_SET_DEFAULT: '/bank-accounts/:id/set-default',
+    
+    // Depósitos
+    DEPOSIT: '/payment-system/deposit',
+    DEPOSIT_HISTORY: '/payment-system/my-deposits',
+    DEPOSIT_BY_ID: '/payment-system/deposits/:id',
+    
+    // Pagos de Eventos
+    PAY_MUSICIAN: '/events/:eventId/pay-musician',
+    EVENT_PAYMENTS: '/payments/event-payments',
+    CALCULATE_COMMISSION: '/payments/calculate-commission',
+    
+    // Ganancias de Músicos
+    MUSICIAN_EARNINGS: '/musicians/earnings',
+    AVAILABLE_EARNINGS: '/musicians/available-earnings',
+    WITHDRAW_EARNINGS: '/musicians/withdraw-earnings',
+    
+    // Solicitudes de Retiro
+    WITHDRAWAL_REQUESTS: '/payments/withdrawals',
+    WITHDRAWAL_REQUEST_BY_ID: '/payments/withdrawals/:id',
+    CANCEL_WITHDRAWAL: '/payments/withdrawals/:id/cancel',
+    
+    // Historial de Transacciones
+    TRANSACTION_HISTORY: '/payments/transactions',
+    
+    // Reportes
+    INCOME_REPORT: '/payments/income-report',
+    EXPENSE_REPORT: '/payments/expense-report',
+    
+    // Notificaciones de Pagos
+    PAYMENT_NOTIFICATIONS_SUBSCRIBE: '/payments/notifications/subscribe',
+    PAYMENT_NOTIFICATIONS_UNSUBSCRIBE: '/payments/notifications/unsubscribe',
+    
+    // Búsqueda y Filtros
+    SEARCH: '/search',
+    ADVANCED_SEARCH: '/search/advanced',
+    
+    // Geolocalización
+    NEARBY_MUSICIANS: '/geolocation/nearby-musicians',
+    UPDATE_LOCATION: '/geolocation/update-location',
+    
+    // Imágenes
+    UPLOAD_IMAGE: '/images/upload',
+    DELETE_IMAGE: '/images/:id',
+    
+    // Push Notifications
+    PUSH_TOKEN: '/push-notifications/token',
+    PUSH_SUBSCRIBE: '/push-notifications/subscribe',
+    PUSH_UNSUBSCRIBE: '/push-notifications/unsubscribe',
   },
   
   // Configuración de timeout
-  TIMEOUT: 10000, // 10 segundos
+  TIMEOUT: 15000, // 15 segundos para operaciones complejas
   
   // Headers por defecto
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'User-Agent': 'MussikOn-Mobile-App/1.0',
   },
   
   // Configuración de reintentos
   RETRY_CONFIG: {
     maxRetries: 3,
     retryDelay: 1000, // 1 segundo
+    backoffMultiplier: 2, // Multiplicador exponencial
+  },
+  
+  // Configuración de caché
+  CACHE_CONFIG: {
+    enabled: true,
+    maxAge: 5 * 60 * 1000, // 5 minutos
+    maxSize: 50, // Máximo 50 elementos en caché
   },
 };
 

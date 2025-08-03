@@ -25,7 +25,7 @@ export const SocketConnectButton = () => {
 
 
   useEffect(() => {
-    if (!data || user?.roll !== 'musico') return;
+    if (!data || user?.roll !== 'musician') return;
   
     const onConnect = () => {
       console.info(`Usuario conectado: ${socket.id}`);
@@ -56,7 +56,7 @@ export const SocketConnectButton = () => {
     };
   }, [data, user]);
 
-  if (user?.roll !== 'musico') return null;
+  if (user?.roll !== 'musician') return null;
 
   return (
     <Pressable

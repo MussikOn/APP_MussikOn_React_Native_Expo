@@ -15,7 +15,7 @@ const ConnectionStatus: React.FC = () => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.error[500] }]}>
       <Ionicons name="wifi-outline" size={16} color="#fff" />
-      <Text style={styles.text}>Sin conexión en tiempo real</Text>
+      <Text style={styles.text}>Sin conexión</Text>
     </View>
   );
 };
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     position: 'absolute',
-    top: 0,
+    bottom: 0, // Cambiado de top: 0 a bottom: 0
     left: 0,
     right: 0,
     zIndex: 1000,

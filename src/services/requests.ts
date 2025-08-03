@@ -86,7 +86,7 @@ export const requestService = {
     };
 
     console.log('src/services/requests.ts:createRequest - Enviando datos al backend:', eventData);
-    return apiService.post(API_CONFIG.ENDPOINTS.CREATE_REQUEST, eventData);
+    return apiService.post(API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS, eventData);
   },
 
   /**
@@ -94,7 +94,7 @@ export const requestService = {
    * GET /events/my-pending
    */
   async getMyPendingRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_PENDING);
+    return apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
   },
 
   /**
@@ -102,7 +102,7 @@ export const requestService = {
    * GET /events/my-assigned
    */
   async getMyAssignedRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_ASSIGNED);
+    return apiService.get(API_CONFIG.ENDPOINTS.ASSIGNED_MUSICIAN_REQUESTS);
   },
 
   /**
@@ -110,7 +110,7 @@ export const requestService = {
    * GET /events/my-completed
    */
   async getMyCompletedRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_COMPLETED);
+    return apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
   },
 
   /**
@@ -128,7 +128,7 @@ export const requestService = {
   async getMyCancelledRequests(): Promise<ApiResponse<Request[]>> {
     try {
       // Intentar endpoint específico primero
-      return await apiService.get(API_CONFIG.ENDPOINTS.MY_CANCELLED);
+      return await apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
     } catch (error) {
       // Si no existe, filtrar de todas las solicitudes (sin logs excesivos)
       const allRequests = await apiService.get(API_CONFIG.ENDPOINTS.MY_EVENTS);
@@ -161,7 +161,7 @@ export const requestService = {
       });
     }
     
-    const url = filters ? `${API_CONFIG.ENDPOINTS.AVAILABLE_REQUESTS}?${params.toString()}` : API_CONFIG.ENDPOINTS.AVAILABLE_REQUESTS;
+    const url = filters ? `${API_CONFIG.ENDPOINTS.AVAILABLE_MUSICIAN_REQUESTS}?${params.toString()}` : API_CONFIG.ENDPOINTS.AVAILABLE_MUSICIAN_REQUESTS;
     return apiService.get(url);
   },
 
@@ -170,7 +170,7 @@ export const requestService = {
    * POST /events/:requestId/accept
    */
   async acceptRequest(requestId: string): Promise<ApiResponse<Request>> {
-    const url = API_CONFIG.ENDPOINTS.ACCEPT_REQUEST.replace(':eventId', requestId);
+    const url = API_CONFIG.ENDPOINTS.ACCEPT_MUSICIAN_REQUEST;
     return apiService.post(url);
   },
 
@@ -179,7 +179,7 @@ export const requestService = {
    * GET /events/my-scheduled
    */
   async getMyScheduledRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_SCHEDULED);
+    return apiService.get(API_CONFIG.ENDPOINTS.ASSIGNED_MUSICIAN_REQUESTS);
   },
 
   /**
@@ -187,7 +187,7 @@ export const requestService = {
    * GET /events/my-past-performances
    */
   async getMyPastPerformances(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_PAST_PERFORMANCES);
+    return apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
   },
 
   // ===== SERVICIOS GENERALES =====
@@ -197,7 +197,7 @@ export const requestService = {
    * GET /events/:requestId
    */
   async getRequestById(requestId: string): Promise<ApiResponse<Request>> {
-    const url = API_CONFIG.ENDPOINTS.REQUEST_DETAIL.replace(':eventId', requestId);
+    const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
     return apiService.get(url);
   },
 
@@ -206,7 +206,7 @@ export const requestService = {
    * PUT /events/:requestId
    */
   async updateRequest(requestId: string, requestData: Partial<CreateRequestData>): Promise<ApiResponse<Request>> {
-    const url = API_CONFIG.ENDPOINTS.REQUEST_DETAIL.replace(':eventId', requestId);
+    const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
     return apiService.put(url, requestData);
   },
 
@@ -217,12 +217,12 @@ export const requestService = {
   async cancelRequest(requestId: string): Promise<ApiResponse<void>> {
     try {
       // Usar directamente PATCH ya que DELETE no está implementado
-      const url = API_CONFIG.ENDPOINTS.CANCEL_REQUEST.replace(':requestId', requestId);
+      const url = API_CONFIG.ENDPOINTS.CANCEL_MUSICIAN_REQUEST;
       return await apiService.patch(url);
     } catch (error: any) {
       // Si PATCH falla, intentar actualizar el estado directamente
       console.log('PATCH falló, intentando actualizar estado...');
-      const url = API_CONFIG.ENDPOINTS.REQUEST_DETAIL.replace(':eventId', requestId);
+      const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
       return await apiService.patch(url, { status: 'cancelled' });
     }
   },
@@ -233,12 +233,12 @@ export const requestService = {
    */
   async completeRequest(requestId: string): Promise<ApiResponse<Request>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.COMPLETE_REQUEST.replace(':requestId', requestId);
+      const url = API_CONFIG.ENDPOINTS.COMPLETE_MUSICIAN_REQUEST.replace(':requestId', requestId);
       return await apiService.patch(url);
     } catch (error: any) {
       // Si PATCH falla, intentar actualizar el estado directamente
       console.log('PATCH complete falló, intentando actualizar estado...');
-      const url = API_CONFIG.ENDPOINTS.REQUEST_DETAIL.replace(':eventId', requestId);
+      const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
       return await apiService.patch(url, { status: 'completed' });
     }
   },
@@ -248,7 +248,7 @@ export const requestService = {
    * DELETE /events/:requestId
    */
   async deleteRequest(requestId: string): Promise<ApiResponse<void>> {
-    const url = API_CONFIG.ENDPOINTS.DELETE_REQUEST.replace(':requestId', requestId);
+    const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
     return apiService.delete(url);
   },
 };

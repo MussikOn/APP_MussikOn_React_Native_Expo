@@ -19,34 +19,37 @@ export type RootStackParamList = {
   ChatList: undefined;
   Chat: { conversationId: string };
   Conversation: { conversationId: string; otherUserId: string };
-  // Nuevas rutas de pago
+  // Rutas de sistema de pagos
   PaymentBalance: undefined;
   BankAccounts: undefined;
   Deposit: undefined;
   Withdraw: undefined;
   PaymentHistory: undefined;
   BankAccountRegister: undefined;
+  MusicianEarnings: undefined;
+  WithdrawEarnings: undefined;
 };
 
+// Tipos de autenticación alineados con el backend
 export type Token = {
-      iat:number;
-      name:string;
-      lastName:string;
-      userEmail:string;
-      roll:string
-}
+  iat: number;
+  name: string;
+  lastName: string;
+  userEmail: string;
+  roll: 'admin' | 'superadmin' | 'eventCreator' | 'musician';
+};
 
 export type User = {
-      iat:number;
-      name:string;
-      lastName:string;
-      userEmail:string;
-      roll:string
-      create_at:string;
-      update_at:string;
-      delete_at:string;
-      status:boolean;
-    };
+  iat: number;
+  name: string;
+  lastName: string;
+  userEmail: string;
+  roll: 'admin' | 'superadmin' | 'eventCreator' | 'musician';
+  create_at: string;
+  update_at: string;
+  delete_at: string;
+  status: boolean;
+};
 
 // Chat Types
 export type Message = {
@@ -76,27 +79,28 @@ export type ChatFilters = {
   dateTo?: string;
 };
 
-// Payment Types - Alineados con el backend
+// ===== SISTEMA DE PAGOS - ALINEADO CON BACKEND =====
+
 export interface UserBalance {
   userId: string;
   balance: number;
-  totalEarnings: number;
-  totalWithdrawals: number;
-  pendingWithdrawals: number;
+  currency: string;
   lastUpdated: string;
+  totalDeposits: number;
+  totalWithdrawals: number;
+  totalEarnings: number;
 }
 
 export interface BankAccount {
   id: string;
   userId: string;
-  accountHolderName: string;
+  accountHolder: string;
   accountNumber: string;
   bankName: string;
   accountType: 'savings' | 'checking';
   routingNumber?: string;
-  swiftCode?: string;
-  isDefault: boolean;
   isVerified: boolean;
+  isDefault: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -105,9 +109,31 @@ export interface UserDeposit {
   id: string;
   userId: string;
   amount: number;
-  voucherUrl: string;
+  currency: string;
+  voucherFile: {
+    url: string;
+    filename: string;
+    uploadedAt: string;
+  };
   status: 'pending' | 'approved' | 'rejected';
-  adminNotes?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EventPayment {
+  id: string;
+  eventId: string;
+  organizerId: string;
+  musicianId: string;
+  amount: number;
+  currency: string;
+  commission: number;
+  musicianAmount: number;
+  status: 'pending' | 'completed' | 'failed';
+  paymentMethod: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,40 +142,63 @@ export interface MusicianEarnings {
   id: string;
   musicianId: string;
   eventId: string;
-  eventName: string;
+  eventPaymentId: string;
   amount: number;
-  status: 'pending' | 'paid' | 'cancelled';
-  paymentDate?: string;
+  currency: string;
+  status: 'pending' | 'available' | 'withdrawn';
   createdAt: string;
   updatedAt: string;
 }
 
 export interface WithdrawalRequest {
   id: string;
-  userId: string;
-  bankAccountId: string;
+  musicianId: string;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
-  adminNotes?: string;
+  currency: string;
+  bankAccountId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  processedBy?: string;
   processedAt?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Event Types - Alineados con el backend
+export interface CommissionCalculation {
+  totalAmount: number;
+  commissionAmount: number;
+  musicianAmount: number;
+  commissionRate: number;
+}
+
+export interface PaymentStatistics {
+  totalDeposits: number;
+  totalPayments: number;
+  totalCommissions: number;
+  totalWithdrawals: number;
+  pendingDepositsCount: number;
+  pendingWithdrawalsCount: number;
+  totalUsers: number;
+  totalMusicians: number;
+  totalEvents: number;
+  lastUpdated: string;
+}
+
+// ===== EVENTOS - ALINEADO CON BACKEND =====
+
 export interface Event {
   id: string;
   user: string; // Email del organizador
   eventName: string;
-  eventType: string;
-  date: string;
-  time: string;
-  location: string; // String como espera el backend
-  duration: string; // String como espera el backend
-  instrument: string;
+  eventType: 'concierto' | 'boda' | 'culto' | 'evento_corporativo' | 'festival' | 'fiesta_privada' | 'graduacion' | 'cumpleanos' | 'otro';
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
+  location: string;
+  duration: string;
+  instrument: 'guitarra' | 'piano' | 'bajo' | 'bateria' | 'saxofon' | 'trompeta' | 'violin' | 'canto' | 'teclado' | 'flauta' | 'otro';
   bringInstrument: boolean;
   comment: string;
-  budget: string; // String como espera el backend
+  budget: string;
   flyerUrl?: string;
   songs: string[];
   recommendations: string[];
@@ -157,6 +206,99 @@ export interface Event {
   status: 'pending_musician' | 'musician_assigned' | 'completed' | 'cancelled' | 'musician_cancelled';
   assignedMusicianId?: string;
   interestedMusicians?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEventPayload {
+  eventName: string;
+  eventType: Event['eventType'];
+  date: string;
+  time: string;
+  location: string;
+  duration: string;
+  instrument: Event['instrument'];
+  bringInstrument: boolean;
+  comment: string;
+  budget: string;
+  songs?: string[];
+  recommendations?: string[];
+  mapsLink?: string;
+}
+
+// ===== PAGINACIÓN Y FILTROS =====
+
+export interface PaginationParams {
+  page: number;
+  limit: number;
+  sortBy: 'createdAt' | 'updatedAt' | 'name' | 'date';
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface EventFilters extends PaginationParams {
+  status?: Event['status'];
+  eventType?: Event['eventType'];
+  instrument?: Event['instrument'];
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+// ===== RESPUESTAS DE API =====
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// ===== NOTIFICACIONES =====
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  data?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ===== PERFIL DE MÚSICO =====
+
+export interface MusicianProfile {
+  id: string;
+  userId: string;
+  name: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  instruments: string[];
+  experience: string;
+  bio: string;
+  hourlyRate: number;
+  rating: number;
+  totalReviews: number;
+  isAvailable: boolean;
+  location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  profileImage?: string;
+  portfolio?: string[];
   createdAt: string;
   updatedAt: string;
 }
