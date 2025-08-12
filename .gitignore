@@ -1,23 +1,5 @@
-# 🔒 PROTECCIÓN DE CÓDIGO FUENTE - MussikOn
+
 # Este archivo protege el código fuente mientras permite acceso público a la documentación
-
-# ========================================
-# 🚫 CÓDIGO FUENTE PROTEGIDO
-# ========================================
-
-# Código fuente principal (PROTEGIDO)
-/src/
-/app/
-/components/
-/screens/
-/services/
-/utils/
-/hooks/
-/contexts/
-/store/
-/config/
-/types/
-/appTypes/
 
 # Archivos de configuración de desarrollo
 package.json

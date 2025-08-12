@@ -8,39 +8,59 @@ interface UserContextType {
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  isLoading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Token | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     refreshUser();
   }, []);
 
   const refreshUser = async () => {
-    const token = await getToken();
-    if (token) {
-      const userData = await getData();
-      setUser(userData || null);
-    } else {
+    try {
+      setIsLoading(true);
+      const token = await getToken();
+      if (token) {
+        const userData = await getData();
+        setUser(userData || null);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
       setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const login = async (token: string) => {
-    await saveToken(token);
-    await refreshUser();
+    try {
+      setIsLoading(true);
+      await saveToken(token);
+      await refreshUser();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
-    await removeToken();
-    setUser(null);
+    try {
+      setIsLoading(true);
+      await removeToken();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, login, logout, refreshUser }}>
+    <UserContext.Provider value={{ user, setUser, login, logout, refreshUser, isLoading }}>
       {children}
     </UserContext.Provider>
   );

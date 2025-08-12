@@ -21,8 +21,8 @@ const environments: Record<string, Environment> = {
     ENVIRONMENT: 'production',
   },
   staging: {
-    API_URL: 'http://192.168.100.65:10000', // Mantener staging separado
-    SOCKET_URL: 'http://192.168.100.65:10000',
+    API_URL: 'http://192.168.54.45:3001', // Mantener staging separado
+    SOCKET_URL: 'http://192.168.54.45:3001',
     ENVIRONMENT: 'staging',
   },
 };

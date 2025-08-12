@@ -12,6 +12,7 @@ import { ActivityIndicator } from 'react-native';
 import { useUser } from '@contexts/UserContext';
 import { requestService } from '@services/requests';
 import { socket, registerSocketUser } from '@utils/socket';
+import { CreateRequestData } from '../../../../services/requests';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MAX_FORM_WIDTH = 420;
@@ -495,25 +496,16 @@ const ShareMusician = () => {
     }
     setIsLoading(true);
     try {
-      const payload = {
-        requestName: form.requestName,
-        requestType: form.requestType,
-        date: typeof form.date === 'string' ? form.date : form.date?.toISOString().split('T')[0],
-        time: `${form.startTime} - ${form.endTime}`,
-        location: {
-          address: typeof form.location === 'string' ? form.location : '',
-          city: '',
-          latitude: 0,
-          longitude: 0,
-          googleMapsUrl: '',
-        },
-        duration: 60, // 1 hora por defecto
+      const payload: CreateRequestData = {
+        userId: user?.userEmail || '',
+        eventType: form.requestType,
+        date: form.date,
+        startTime: form.time,
+        endTime: form.time,
+        location: form.location,
         instrument: form.instrument,
-        budget: 0,
-        minBudget: 0,
-        maxBudget: 0,
-        description: '',
-        user: user.userEmail,
+        budget: Number(form.budget),
+        comments: form.additionalComments || '',
       };
       const response = await requestService.createRequest(payload);
       if (response && response.data && response.data.id) {
