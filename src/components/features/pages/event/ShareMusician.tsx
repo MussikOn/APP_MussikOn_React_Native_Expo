@@ -497,24 +497,15 @@ const ShareMusician = () => {
     setIsLoading(true);
     try {
       const payload: CreateRequestData = {
-        eventName: form.requestName,
+        userId: user?.userEmail || '',
         eventType: form.requestType,
         date: form.date,
-        time: form.time,
-        location: {
-          address: form.location,
-          city: 'Santo Domingo',
-          latitude: 18.4861,
-          longitude: -69.9312,
-        },
-        duration: Number(form.duration),
+        startTime: form.time,
+        endTime: form.time,
+        location: form.location,
         instrument: form.instrument,
         budget: Number(form.budget),
-        comment: form.additionalComments || '',
-        songs: [],
-        recommendations: [],
-        mapsLink: '',
-        bringInstrument: false,
+        comments: form.additionalComments || '',
       };
       const response = await requestService.createRequest(payload);
       if (response && response.data && response.data.id) {

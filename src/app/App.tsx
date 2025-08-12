@@ -52,6 +52,7 @@ import FloatingNotificationButton from '@components/ui/FloatingNotificationButto
 import { useInitialNotifications } from '@hooks/useInitialNotifications';
 import { ChatListScreen } from '@screens/chat/ChatListScreen';
 import { ChatScreen } from '@screens/chat/ChatScreen';
+import MainTabs from '@components/navigation/MainTabs';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get('window');
@@ -65,7 +66,7 @@ function AppContent() {
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
   const { t } = useTranslation();
-  const { user, refreshUser } = useUser();
+  const { user, refreshUser, isLoading } = useUser();
   const { sidebarVisible, openSidebar, closeSidebar } = useSidebar();
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -269,16 +270,15 @@ function AppContent() {
             headerTitle: '',
           })}
           initialRouteName={
-            user
-              ? (user.roll === 'musician' ? 'Dashboard' : 'Home')
+            user && !isLoading
+              ? 'MainTabs'
               : 'Login'
           }
         >
+          <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="Home" component={HomeScreen} />
-          {/* Solo registrar Dashboard si el usuario es musico */}
-          {user && user.roll === 'musician' && (
-            <Stack.Screen name="Dashboard" component={Dashboard} />
-          )}
+          {/* Registrar Dashboard siempre para que esté disponible */}
+          <Stack.Screen name="Dashboard" component={Dashboard} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Profile" component={Profile} />

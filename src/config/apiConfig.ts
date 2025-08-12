@@ -1,9 +1,8 @@
 // Configuración centralizada para API y sockets
 // Alineada completamente con el backend Express
-
 export const API_CONFIG = {
   // URL base para todas las APIs
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.101:3001', // Corregido al puerto correcto del backend
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.54.45:3001', // Corregido al puerto correcto del backend
   
   // Endpoints de la API - ALINEADOS CON BACKEND
   ENDPOINTS: {
@@ -17,17 +16,19 @@ export const API_CONFIG = {
     PROFILE: '/users/profile',
     UPDATE_PROFILE: '/users/profile',
     
-    // Solicitudes de Músicos - ALINEADO CON BACKEND
+    // Solicitudes de Músicos - ALINEADO CON BACKEND REAL
     MUSICIAN_REQUESTS: '/musician-requests',
     MY_MUSICIAN_REQUESTS: '/musician-requests/my-requests',
-    AVAILABLE_MUSICIAN_REQUESTS: '/musician-requests/available',
+    // CORREGIDO: Usar el endpoint real del backend
+    AVAILABLE_MUSICIAN_REQUESTS: '/search/musician-requests',
     ASSIGNED_MUSICIAN_REQUESTS: '/musician-requests/assigned',
-    ACCEPT_MUSICIAN_REQUEST: '/musician-requests/accept',
-    CANCEL_MUSICIAN_REQUEST: '/musician-requests/cancel',
+    // CORREGIDO: Estos endpoints no existen en el backend, usar actualización directa
+    ACCEPT_MUSICIAN_REQUEST: '/musician-requests', // Se usará PUT para cambiar status
+    CANCEL_MUSICIAN_REQUEST: '/musician-requests', // Se usará PUT para cambiar status
     COMPLETE_MUSICIAN_REQUEST: '/musician-requests/:requestId/complete',
     MUSICIAN_REQUEST_STATUS: '/musician-requests/:id/status',
     MUSICIAN_REQUEST_STATS: '/musician-requests/stats',
-    SEARCH_MUSICIAN_REQUESTS: '/musician-requests/search',
+    SEARCH_MUSICIAN_REQUESTS: '/search/musician-requests',
     
     // Eventos (DESHABILITADOS - Solo para referencia)
     EVENTS: '/events',

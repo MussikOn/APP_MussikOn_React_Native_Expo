@@ -35,6 +35,8 @@ import { Audio } from 'expo-av';
 import { typography, spacing, borderRadius } from '../../theme';
 import Logo from '../../components/ui/Logo';
 import FloatingNotificationButton from '@components/ui/FloatingNotificationButton';
+import { useUser } from '@contexts/UserContext';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
 
 // Animaciones Lottie (puedes reemplazar los paths por los tuyos propios)
 const lottiePower = require('../../../assets/lottie/Power.json');
@@ -205,6 +207,28 @@ const Dashboard = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { user } = useUser();
+
+  // Protección de ruta: Solo músicos pueden acceder al Dashboard
+  useEffect(() => {
+    if (user && user.roll !== 'musician') {
+      // Si no es músico, redirigir a Home
+      navigation.replace('Home');
+      return;
+    }
+  }, [user, navigation]);
+
+  // Si no hay usuario o no es músico, mostrar loading
+  if (!user || user.roll !== 'musician') {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background.primary }}>
+        <LoadingSpinner size="large" />
+        <Text style={{ marginTop: 20, color: theme.colors.text.primary }}>
+          Verificando permisos...
+        </Text>
+      </View>
+    );
+  }
 
   const [status, setStatus] = useState<ConnectionStatus>(
     socket.connected ? "connected" : "disconnected"

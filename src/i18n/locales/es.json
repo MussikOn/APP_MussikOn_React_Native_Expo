@@ -449,6 +449,7 @@
     "cancelled_by_musician": "Cancelada por músico",
     "tabs": {
       "home": "Inicio",
+      "dashboard": "Dashboard",
       "myEvents": "Mis Eventos",
       "available": "Disponibles",
       "chat": "Chat",

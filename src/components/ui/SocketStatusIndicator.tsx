@@ -3,13 +3,16 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSocket } from '@contexts/SocketContext';
 import { useTheme } from '@contexts/ThemeContext';
+import { useUser } from '@contexts/UserContext';
 
 const SocketStatusIndicator: React.FC = () => {
   const { isConnected } = useSocket();
   const { theme } = useTheme();
+  const { user } = useUser();
 
-  if (isConnected) {
-    return null; // No mostrar nada si está conectado
+  // No mostrar nada si no hay usuario logueado o si está conectado
+  if (!user || isConnected) {
+    return null;
   }
 
   return (

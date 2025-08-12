@@ -3,9 +3,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@hooks/useAppTheme';
 import { useTranslation } from 'react-i18next';
+import { useUser } from '@contexts/UserContext';
 
 // Importar pantallas
 import HomeScreen from '@screens/dashboard/HomeScreen';
+import Dashboard from '@screens/dashboard/Dashboard';
 import MyRequestsList from '@screens/events/MyRequestsList';
 import AvailableRequestsScreen from '@screens/events/AvailableRequestsScreen';
 import { ChatListScreen } from '@screens/chat/ChatListScreen';
@@ -16,6 +18,10 @@ const Tab = createBottomTabNavigator();
 const MainTabs: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { user } = useUser();
+
+  // Determinar si el usuario es músico
+  const isMusician = user?.roll === 'musician';
 
   return (
     <Tab.Navigator
@@ -25,6 +31,8 @@ const MainTabs: React.FC = () => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Dashboard') {
+            iconName = focused ? 'grid' : 'grid-outline';
           } else if (route.name === 'MyEvents') {
             iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'Available') {
@@ -58,14 +66,27 @@ const MainTabs: React.FC = () => {
         },
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          title: t('tabs.home'),
-          headerShown: false,
-        }}
-      />
+      {/* Pantalla principal según el rol */}
+      {isMusician ? (
+        <Tab.Screen
+          name="Dashboard"
+          component={Dashboard}
+          options={{
+            title: t('tabs.dashboard') || 'Dashboard',
+            headerShown: false,
+          }}
+        />
+      ) : (
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            title: t('tabs.home'),
+            headerShown: false,
+          }}
+        />
+      )}
+      
       <Tab.Screen
         name="MyEvents"
         component={MyRequestsList}

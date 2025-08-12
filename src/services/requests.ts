@@ -2,51 +2,33 @@ import { apiService, ApiResponse } from './api';
 import { getApiUrl, API_CONFIG } from '../config/apiConfig';
 import { Event } from '../appTypes/DatasTypes';
 
-// Tipos para solicitudes - Alineados con el backend
+// Tipos para solicitudes - ALINEADOS EXACTAMENTE CON EL BACKEND
 export interface Request {
-  id: string;
-  user: string; // Email del organizador
-  eventName: string; // Cambiado de 'name' a 'eventName'
-  eventType: string;
-  date: string;
-  time: string;
-  location: string; // Cambiado de objeto a string como espera el backend
-  duration: string; // Cambiado de number a string como espera el backend
-  instrument: string;
-  bringInstrument: boolean;
-  comment: string;
-  budget: string; // Cambiado de number a string como espera el backend
-  flyerUrl?: string;
-  songs: string[];
-  recommendations: string[];
-  mapsLink: string;
-  status: 'pending_musician' | 'musician_assigned' | 'completed' | 'cancelled' | 'musician_cancelled';
-  assignedMusicianId?: string;
-  interestedMusicians?: string[];
-  createdAt: string;
-  updatedAt: string;
+  id?: string; // Firestore autogenerado
+  userId: string; // ID del usuario que creó la solicitud
+  eventType: string; // Tipo de evento
+  date: string; // Fecha del evento
+  time: string; // Hora del evento (formato: "startTime - endTime")
+  location: string; // Ubicación del evento
+  instrument: string; // Instrumento requerido
+  budget: number; // Presupuesto (número)
+  comments?: string; // Comentarios opcionales
+  status: 'pendiente' | 'asignada' | 'no_asignada' | 'cancelada' | 'completada'; // Estados del backend
+  assignedMusicianId?: string; // ID del músico asignado
+  createdAt: string; // Timestamp de creación
+  updatedAt: string; // Timestamp de última actualización
 }
 
 export interface CreateRequestData {
-  eventName: string; // Cambiado de 'requestName' a 'eventName'
-  eventType: string;
-  date: string;
-  time: string;
-  location: {
-    address: string;
-    city: string;
-    latitude: number;
-    longitude: number;
-    googleMapsUrl?: string;
-  };
-  duration: number; // Mantenemos number en frontend para validación
-  instrument: string;
-  bringInstrument: boolean;
-  budget: number; // Mantenemos number en frontend para validación
-  comment: string;
-  songs: string[];
-  recommendations: string[];
-  mapsLink: string;
+  userId: string; // ID del usuario que crea la solicitud
+  eventType: string; // Tipo de evento
+  date: string; // Fecha del evento
+  startTime: string; // Hora de inicio
+  endTime: string; // Hora de fin
+  location: string; // Ubicación del evento
+  instrument: string; // Instrumento requerido
+  budget: number; // Presupuesto
+  comments?: string; // Comentarios opcionales
 }
 
 export interface RequestFilters {
@@ -54,9 +36,16 @@ export interface RequestFilters {
   location?: string;
   dateFrom?: string;
   dateTo?: string;
-  budgetMin?: number;
-  budgetMax?: number;
-  status?: string;
+  budget?: {
+    min?: number;
+    max?: number;
+  };
+  query?: string; // Para búsqueda de texto
+  eventType?: string; // Tipo de evento
+  sortBy?: string; // Campo para ordenar
+  sortOrder?: 'asc' | 'desc'; // Orden de clasificación
+  limit?: number; // Límite de resultados
+  offset?: number; // Desplazamiento para paginación
 }
 
 // Servicios para solicitudes
@@ -65,28 +54,24 @@ export const requestService = {
 
   /**
    * Crear solicitud de músico para evento
-   * POST /events/request-musician
+   * POST /musician-requests
    */
   async createRequest(requestData: CreateRequestData): Promise<ApiResponse<Request>> {
-    // Mapear datos del frontend al formato esperado por el backend
-    const eventData = {
-      eventName: requestData.eventName,
+    // Mapear datos del frontend al formato exacto esperado por el backend
+    const backendData = {
+      userId: requestData.userId,
       eventType: requestData.eventType,
       date: requestData.date,
-      time: requestData.time,
-      location: requestData.location.address, // Backend espera string
-      duration: requestData.duration.toString(), // Backend espera string
+      startTime: requestData.startTime,
+      endTime: requestData.endTime,
+      location: requestData.location,
       instrument: requestData.instrument,
-      bringInstrument: requestData.bringInstrument,
-      comment: requestData.comment,
-      budget: requestData.budget.toString(), // Backend espera string
-      songs: requestData.songs,
-      recommendations: requestData.recommendations,
-      mapsLink: requestData.mapsLink,
+      budget: requestData.budget,
+      comments: requestData.comments,
     };
 
-    console.log('src/services/requests.ts:createRequest - Enviando datos al backend:', eventData);
-    return apiService.post(API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS, eventData);
+    console.log('src/services/requests.ts:createRequest - Enviando datos al backend:', backendData);
+    return apiService.post(API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS, backendData);
   },
 
   /**
@@ -134,7 +119,7 @@ export const requestService = {
       const allRequests = await apiService.get(API_CONFIG.ENDPOINTS.MY_EVENTS);
       if (allRequests.data) {
         const cancelledRequests = allRequests.data.filter((request: Request) => 
-          request.status === 'cancelled' || request.status === 'musician_cancelled'
+          request.status === 'cancelada'
         );
         return {
           ...allRequests,
@@ -149,29 +134,59 @@ export const requestService = {
 
   /**
    * Obtener solicitudes disponibles para músicos
-   * GET /events/available-requests
+   * GET /search/musician-requests con filtro status=pendiente
    */
   async getAvailableRequests(filters?: RequestFilters): Promise<ApiResponse<Request[]>> {
     const params = new URLSearchParams();
+    
+    // FILTRO OBLIGATORIO: Solo solicitudes pendientes (disponibles)
+    params.append('status', 'pendiente');
+    
+    // Aplicar filtros adicionales si existen
     if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          params.append(key, value.toString());
-        }
-      });
+      if (filters.instrument) params.append('instrument', filters.instrument);
+      if (filters.location) params.append('location', filters.location);
+      if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters.dateTo) params.append('dateTo', filters.dateTo);
+      if (filters.budget) {
+        if (filters.budget.min !== undefined) params.append('budgetMin', filters.budget.min.toString());
+        if (filters.budget.max !== undefined) params.append('budgetMax', filters.budget.max.toString());
+      }
+      if (filters.query) params.append('query', filters.query);
+      if (filters.eventType) params.append('eventType', filters.eventType);
+      if (filters.sortBy) params.append('sortBy', filters.sortBy);
+      if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+      if (filters.limit) params.append('limit', filters.limit.toString());
+      if (filters.offset) params.append('offset', filters.offset.toString());
     }
     
-    const url = filters ? `${API_CONFIG.ENDPOINTS.AVAILABLE_MUSICIAN_REQUESTS}?${params.toString()}` : API_CONFIG.ENDPOINTS.AVAILABLE_MUSICIAN_REQUESTS;
+    // Agregar parámetros de paginación por defecto
+    params.append('limit', '50'); // Obtener más solicitudes por defecto
+    params.append('sortBy', 'createdAt');
+    params.append('sortOrder', 'desc');
+    
+    const url = `${API_CONFIG.ENDPOINTS.AVAILABLE_MUSICIAN_REQUESTS}?${params.toString()}`;
+    console.log('🔍 Obteniendo solicitudes disponibles desde:', url);
+    
     return apiService.get(url);
   },
 
   /**
    * Aceptar una solicitud de evento
-   * POST /events/:requestId/accept
+   * PUT /musician-requests/:id para cambiar status a 'asignada'
    */
   async acceptRequest(requestId: string): Promise<ApiResponse<Request>> {
-    const url = API_CONFIG.ENDPOINTS.ACCEPT_MUSICIAN_REQUEST;
-    return apiService.post(url);
+    const url = `${API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS}/${requestId}`;
+    
+    // Actualizar el status a 'asignada' y asignar el músico actual
+    const updateData = {
+      status: 'asignada',
+      assignedMusicianId: 'current_user_id', // TODO: Obtener del contexto de usuario
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log('✅ Aceptando solicitud:', requestId, 'con datos:', updateData);
+    return apiService.put(url, updateData);
   },
 
   /**
@@ -212,34 +227,45 @@ export const requestService = {
 
   /**
    * Cancelar una solicitud
-   * PATCH /events/:requestId/cancel
+   * PUT /musician-requests/:id para cambiar status a 'cancelada'
    */
   async cancelRequest(requestId: string): Promise<ApiResponse<void>> {
     try {
-      // Usar directamente PATCH ya que DELETE no está implementado
-      const url = API_CONFIG.ENDPOINTS.CANCEL_MUSICIAN_REQUEST;
-      return await apiService.patch(url);
+      const url = `${API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS}/${requestId}`;
+      
+      // Actualizar el status a 'cancelada'
+      const updateData = {
+        status: 'cancelada',
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log('❌ Cancelando solicitud:', requestId, 'con datos:', updateData);
+      return await apiService.put(url, updateData);
     } catch (error: any) {
-      // Si PATCH falla, intentar actualizar el estado directamente
-      console.log('PATCH falló, intentando actualizar estado...');
-      const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
-      return await apiService.patch(url, { status: 'cancelled' });
+      console.error('Error al cancelar solicitud:', error);
+      throw error;
     }
   },
 
   /**
    * Marcar solicitud como completada
-   * PATCH /events/:requestId/complete
+   * PUT /musician-requests/:id para cambiar status a 'completada'
    */
   async completeRequest(requestId: string): Promise<ApiResponse<Request>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.COMPLETE_MUSICIAN_REQUEST.replace(':requestId', requestId);
-      return await apiService.patch(url);
+      const url = `${API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS}/${requestId}`;
+      
+      // Actualizar el status a 'completada'
+      const updateData = {
+        status: 'completada',
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log('✅ Completando solicitud:', requestId, 'con datos:', updateData);
+      return await apiService.put(url, updateData);
     } catch (error: any) {
-      // Si PATCH falla, intentar actualizar el estado directamente
-      console.log('PATCH complete falló, intentando actualizar estado...');
-      const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
-      return await apiService.patch(url, { status: 'completed' });
+      console.error('Error al completar solicitud:', error);
+      throw error;
     }
   },
 

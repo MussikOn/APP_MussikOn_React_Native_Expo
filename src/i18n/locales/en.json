@@ -510,5 +510,18 @@
     "no": "No",
     "cancel": "Cancel",
     "access_denied": "Access denied"
+  },
+  "tabs": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "myEvents": "My Events",
+    "available": "Available",
+    "chat": "Chat",
+    "profile": "Profile",
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "cancelled": "Cancelled",
+    "scheduled": "Scheduled",
+    "all": "All"
   }
 } 
