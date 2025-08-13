@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,37 +12,53 @@ import {
   FlatList,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
+import { useUser } from '@contexts/UserContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform } from 'react-native';
+
+// Tipos del backend
+import { CreateEventPayload, Event, ApiResponse } from '@appTypes/DatasTypes';
+
+// Servicios
+import { api } from '@services/api';
 
 const { width, height } = Dimensions.get('window');
 
-interface MusicianRequestFormValues {
-  eventName: string;
-  eventType: string;
-  eventDate: Date;
-  startTime: string;
-  endTime: string;
-  location: string;
-  instrumentType: string;
-  eventDescription: string;
+interface MusicianRequestFormValues extends CreateEventPayload {
   flyerImage?: string;
+  songs: string[];
+  recommendations: string[];
+  mapsLink: string;
 }
 
 interface Props {
-  onSubmit: (values: MusicianRequestFormValues, calculatedPrice: number) => void;
+  onSubmit: (values: MusicianRequestFormValues) => void;
+  onCancel?: () => void;
   isLoading?: boolean;
+  initialValues?: Partial<MusicianRequestFormValues>;
 }
 
-// Componente de progreso moderno
+// Componente de progreso moderno con animaciones
 const ProgressBar: React.FC<{ currentStep: number; totalSteps: number }> = ({ currentStep, totalSteps }) => {
   const { theme } = useTheme();
   const progress = (currentStep / totalSteps) * 100;
+  const progressAnim = React.useRef(new Animated.Value(0)).current;
 
-  const styles = getProgressBarStyles(theme);
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
   
   return (
     <View style={styles.progressContainer}>
@@ -50,9 +66,29 @@ const ProgressBar: React.FC<{ currentStep: number; totalSteps: number }> = ({ cu
         <Animated.View 
           style={[
             styles.progressFill,
-            { width: `${progress}%` }
+            { width: progressAnim }
           ]} 
         />
+      </View>
+      <View style={styles.progressSteps}>
+        {Array.from({ length: totalSteps }, (_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.progressStep,
+              index < currentStep && styles.progressStepActive,
+              index === currentStep - 1 && styles.progressStepCurrent
+            ]}
+          >
+            <Text style={[
+              styles.progressStepText,
+              index < currentStep && styles.progressStepTextActive,
+              index === currentStep - 1 && styles.progressStepTextCurrent
+            ]}>
+              {index + 1}
+            </Text>
+          </View>
+        ))}
       </View>
       <Text style={styles.progressText}>
         Paso {currentStep} de {totalSteps}
@@ -61,32 +97,7 @@ const ProgressBar: React.FC<{ currentStep: number; totalSteps: number }> = ({ cu
   );
 };
 
-const getProgressBarStyles = (theme: any) => ({
-  progressContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: theme.colors.background.secondary,
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: 4, // Cambiado de '100%' a 4 (igual que progressBar)
-    backgroundColor: theme.colors.primary[500],
-    borderRadius: 2,
-  },
-  progressText: {
-    color: theme.colors.text.secondary,
-    fontSize: 12,
-    textAlign: 'center' as const,
-    opacity: 0.8,
-  },
-});
-
-// Componente de paso individual
+// Componente de paso individual mejorado
 const StepContainer: React.FC<{
   title: string;
   subtitle: string;
@@ -96,106 +107,241 @@ const StepContainer: React.FC<{
   isFirstStep: boolean;
   isLastStep: boolean;
   canProceed: boolean;
-}> = ({ title, subtitle, children, onNext, onBack, isFirstStep, isLastStep, canProceed }) => {
+  isLoading?: boolean;
+}> = ({ title, subtitle, children, onNext, onBack, isFirstStep, isLastStep, canProceed, isLoading }) => {
   const { theme } = useTheme();
-  const styles = getStepContainerStyles(theme);
+  
   return (
     <View style={styles.stepContainer}>
       <View style={styles.stepHeader}>
-        <Text style={styles.stepTitle}>{title}</Text>
-        <Text style={styles.stepSubtitle}>{subtitle}</Text>
+        <Text style={[styles.stepTitle, { color: theme.colors.text.primary }]}>{title}</Text>
+        <Text style={[styles.stepSubtitle, { color: theme.colors.text.secondary }]}>{subtitle}</Text>
       </View>
+      
       <View style={styles.stepContent}>
         {children}
       </View>
+      
       <View style={styles.stepActions}>
         {!isFirstStep && (
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <TouchableOpacity 
+            style={[styles.backButton, { borderColor: theme.colors.border.primary }]} 
+            onPress={onBack}
+            disabled={isLoading}
+          >
             <Ionicons name="arrow-back" size={20} color={theme.colors.text.secondary} />
-            <Text style={styles.backButtonText}>Anterior</Text>
+            <Text style={[styles.backButtonText, { color: theme.colors.text.secondary }]}>
+              Anterior
+            </Text>
           </TouchableOpacity>
         )}
+        
         <TouchableOpacity 
-          style={[styles.nextButton, { backgroundColor: canProceed ? theme.colors.primary[500] : theme.colors.primary[100], shadowColor: theme.shadows.medium.shadowColor }]} 
+          style={[
+            styles.nextButton, 
+            { 
+              backgroundColor: canProceed ? theme.colors.primary[500] : theme.colors.primary[100],
+              opacity: isLoading ? 0.7 : 1
+            }
+          ]} 
           onPress={onNext}
-          disabled={!canProceed}
+          disabled={!canProceed || isLoading}
         >
-          <Text style={styles.nextButtonText}>
-            {isLastStep ? 'Confirmar' : 'Siguiente'}
+          {isLoading ? (
+            <ActivityIndicator size="small" color={theme.colors.text.inverse} />
+          ) : (
+            <>
+              <Text style={[styles.nextButtonText, { color: theme.colors.text.inverse }]}>
+                {isLastStep ? 'Crear Solicitud' : 'Siguiente'}
           </Text>
           <Ionicons 
             name={isLastStep ? "checkmark" : "arrow-forward"} 
             size={20} 
             color={theme.colors.text.inverse} 
           />
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const getStepContainerStyles = (theme: any) => ({
-  stepContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  stepHeader: {
-    marginBottom: 30,
-  },
-  stepTitle: {
-    fontSize: 28,
-    fontWeight: 'bold' as const,
-    color: theme.colors.text.primary,
-    marginBottom: 8,
-  },
-  stepSubtitle: {
-    fontSize: 16,
-    color: theme.colors.text.secondary,
-    lineHeight: 22,
-  },
-  stepContent: {
-    flex: 1,
-  },
-  stepActions: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-    paddingVertical: 20,
-  },
-  backButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  backButtonText: {
-    color: theme.colors.text.secondary,
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  nextButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    backgroundColor: theme.colors.primary[500],
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  nextButtonText: {
-    color: theme.colors.text.inverse,
-    fontSize: 16,
-    fontWeight: '600' as const,
-    marginRight: 8,
-  },
-});
+// Componente de input moderno
+const ModernInput: React.FC<{
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  error?: string;
+  multiline?: boolean;
+  numberOfLines?: number;
+  icon?: keyof typeof Ionicons.glyphMap;
+}> = ({ label, value, onChangeText, placeholder, error, multiline, numberOfLines, icon }) => {
+  const { theme } = useTheme();
+  
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={[styles.inputLabel, { color: theme.colors.text.primary }]}>{label}</Text>
+      <View style={[
+        styles.inputContainer,
+        { backgroundColor: theme.colors.background.card },
+        error && styles.inputError
+      ]}>
+        {icon && (
+          <Ionicons 
+            name={icon} 
+            size={20} 
+            color={theme.colors.text.secondary} 
+            style={styles.inputIcon}
+          />
+        )}
+        <TextInput
+          style={[
+            styles.modernInput,
+            { color: theme.colors.text.primary },
+            multiline && styles.modernTextArea
+          ]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={theme.colors.text.tertiary}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          textAlignVertical={multiline ? 'top' : 'center'}
+          />
+        </View>
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.text.secondary }]}>{error}</Text>
+      )}
+      </View>
+  );
+};
 
-// Componente nativo para selección de opciones
-const NativePicker: React.FC<{
+// Componente de selector moderno
+const ModernPicker: React.FC<{
+  label: string;
+  value: string;
+  onPress: () => void;
+  placeholder: string;
+  error?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+}> = ({ label, value, onPress, placeholder, error, icon }) => {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={[styles.inputLabel, { color: theme.colors.text.primary }]}>{label}</Text>
+                  <TouchableOpacity
+                    style={[
+          styles.modernPickerButton,
+          { backgroundColor: theme.colors.background.card },
+          error && styles.inputError
+        ]}
+        onPress={onPress}
+      >
+        <View style={styles.pickerContent}>
+          {icon && (
+            <Ionicons 
+              name={icon} 
+              size={20} 
+              color={theme.colors.text.secondary} 
+              style={styles.pickerIcon}
+            />
+          )}
+                    <Text style={[
+            styles.pickerButtonText,
+            { color: value ? theme.colors.text.primary : theme.colors.text.tertiary }
+                    ]}>
+            {value || placeholder}
+                    </Text>
+            </View>
+        <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
+                  </TouchableOpacity>
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.text.secondary }]}>{error}</Text>
+      )}
+            </View>
+  );
+};
+
+// Componente de selector de fecha y hora
+const DateTimeSelector: React.FC<{
+  label: string;
+  value: Date;
+  onChange: (date: Date) => void;
+  mode: 'date' | 'time';
+  error?: string;
+}> = ({ label, value, onChange, mode, error }) => {
+  const { theme } = useTheme();
+  const [showPicker, setShowPicker] = useState(false);
+  
+  const formatValue = () => {
+    if (mode === 'date') {
+      return value.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } else {
+      return value.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+  };
+
+  const handleChange = (event: any, selectedValue?: Date) => {
+    setShowPicker(false);
+    if (selectedValue) {
+      onChange(selectedValue);
+    }
+  };
+
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={[styles.inputLabel, { color: theme.colors.text.primary }]}>{label}</Text>
+                  <TouchableOpacity
+                    style={[
+          styles.modernPickerButton,
+          { backgroundColor: theme.colors.background.card },
+          error && styles.inputError
+        ]}
+        onPress={() => setShowPicker(true)}
+      >
+        <View style={styles.pickerContent}>
+          <Ionicons 
+            name={mode === 'date' ? 'calendar' : 'time'} 
+            size={20} 
+            color={theme.colors.text.secondary} 
+            style={styles.pickerIcon}
+          />
+          <Text style={[styles.pickerButtonText, { color: theme.colors.text.primary }]}>
+            {formatValue()}
+                    </Text>
+            </View>
+        <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+      
+      {showPicker && (
+        <DateTimePicker
+          value={value}
+          mode={mode}
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleChange}
+          minimumDate={mode === 'date' ? new Date() : undefined}
+        />
+      )}
+      
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.text.secondary }]}>{error}</Text>
+      )}
+          </View>
+  );
+};
+
+// Componente de selector de opciones
+const OptionsSelector: React.FC<{
   visible: boolean;
   onClose: () => void;
   onSelect: (value: string) => void;
@@ -203,7 +349,7 @@ const NativePicker: React.FC<{
   title: string;
 }> = ({ visible, onClose, onSelect, options, title }) => {
   const { theme } = useTheme();
-  const styles = getNativePickerStyles(theme);
+
   return (
     <Modal
       visible={visible}
@@ -212,9 +358,9 @@ const NativePicker: React.FC<{
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
+        <View style={[styles.modalContent, { backgroundColor: theme.colors.background.card }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border.secondary }]}>
+            <Text style={[styles.modalTitle, { color: theme.colors.text.primary }]}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
             </TouchableOpacity>
@@ -223,15 +369,15 @@ const NativePicker: React.FC<{
             data={options}
             keyExtractor={(item) => item.value}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.optionItem}
+                  <TouchableOpacity
+                style={[styles.optionItem, { borderBottomColor: theme.colors.border.secondary }]}
                 onPress={() => {
                   onSelect(item.value);
                   onClose();
                 }}
               >
-                <Text style={styles.optionText}>{item.label}</Text>
-              </TouchableOpacity>
+                <Text style={[styles.optionText, { color: theme.colors.text.primary }]}>{item.label}</Text>
+                  </TouchableOpacity>
             )}
           />
         </View>
@@ -240,663 +386,14 @@ const NativePicker: React.FC<{
   );
 };
 
-const getNativePickerStyles = (theme: any) => ({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end' as const,
-  },
-  modalContent: {
-    backgroundColor: theme.colors.background.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '70%' as any,
-  },
-  modalHeader: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.secondary,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: theme.colors.text.primary,
-  },
-  optionItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.secondary,
-  },
-  optionText: {
-    fontSize: 16,
-    color: theme.colors.text.primary,
-  },
-});
-
-// Componente nativo para date picker
-const NativeDatePicker: React.FC<{
-  visible: boolean;
-  onClose: () => void;
-  onDateSelect: (date: Date) => void;
-  currentDate: Date;
-}> = ({ visible, onClose, onDateSelect, currentDate }) => {
+// Componente de selector de imagen
+const ImageSelector: React.FC<{
+  label: string;
+  value?: string;
+  onChange: (uri: string) => void;
+  error?: string;
+}> = ({ label, value, onChange, error }) => {
   const { theme } = useTheme();
-  const styles = getNativeDatePickerStyles(theme);
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedDay, setSelectedDay] = useState(currentDate.getDate());
-
-  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
-  const months = [
-    { value: 0, label: 'Enero' }, { value: 1, label: 'Febrero' }, { value: 2, label: 'Marzo' },
-    { value: 3, label: 'Abril' }, { value: 4, label: 'Mayo' }, { value: 5, label: 'Junio' },
-    { value: 6, label: 'Julio' }, { value: 7, label: 'Agosto' }, { value: 8, label: 'Septiembre' },
-    { value: 9, label: 'Octubre' }, { value: 10, label: 'Noviembre' }, { value: 11, label: 'Diciembre' }
-  ];
-
-  const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  const days = Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => i + 1);
-
-  const handleConfirm = () => {
-    const selectedDate = new Date(selectedYear, selectedMonth, selectedDay);
-    onDateSelect(selectedDate);
-    onClose();
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.datePickerContainer}>
-          <View style={styles.datePickerHeader}>
-            <Text style={styles.datePickerTitle}>Seleccionar Fecha</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.datePickerContent}>
-            {/* Año */}
-            <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>Año</Text>
-              <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
-                {years.map((year) => (
-                  <TouchableOpacity
-                    key={year}
-                    style={[
-                      styles.pickerOption,
-                      selectedYear === year && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setSelectedYear(year)}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      selectedYear === year && styles.pickerOptionTextSelected
-                    ]}>
-                      {year}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-            {/* Mes */}
-            <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>Mes</Text>
-              <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
-                {months.map((month) => (
-                  <TouchableOpacity
-                    key={month.value}
-                    style={[
-                      styles.pickerOption,
-                      selectedMonth === month.value && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setSelectedMonth(month.value)}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      selectedMonth === month.value && styles.pickerOptionTextSelected
-                    ]}>
-                      {month.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-            {/* Día */}
-            <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>Día</Text>
-              <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
-                {days.map((day) => (
-                  <TouchableOpacity
-                    key={day}
-                    style={[
-                      styles.pickerOption,
-                      selectedDay === day && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setSelectedDay(day)}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      selectedDay === day && styles.pickerOptionTextSelected
-                    ]}>
-                      {day}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-          <View style={styles.datePickerActions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-              <Text style={styles.confirmButtonText}>Confirmar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
-const getNativeDatePickerStyles = (theme: any) => ({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end' as const,
-  },
-  datePickerContainer: {
-    backgroundColor: theme.colors.background.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%' as any,
-  },
-  datePickerHeader: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-    marginBottom: 20,
-  },
-  datePickerTitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: theme.colors.text.primary,
-  },
-  datePickerContent: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    marginBottom: 20,
-  },
-  pickerSection: {
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  pickerLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: theme.colors.text.secondary,
-    textAlign: 'center' as const,
-    marginBottom: 10,
-  },
-  pickerScroll: {
-    height: 200,
-  },
-  pickerOption: {
-    padding: 12,
-    alignItems: 'center' as const,
-    borderRadius: 8,
-    marginVertical: 2,
-  },
-  pickerOptionSelected: {
-    backgroundColor: theme.colors.primary[100],
-  },
-  pickerOptionText: {
-    fontSize: 16,
-    color: theme.colors.text.primary,
-  },
-  pickerOptionTextSelected: {
-    color: theme.colors.text.inverse,
-    fontWeight: '600' as const,
-  },
-  datePickerActions: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-  },
-  cancelButton: {
-    flex: 1,
-    padding: 12,
-    marginRight: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.border.secondary,
-    alignItems: 'center' as const,
-  },
-  cancelButtonText: {
-    color: theme.colors.text.secondary,
-    fontSize: 16,
-  },
-  confirmButton: {
-    flex: 1,
-    padding: 12,
-    marginLeft: 10,
-    borderRadius: 8,
-    backgroundColor: theme.colors.primary[500],
-    alignItems: 'center' as const,
-  },
-  confirmButtonText: {
-    color: theme.colors.text.inverse,
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-});
-
-// Componente nativo para time picker
-const NativeTimePicker: React.FC<{
-  visible: boolean;
-  onClose: () => void;
-  onTimeSelect: (time: string) => void;
-  currentTime?: string;
-}> = ({ visible, onClose, onTimeSelect, currentTime }) => {
-  const { theme } = useTheme();
-  const styles = getNativeTimePickerStyles(theme);
-  const [selectedHour, setSelectedHour] = useState(
-    currentTime ? parseInt(currentTime.split(':')[0]) : 12
-  );
-  const [selectedMinute, setSelectedMinute] = useState(
-    currentTime ? parseInt(currentTime.split(':')[1]) : 0
-  );
-
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const minutes = Array.from({ length: 60 }, (_, i) => i);
-
-  const handleConfirm = () => {
-    const timeString = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
-    onTimeSelect(timeString);
-    onClose();
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.timePickerContainer}>
-          <View style={styles.timePickerHeader}>
-            <Text style={styles.timePickerTitle}>Seleccionar Hora</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.timePickerContent}>
-            {/* Horas */}
-            <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>Hora</Text>
-              <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
-                {hours.map((hour) => (
-                  <TouchableOpacity
-                    key={hour}
-                    style={[
-                      styles.pickerOption,
-                      selectedHour === hour && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setSelectedHour(hour)}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      selectedHour === hour && styles.pickerOptionTextSelected
-                    ]}>
-                      {hour.toString().padStart(2, '0')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-            {/* Minutos */}
-            <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>Minuto</Text>
-              <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
-                {minutes.map((minute) => (
-                  <TouchableOpacity
-                    key={minute}
-                    style={[
-                      styles.pickerOption,
-                      selectedMinute === minute && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setSelectedMinute(minute)}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      selectedMinute === minute && styles.pickerOptionTextSelected
-                    ]}>
-                      {minute.toString().padStart(2, '0')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-          <View style={styles.timePickerActions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-              <Text style={styles.confirmButtonText}>Confirmar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
-const getNativeTimePickerStyles = (theme: any) => ({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end' as const,
-  },
-  timePickerContainer: {
-    backgroundColor: theme.colors.background.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%' as any,
-  },
-  timePickerHeader: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-    marginBottom: 20,
-  },
-  timePickerTitle: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: theme.colors.text.primary,
-  },
-  timePickerContent: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    marginBottom: 20,
-  },
-  pickerSection: {
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  pickerLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: theme.colors.text.secondary,
-    textAlign: 'center' as const,
-    marginBottom: 10,
-  },
-  pickerScroll: {
-    height: 200,
-  },
-  pickerOption: {
-    padding: 12,
-    alignItems: 'center' as const,
-    borderRadius: 8,
-    marginVertical: 2,
-  },
-  pickerOptionSelected: {
-    backgroundColor: theme.colors.primary[100],
-  },
-  pickerOptionText: {
-    fontSize: 16,
-    color: theme.colors.text.primary,
-  },
-  pickerOptionTextSelected: {
-    color: theme.colors.text.inverse,
-    fontWeight: '600' as const,
-  },
-  timePickerActions: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-  },
-  cancelButton: {
-    flex: 1,
-    padding: 12,
-    marginRight: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.border.secondary,
-    alignItems: 'center' as const,
-  },
-  cancelButtonText: {
-    color: theme.colors.text.secondary,
-    fontSize: 16,
-  },
-  confirmButton: {
-    flex: 1,
-    padding: 12,
-    marginLeft: 10,
-    borderRadius: 8,
-    backgroundColor: theme.colors.primary[500],
-    alignItems: 'center' as const,
-  },
-  confirmButtonText: {
-    color: theme.colors.text.inverse,
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-});
-
-const getFormStyles = (theme: any) => ({
-  inputWrapper: {
-    marginBottom: 25,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: theme.colors.text.primary,
-    marginBottom: 8,
-  },
-  modernInput: {
-    backgroundColor: theme.colors.background.card,
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: theme.colors.text.primary,
-    shadowColor: theme.shadows.small.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modernTextArea: {
-    backgroundColor: theme.colors.background.card,
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: theme.colors.text.primary,
-    minHeight: 120,
-    textAlignVertical: 'top' as const,
-    shadowColor: theme.shadows.small.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modernPickerButton: {
-    backgroundColor: theme.colors.background.card,
-    borderWidth: 0,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-    shadowColor: theme.shadows.small.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  pickerButtonText: {
-    fontSize: 16,
-    color: theme.colors.text.primary,
-  },
-  inputError: {
-    borderColor: theme.colors.border.error,
-    borderWidth: 1,
-  },
-  errorText: {
-    color: theme.colors.text.error,
-    fontSize: 12,
-    marginTop: 4,
-  },
-  timeInputsContainer: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-  },
-  timeInput: {
-    flex: 1,
-    marginRight: 10,
-  },
-  imagePickerButton: {
-    backgroundColor: theme.colors.background.card,
-    borderWidth: 0,
-    borderRadius: 12,
-    overflow: 'hidden' as const,
-    shadowColor: theme.shadows.small.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  imagePlaceholder: {
-    padding: 40,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  },
-  imagePlaceholderText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-  },
-  selectedImage: {
-    width: '100%' as any,
-    height: 200,
-    resizeMode: 'cover' as const,
-  },
-  confirmationContainer: {
-    flex: 1,
-  },
-  confirmationCard: {
-    backgroundColor: theme.colors.background.card,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: theme.shadows.small.shadowColor,
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.1,
-    shadowRadius: 6.27,
-    elevation: 8,
-  },
-  confirmationTitle: {
-    fontSize: 20,
-    fontWeight: 'bold' as const,
-    color: theme.colors.text.primary,
-    marginBottom: 20,
-    textAlign: 'center' as const,
-  },
-  confirmationItem: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.secondary,
-  },
-  confirmationLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: theme.colors.text.secondary,
-    flex: 1,
-  },
-  confirmationValue: {
-    fontSize: 14,
-    color: theme.colors.text.primary,
-    flex: 2,
-    textAlign: 'right' as const,
-  },
-  priceCard: {
-    backgroundColor: theme.colors.background.card,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center' as const,
-    shadowColor: theme.shadows.small.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6.27,
-    elevation: 8,
-  },
-  priceLabel: {
-    fontSize: 16,
-    color: theme.colors.text.secondary,
-    marginBottom: 8,
-  },
-  priceValue: {
-    fontSize: 28,
-    fontWeight: 'bold' as const,
-    color: theme.colors.text.success,
-  },
-});
-
-const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) => {
-  const { theme } = useTheme();
-  const formStyles = getFormStyles(theme);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-  const [showEventTypePicker, setShowEventTypePicker] = useState(false);
-  const [showInstrumentPicker, setShowInstrumentPicker] = useState(false);
-  const [flyerImage, setFlyerImage] = useState<string | undefined>();
-
-  // Estados del formulario
-  const [formData, setFormData] = useState<MusicianRequestFormValues>({
-    eventName: '',
-    eventType: '',
-    eventDate: new Date(),
-    startTime: '',
-    endTime: '',
-    location: '',
-    instrumentType: '',
-    eventDescription: '',
-    flyerImage: undefined,
-  });
-
-  const [errors, setErrors] = useState<Partial<MusicianRequestFormValues>>({});
-
-  // Opciones para los pickers
-  const eventTypeOptions = [
-    { label: 'Culto', value: 'culto' },
-    { label: 'Campaña dentro del templo', value: 'campana_dentro_templo' },
-    { label: 'Otro', value: 'otro' }
-  ];
-
-  const instrumentOptions = [
-    'Piano', 'Guitarra', 'Bajo', 'Batería', 'Teclado', 
-    'Saxofón', 'Trompeta', 'Violín', 'Flauta', 'Vocalista', 'Coro', 'Otro'
-  ].map(instrument => ({ label: instrument, value: instrument }));
-
-  const totalSteps = 6;
 
   const pickImage = async () => {
     try {
@@ -908,7 +405,7 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
-        setFlyerImage(result.assets[0].uri);
+        onChange(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -916,51 +413,94 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
     }
   };
 
-  const calculatePrice = (startTime: string, endTime: string, eventType: string): number => {
-    if (!startTime || !endTime || !eventType) return 0;
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={[styles.inputLabel, { color: theme.colors.text.primary }]}>{label}</Text>
+      <TouchableOpacity 
+        style={[
+          styles.imagePickerButton,
+          { backgroundColor: theme.colors.background.card },
+          error && styles.inputError
+        ]} 
+        onPress={pickImage}
+      >
+        {value ? (
+          <Image source={{ uri: value }} style={styles.selectedImage} />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Ionicons name="image-outline" size={40} color={theme.colors.text.secondary} />
+            <Text style={[styles.imagePlaceholderText, { color: theme.colors.text.secondary }]}>
+              Seleccionar Flyer
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      {error && (
+        <Text style={[styles.errorText, { color: theme.colors.text.secondary }]}>{error}</Text>
+      )}
+    </View>
+  );
+};
 
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
-    
-    let startMinutes = startHour * 60 + startMinute;
-    let endMinutes = endHour * 60 + endMinute;
-    
-    if (endMinutes < startMinutes) {
-      endMinutes += 24 * 60;
-    }
-    
-    const totalMinutes = endMinutes - startMinutes;
-    const totalHours = totalMinutes / 60;
-    
-    const pricingRules = {
-      culto: { basePrice: 800, additionalHourPrice: 650 },
-      campana_dentro_templo: { basePrice: 1200, additionalHourPrice: 850 },
-      otro: { basePrice: 1000, additionalHourPrice: 750 }
-    };
+const MusicianRequestForm: React.FC<Props> = ({ onSubmit, onCancel, isLoading = false, initialValues }) => {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const { user } = useUser();
+  const insets = useSafeAreaInsets();
+  
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showEventTypePicker, setShowEventTypePicker] = useState(false);
+  const [showInstrumentPicker, setShowInstrumentPicker] = useState(false);
+  
+  // Estados del formulario alineados con el backend
+  const [formData, setFormData] = useState<MusicianRequestFormValues>({
+    eventName: '',
+    eventType: 'concierto',
+    date: new Date().toISOString().split('T')[0],
+    time: '18:00',
+    location: '',
+    duration: '120',
+    instrument: 'guitarra',
+    bringInstrument: false,
+    comment: '',
+    budget: '',
+    songs: [],
+    recommendations: [],
+    mapsLink: '',
+    ...initialValues
+  });
 
-    const rules = pricingRules[eventType as keyof typeof pricingRules] || pricingRules.culto;
-    const baseHours = 2;
-    const basePrice = rules.basePrice;
-    
-    if (totalHours <= baseHours) {
-      return basePrice;
-    }
-    
-    const additionalHours = totalHours - baseHours;
-    const additionalMinutes = (additionalHours - Math.floor(additionalHours)) * 60;
-    
-    let additionalPrice = 0;
-    
-    if (Math.floor(additionalHours) > 0) {
-      additionalPrice += Math.floor(additionalHours) * rules.additionalHourPrice;
-    }
-    
-    if (additionalMinutes > 10) {
-      additionalPrice += (additionalMinutes / 60) * rules.additionalHourPrice;
-    }
-    
-    return basePrice + additionalPrice;
-  };
+  const [errors, setErrors] = useState<Partial<MusicianRequestFormValues>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Opciones para los pickers (alineadas con el backend)
+  const eventTypeOptions = [
+    { label: 'Concierto', value: 'concierto' },
+    { label: 'Boda', value: 'boda' },
+    { label: 'Culto', value: 'culto' },
+    { label: 'Evento Corporativo', value: 'evento_corporativo' },
+    { label: 'Festival', value: 'festival' },
+    { label: 'Fiesta Privada', value: 'fiesta_privada' },
+    { label: 'Graduación', value: 'graduacion' },
+    { label: 'Cumpleaños', value: 'cumpleanos' },
+    { label: 'Otro', value: 'otro' }
+  ];
+
+  const instrumentOptions = [
+    { label: 'Guitarra', value: 'guitarra' },
+    { label: 'Piano', value: 'piano' },
+    { label: 'Bajo', value: 'bajo' },
+    { label: 'Batería', value: 'bateria' },
+    { label: 'Saxofón', value: 'saxofon' },
+    { label: 'Trompeta', value: 'trompeta' },
+    { label: 'Violín', value: 'violin' },
+    { label: 'Canto', value: 'canto' },
+    { label: 'Teclado', value: 'teclado' },
+    { label: 'Flauta', value: 'flauta' },
+    { label: 'Otro', value: 'otro' }
+  ];
+
+  const totalSteps = 6;
 
   const updateFormData = (field: keyof MusicianRequestFormValues, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -973,44 +513,51 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
     const newErrors: Partial<MusicianRequestFormValues> = {};
 
     switch (currentStep) {
-      case 1: // Nombre del evento
+      case 1: // Información básica
         if (!formData.eventName.trim()) {
           newErrors.eventName = 'Nombre del evento es requerido';
         } else if (formData.eventName.length < 3) {
           newErrors.eventName = 'Mínimo 3 caracteres';
         }
-        break;
-      case 2: // Tipo de evento
         if (!formData.eventType) {
-          newErrors.eventType = 'Tipo de evento es requerido';
+          newErrors.eventType = 'Tipo de evento es requerido' as any;
         }
         break;
-      case 3: // Fecha y horarios
-        if (!formData.startTime) {
-          newErrors.startTime = 'Hora de inicio es requerida';
+        
+      case 2: // Fecha y horarios
+        if (!formData.date) {
+          newErrors.date = 'Fecha es requerida';
         }
-        if (!formData.endTime) {
-          newErrors.endTime = 'Hora de fin es requerida';
+        if (!formData.time) {
+          newErrors.time = 'Hora es requerida';
         }
-        if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
-          newErrors.endTime = 'La hora de fin debe ser después de la hora de inicio';
+        if (!formData.duration) {
+          newErrors.duration = 'Duración es requerida';
         }
         break;
-      case 4: // Ubicación
+        
+      case 3: // Ubicación
         if (!formData.location.trim()) {
           newErrors.location = 'Ubicación es requerida';
         } else if (formData.location.length < 5) {
           newErrors.location = 'Mínimo 5 caracteres';
         }
         break;
-      case 5: // Instrumento y descripción
-        if (!formData.instrumentType) {
-          newErrors.instrumentType = 'Tipo de instrumento es requerido';
+        
+      case 4: // Instrumento y detalles
+        if (!formData.instrument) {
+          newErrors.instrument = 'Instrumento es requerido' as any;
         }
-        if (!formData.eventDescription.trim()) {
-          newErrors.eventDescription = 'Descripción es requerida';
-        } else if (formData.eventDescription.length < 10) {
-          newErrors.eventDescription = 'Mínimo 10 caracteres';
+        if (!formData.comment.trim()) {
+          newErrors.comment = 'Descripción es requerida';
+        } else if (formData.comment.length < 10) {
+          newErrors.comment = 'Mínimo 10 caracteres';
+        }
+        break;
+        
+      case 5: // Presupuesto y extras
+        if (!formData.budget.trim()) {
+          newErrors.budget = 'Presupuesto es requerido';
         }
         break;
     }
@@ -1035,21 +582,36 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
     }
   };
 
-  const handleSubmit = () => {
-    const calculatedPrice = calculatePrice(formData.startTime, formData.endTime, formData.eventType);
-    onSubmit(formData, calculatedPrice);
-  };
+  const handleSubmit = async () => {
+    if (!validateCurrentStep()) return;
+    
+    setIsSubmitting(true);
+    try {
+      // Preparar datos para el backend
+      const eventData: CreateEventPayload = {
+        eventName: formData.eventName,
+        eventType: formData.eventType,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        duration: formData.duration,
+        instrument: formData.instrument,
+        bringInstrument: formData.bringInstrument,
+        comment: formData.comment,
+        budget: formData.budget,
+        songs: formData.songs,
+        recommendations: formData.recommendations,
+        mapsLink: formData.mapsLink
+      };
 
-  const formatTime = (time: string) => {
-    return time || 'Seleccionar hora';
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+      // Llamar al callback del padre
+      onSubmit(eventData as MusicianRequestFormValues);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      Alert.alert('Error', 'No se pudo enviar la solicitud');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getEventTypeLabel = (value: string) => {
@@ -1057,7 +619,7 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
   };
 
   const getInstrumentLabel = (value: string) => {
-    return value || 'Seleccionar instrumento';
+    return instrumentOptions.find(option => option.value === value)?.label || 'Seleccionar instrumento';
   };
 
   const renderStep = () => {
@@ -1065,125 +627,75 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
       case 1:
         return (
           <StepContainer
-            title="Nombre del Evento"
-            subtitle="¿Cómo se llama tu evento?"
+            title="Información Básica"
+            subtitle="Comencemos con los datos principales de tu evento"
             onNext={handleNext}
             onBack={handleBack}
             isFirstStep={true}
             isLastStep={false}
-            canProceed={!!formData.eventName.trim()}
+            canProceed={!!formData.eventName.trim() && !!formData.eventType}
+            isLoading={isSubmitting}
           >
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
-              {['Boda', 'Concierto', 'Cumpleaños', 'Culto', 'Evento Corporativo', 'Fiesta', 'Reunión', 'Otro'].map(suggestion => (
-                <TouchableOpacity
-                  key={suggestion}
-                  style={{ backgroundColor: theme.colors.primary[100], borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6, marginRight: 8, marginBottom: 8 }}
-                  onPress={() => updateFormData('eventName', suggestion)}
-                >
-                  <Text style={{ color: theme.colors.primary[700], fontWeight: '600' }}>{suggestion}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Nombre del Evento</Text>
-              <TextInput
-                style={[formStyles.modernInput, errors.eventName && formStyles.inputError]}
+            <ModernInput
+              label="Nombre del Evento"
                 value={formData.eventName}
                 onChangeText={(value) => updateFormData('eventName', value)}
-                placeholder="Ej: Culto de Domingo"
-                placeholderTextColor={theme.colors.text.tertiary}
-              />
-              {errors.eventName && (
-                <Text style={formStyles.errorText}>{errors.eventName}</Text>
-              )}
-            </View>
+              placeholder="Ej: Concierto de Verano"
+              error={errors.eventName}
+              icon="calendar"
+            />
+            
+            <ModernPicker
+              label="Tipo de Evento"
+              value={getEventTypeLabel(formData.eventType)}
+                onPress={() => setShowEventTypePicker(true)}
+              placeholder="Seleccionar tipo de evento"
+              error={errors.eventType}
+              icon="star"
+            />
           </StepContainer>
         );
 
       case 2:
         return (
           <StepContainer
-            title="Tipo de Evento"
-            subtitle="¿Qué tipo de evento vas a realizar?"
+            title="Fecha y Horarios"
+            subtitle="¿Cuándo y por cuánto tiempo será tu evento?"
             onNext={handleNext}
             onBack={handleBack}
             isFirstStep={false}
             isLastStep={false}
-            canProceed={!!formData.eventType}
+            canProceed={!!formData.date && !!formData.time && !!formData.duration}
+            isLoading={isSubmitting}
           >
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Tipo de Evento</Text>
-              <TouchableOpacity
-                style={[formStyles.modernPickerButton, errors.eventType && formStyles.inputError]}
-                onPress={() => setShowEventTypePicker(true)}
-              >
-                <Text style={formStyles.pickerButtonText}>
-                  {getEventTypeLabel(formData.eventType)}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-              {errors.eventType && (
-                <Text style={formStyles.errorText}>{errors.eventType}</Text>
-              )}
-            </View>
+            <DateTimeSelector
+              label="Fecha del Evento"
+              value={new Date(formData.date)}
+              onChange={(date) => updateFormData('date', date.toISOString().split('T')[0])}
+              mode="date"
+              error={errors.date}
+            />
+            
+            <DateTimeSelector
+              label="Hora del Evento"
+              value={new Date(`2000-01-01T${formData.time}`)}
+              onChange={(date) => updateFormData('time', date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }))}
+              mode="time"
+              error={errors.time}
+            />
+            
+            <ModernInput
+              label="Duración (en minutos)"
+              value={formData.duration}
+              onChangeText={(value) => updateFormData('duration', value)}
+              placeholder="120"
+              error={errors.duration}
+              icon="time"
+            />
           </StepContainer>
         );
 
       case 3:
-        return (
-          <StepContainer
-            title="Fecha y Horarios"
-            subtitle="¿Cuándo y a qué hora será tu evento?"
-            onNext={handleNext}
-            onBack={handleBack}
-            isFirstStep={false}
-            isLastStep={false}
-            canProceed={!!formData.startTime && !!formData.endTime}
-          >
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Fecha del Evento</Text>
-              <TouchableOpacity
-                style={formStyles.modernPickerButton}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <Text style={formStyles.pickerButtonText}>{formatDate(formData.eventDate)}</Text>
-                <Ionicons name="calendar" size={20} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={formStyles.timeInputsContainer}>
-              <View style={formStyles.timeInput}>
-                <Text style={formStyles.inputLabel}>Hora de Inicio</Text>
-                <TouchableOpacity
-                  style={[formStyles.modernPickerButton, errors.startTime && formStyles.inputError]}
-                  onPress={() => setShowStartTimePicker(true)}
-                >
-                  <Text style={formStyles.pickerButtonText}>{formatTime(formData.startTime)}</Text>
-                  <Ionicons name="time" size={20} color={theme.colors.text.secondary} />
-                </TouchableOpacity>
-                {errors.startTime && (
-                  <Text style={formStyles.errorText}>{errors.startTime}</Text>
-                )}
-              </View>
-
-              <View style={formStyles.timeInput}>
-                <Text style={formStyles.inputLabel}>Hora de Fin</Text>
-                <TouchableOpacity
-                  style={[formStyles.modernPickerButton, errors.endTime && formStyles.inputError]}
-                  onPress={() => setShowEndTimePicker(true)}
-                >
-                  <Text style={formStyles.pickerButtonText}>{formatTime(formData.endTime)}</Text>
-                  <Ionicons name="time" size={20} color={theme.colors.text.secondary} />
-                </TouchableOpacity>
-                {errors.endTime && (
-                  <Text style={formStyles.errorText}>{errors.endTime}</Text>
-                )}
-              </View>
-            </View>
-          </StepContainer>
-        );
-
-      case 4:
         return (
           <StepContainer
             title="Ubicación"
@@ -1193,19 +705,73 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
             isFirstStep={false}
             isLastStep={false}
             canProceed={!!formData.location.trim()}
+            isLoading={isSubmitting}
           >
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Ubicación</Text>
-              <TextInput
-                style={[formStyles.modernInput, errors.location && formStyles.inputError]}
+            <ModernInput
+              label="Ubicación del Evento"
                 value={formData.location}
                 onChangeText={(value) => updateFormData('location', value)}
-                placeholder="Ej: Iglesia Central, Santo Domingo"
-                placeholderTextColor={theme.colors.text.tertiary}
-              />
-              {errors.location && (
-                <Text style={formStyles.errorText}>{errors.location}</Text>
-              )}
+              placeholder="Ej: Teatro Nacional, Santo Domingo"
+              error={errors.location}
+              icon="location"
+            />
+            
+            <ModernInput
+              label="Enlace de Google Maps (Opcional)"
+              value={formData.mapsLink}
+              onChangeText={(value) => updateFormData('mapsLink', value)}
+              placeholder="https://maps.google.com/..."
+              icon="map"
+            />
+          </StepContainer>
+        );
+
+      case 4:
+        return (
+          <StepContainer
+            title="Detalles del Evento"
+            subtitle="Cuéntanos más sobre lo que necesitas"
+            onNext={handleNext}
+            onBack={handleBack}
+            isFirstStep={false}
+            isLastStep={false}
+            canProceed={!!formData.instrument && !!formData.comment.trim()}
+            isLoading={isSubmitting}
+          >
+            <ModernPicker
+              label="Instrumento Requerido"
+              value={getInstrumentLabel(formData.instrument)}
+                onPress={() => setShowInstrumentPicker(true)}
+              placeholder="Seleccionar instrumento"
+              error={errors.instrument}
+              icon="musical-notes"
+            />
+            
+            <ModernInput
+              label="Descripción del Evento"
+              value={formData.comment}
+              onChangeText={(value) => updateFormData('comment', value)}
+              placeholder="Describe el evento, tipo de música, ambiente, requisitos especiales..."
+              error={errors.comment}
+                multiline
+                numberOfLines={4}
+              icon="document-text"
+            />
+            
+            <View style={styles.checkboxContainer}>
+              <TouchableOpacity
+                style={styles.checkbox}
+                onPress={() => updateFormData('bringInstrument', !formData.bringInstrument)}
+              >
+                <Ionicons 
+                  name={formData.bringInstrument ? "checkbox" : "square-outline"} 
+                  size={24} 
+                  color={theme.colors.primary[500]} 
+                />
+              </TouchableOpacity>
+              <Text style={[styles.checkboxLabel, { color: theme.colors.text.primary }]}>
+                El músico debe traer su propio instrumento
+              </Text>
             </View>
           </StepContainer>
         );
@@ -1213,60 +779,46 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
       case 5:
         return (
           <StepContainer
-            title="Detalles del Evento"
-            subtitle="Cuéntanos más sobre tu evento"
+            title="Presupuesto y Extras"
+            subtitle="Información adicional para completar tu solicitud"
             onNext={handleNext}
             onBack={handleBack}
             isFirstStep={false}
             isLastStep={false}
-            canProceed={!!formData.instrumentType && !!formData.eventDescription.trim()}
+            canProceed={!!formData.budget.trim()}
+            isLoading={isSubmitting}
           >
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Instrumento Requerido</Text>
-              <TouchableOpacity
-                style={[formStyles.modernPickerButton, errors.instrumentType && formStyles.inputError]}
-                onPress={() => setShowInstrumentPicker(true)}
-              >
-                <Text style={formStyles.pickerButtonText}>
-                  {getInstrumentLabel(formData.instrumentType)}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-              {errors.instrumentType && (
-                <Text style={formStyles.errorText}>{errors.instrumentType}</Text>
-              )}
-            </View>
-
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Descripción del Evento</Text>
-              <TextInput
-                style={[formStyles.modernTextArea, errors.eventDescription && formStyles.inputError]}
-                value={formData.eventDescription}
-                onChangeText={(value) => updateFormData('eventDescription', value)}
-                placeholder="Describe el evento, tipo de música, ambiente..."
-                placeholderTextColor={theme.colors.text.tertiary}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-              {errors.eventDescription && (
-                <Text style={formStyles.errorText}>{errors.eventDescription}</Text>
-              )}
-            </View>
-
-            <View style={formStyles.inputWrapper}>
-              <Text style={formStyles.inputLabel}>Flyer del Evento (Opcional)</Text>
-              <TouchableOpacity style={formStyles.imagePickerButton} onPress={pickImage}>
-                {flyerImage ? (
-                  <Image source={{ uri: flyerImage }} style={formStyles.selectedImage} />
-                ) : (
-                  <View style={formStyles.imagePlaceholder}>
-                    <Ionicons name="image-outline" size={40} color={theme.colors.text.secondary} />
-                    <Text style={formStyles.imagePlaceholderText}>Seleccionar Flyer</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
+            <ModernInput
+              label="Presupuesto Disponible"
+              value={formData.budget}
+              onChangeText={(value) => updateFormData('budget', value)}
+              placeholder="Ej: 500 USD, 25,000 RD$"
+              error={errors.budget}
+              icon="cash"
+            />
+            
+            <ModernInput
+              label="Canciones Específicas (Opcional)"
+              value={formData.songs.join(', ')}
+              onChangeText={(value) => updateFormData('songs', value.split(',').map(s => s.trim()).filter(s => s))}
+              placeholder="Canción 1, Canción 2, Canción 3..."
+              icon="musical-note"
+            />
+            
+            <ModernInput
+              label="Recomendaciones (Opcional)"
+              value={formData.recommendations.join(', ')}
+              onChangeText={(value) => updateFormData('recommendations', value.split(',').map(s => s.trim()).filter(s => s))}
+              placeholder="Recomendación 1, Recomendación 2..."
+              icon="bulb"
+            />
+            
+            <ImageSelector
+              label="Flyer del Evento (Opcional)"
+              value={formData.flyerImage}
+              onChange={(uri) => updateFormData('flyerImage', uri)}
+              error={errors.flyerImage}
+            />
           </StepContainer>
         );
 
@@ -1274,63 +826,65 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
         return (
           <StepContainer
             title="Confirmar Solicitud"
-            subtitle="Revisa todos los datos antes de enviar"
+            subtitle="Revisa todos los datos antes de crear tu solicitud"
             onNext={handleSubmit}
             onBack={handleBack}
             isFirstStep={false}
             isLastStep={true}
             canProceed={true}
+            isLoading={isSubmitting}
           >
-            <View style={formStyles.confirmationContainer}>
-              <View style={formStyles.confirmationCard}>
-                <Text style={formStyles.confirmationTitle}>Resumen de tu Solicitud</Text>
+            <View style={styles.confirmationContainer}>
+              <View style={[styles.confirmationCard, { backgroundColor: theme.colors.background.card }]}>
+                <Text style={[styles.confirmationTitle, { color: theme.colors.text.primary }]}>
+                  Resumen de tu Solicitud
+                </Text>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Evento:</Text>
-                  <Text style={formStyles.confirmationValue}>{formData.eventName}</Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Evento:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.eventName}</Text>
                 </View>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Tipo:</Text>
-                  <Text style={formStyles.confirmationValue}>{getEventTypeLabel(formData.eventType)}</Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Tipo:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{getEventTypeLabel(formData.eventType)}</Text>
                 </View>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Fecha:</Text>
-                  <Text style={formStyles.confirmationValue}>{formatDate(formData.eventDate)}</Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Fecha:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.date}</Text>
                 </View>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Horario:</Text>
-                  <Text style={formStyles.confirmationValue}>
-                    {formData.startTime} - {formData.endTime}
-                  </Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Hora:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.time}</Text>
                 </View>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Ubicación:</Text>
-                  <Text style={formStyles.confirmationValue}>{formData.location}</Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Duración:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.duration} minutos</Text>
                 </View>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Instrumento:</Text>
-                  <Text style={formStyles.confirmationValue}>{formData.instrumentType}</Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Ubicación:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.location}</Text>
                 </View>
                 
-                <View style={formStyles.confirmationItem}>
-                  <Text style={formStyles.confirmationLabel}>Descripción:</Text>
-                  <Text style={formStyles.confirmationValue}>{formData.eventDescription}</Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Instrumento:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{getInstrumentLabel(formData.instrument)}</Text>
                 </View>
+                
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Presupuesto:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.budget}</Text>
               </View>
 
-              {formData.startTime && formData.endTime && formData.eventType && (
-                <View style={formStyles.priceCard}>
-                  <Text style={formStyles.priceLabel}>Precio Calculado:</Text>
-                  <Text style={formStyles.priceValue}>
-                    RD$ {calculatePrice(formData.startTime, formData.endTime, formData.eventType).toLocaleString()}
-                  </Text>
+                <View style={styles.confirmationItem}>
+                  <Text style={[styles.confirmationLabel, { color: theme.colors.text.secondary }]}>Descripción:</Text>
+                  <Text style={[styles.confirmationValue, { color: theme.colors.text.primary }]}>{formData.comment}</Text>
                 </View>
-              )}
+              </View>
             </View>
           </StepContainer>
         );
@@ -1340,77 +894,32 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
     }
   };
 
-  const getMainStyles = (theme: any) => ({
-    container: {
-      flex: 1,
-    },
-    gradientBackground: {
-      position: 'absolute' as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      // backgroundColor eliminado, LinearGradient ya aplica el gradiente
-    },
-    scrollContainer: {
-      flex: 1,
-    },
-  });
-
   return (
-    <View style={[getMainStyles(theme).container, { backgroundColor: theme.colors.background.primary }] }>
-      <Text style={{ color: theme.colors.text.primary, fontSize: 18, textAlign: 'center', marginTop: 24 }}>DEBUG: Dentro del formulario</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
+      <LinearGradient
+        colors={theme.gradients.primary}
+        style={styles.gradientBackground}
+      />
       
       <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
       
-      <ScrollView style={getMainStyles(theme).scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {renderStep()}
       </ScrollView>
 
       {/* Pickers */}
-      <NativeDatePicker
-        visible={showDatePicker}
-        onClose={() => setShowDatePicker(false)}
-        onDateSelect={(date) => {
-          updateFormData('eventDate', date);
-        }}
-        currentDate={formData.eventDate}
-      />
-
-      <NativeTimePicker
-        visible={showStartTimePicker}
-        onClose={() => setShowStartTimePicker(false)}
-        onTimeSelect={(time) => {
-          updateFormData('startTime', time);
-        }}
-        currentTime={formData.startTime}
-      />
-
-      <NativeTimePicker
-        visible={showEndTimePicker}
-        onClose={() => setShowEndTimePicker(false)}
-        onTimeSelect={(time) => {
-          updateFormData('endTime', time);
-        }}
-        currentTime={formData.endTime}
-      />
-
-      <NativePicker
+      <OptionsSelector
         visible={showEventTypePicker}
         onClose={() => setShowEventTypePicker(false)}
-        onSelect={(value) => {
-          updateFormData('eventType', value);
-        }}
+        onSelect={(value) => updateFormData('eventType', value)}
         options={eventTypeOptions}
         title="Seleccionar Tipo de Evento"
       />
 
-      <NativePicker
+      <OptionsSelector
         visible={showInstrumentPicker}
         onClose={() => setShowInstrumentPicker(false)}
-        onSelect={(value) => {
-          updateFormData('instrumentType', value);
-        }}
+        onSelect={(value) => updateFormData('instrument', value)}
         options={instrumentOptions}
         title="Seleccionar Instrumento"
       />
@@ -1419,6 +928,19 @@ const MusicianRequestForm: React.FC<Props> = ({ onSubmit, isLoading = false }) =
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
   progressContainer: {
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -1428,12 +950,42 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 2,
-    marginBottom: 8,
+    marginBottom: 16,
   },
   progressFill: {
-    height: 4, // Cambiado de '100%' a 4 (igual que progressBar)
+    height: 4,
     backgroundColor: '#fff',
     borderRadius: 2,
+  },
+  progressSteps: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressStep: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressStepActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  },
+  progressStepCurrent: {
+    backgroundColor: '#fff',
+  },
+  progressStepText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressStepTextActive: {
+    color: 'rgba(0, 0, 0, 0.7)',
+  },
+  progressStepTextCurrent: {
+    color: '#000',
   },
   progressText: {
     color: '#fff',
@@ -1452,13 +1004,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 8,
   },
   stepSubtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 22,
+    opacity: 0.8,
   },
   stepContent: {
     flex: 1,
@@ -1474,48 +1025,170 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+    borderWidth: 1,
+    borderRadius: 25,
   },
   backButtonText: {
-    color: '#fff',
     fontSize: 16,
     marginLeft: 8,
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
-  nextButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  },
   nextButtonText: {
-    color: '#667eea',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
   },
-  // Modal styles
+  inputWrapper: {
+    marginBottom: 25,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  inputIcon: {
+    marginLeft: 16,
+    marginRight: 12,
+  },
+  modernInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+    textAlignVertical: 'center',
+  },
+  modernTextArea: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  inputError: {
+    borderColor: '#ff4444',
+    borderWidth: 1,
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  modernPickerButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  pickerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  pickerIcon: {
+    marginRight: 12,
+  },
+  pickerButtonText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  checkbox: {
+    marginRight: 12,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    flex: 1,
+  },
+  imagePickerButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  imagePlaceholder: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePlaceholderText: {
+    marginTop: 8,
+    fontSize: 14,
+  },
+  selectedImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+  },
+  confirmationContainer: {
+    flex: 1,
+  },
+  confirmationCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6.27,
+    elevation: 8,
+  },
+  confirmationTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  confirmationItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  confirmationLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+  confirmationValue: {
+    fontSize: 14,
+    flex: 2,
+    textAlign: 'right',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '70%' as any,
+    maxHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1523,134 +1196,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   optionItem: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   optionText: {
     fontSize: 16,
-    color: '#333',
-  },
-  // Date picker styles
-  datePickerContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  datePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  datePickerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  datePickerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  pickerSection: {
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  pickerLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  pickerScroll: {
-    height: 200,
-  },
-  pickerOption: {
-    padding: 12,
-    alignItems: 'center',
-    borderRadius: 8,
-    marginVertical: 2,
-  },
-  pickerOptionSelected: {
-    backgroundColor: '#2196f3',
-  },
-  pickerOptionText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  pickerOptionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  datePickerActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  // Time picker styles
-  timePickerContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  timePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  timePickerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  timePickerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  timePickerActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  cancelButton: {
-    flex: 1,
-    padding: 12,
-    marginRight: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  confirmButton: {
-    flex: 1,
-    padding: 12,
-    marginLeft: 10,
-    borderRadius: 8,
-    backgroundColor: '#2196f3',
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

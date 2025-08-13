@@ -2,7 +2,7 @@
 // Alineada completamente con el backend Express
 export const API_CONFIG = {
   // URL base para todas las APIs
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.54.45:3001', // Corregido al puerto correcto del backend
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.54.68:3001', // Corregido al puerto correcto del backend
   
   // Endpoints de la API - ALINEADOS CON BACKEND
   ENDPOINTS: {

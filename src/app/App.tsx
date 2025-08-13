@@ -199,7 +199,6 @@ function AppContent() {
   return (
     <>
       <StatusBar style={isDark ? "light" : "dark"} backgroundColor="transparent" translucent />
-      <AnimatedBackground />
       {/* Sidebar global, disponible en toda la app */}
       <MainSidebar
         isVisible={sidebarVisible}
