@@ -754,7 +754,7 @@ const Dashboard = ({ navigation }: any) => {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.primary }}>
       {/* Header personalizado con botón del sidebar */}
-      <View style={[styles.dashboardHeader, { backgroundColor: theme.colors.background.primary }]}>
+      <View style={[styles.dashboardHeader, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
         <TouchableOpacity
           onPress={openSidebar}
           style={[styles.sidebarButton, {
@@ -776,7 +776,7 @@ const Dashboard = ({ navigation }: any) => {
       </View>
 
       {/* Contenido principal */}
-      <View style={{ flex: 1, backgroundColor: theme.colors.background.primary, paddingTop: insets.top + 80 }}>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background.primary, paddingTop: 20 }}>
         {/* Fondo animado extravagante */}
         <AnimatedBackground colors={animatedBgColors} />
         <Animated.View
@@ -1141,7 +1141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
     shadowColor: '#000',
@@ -1149,6 +1149,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
+    minHeight: 60,
   },
   sidebarButton: {
     width: 44,
