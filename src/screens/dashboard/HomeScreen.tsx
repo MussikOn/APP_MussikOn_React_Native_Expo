@@ -96,141 +96,164 @@ const HomeScreen = ({ navigation }: any) => {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background.primary, paddingTop: insets.top }]}>
-      <AnimatedBackground />
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <LinearGradient
-          colors={theme.gradients.primary}
-          style={styles.headerGradient}
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+      {/* Header personalizado con botón del sidebar */}
+      <View style={[styles.header, { backgroundColor: theme.colors.background.primary }]}>
+        <TouchableOpacity
+          onPress={openSidebar}
+          style={[styles.sidebarButton, {
+            backgroundColor: theme.colors.background.card,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }]}
+          accessibilityLabel="Abrir menú"
         >
-          <View style={styles.header}>
-            {/* Eliminar el botón de menú/sidebar aquí, ya está en el header global */}
-            <View style={styles.headerContent}>
-              <Text style={[styles.welcomeText, { color: theme.colors.text.inverse }]}> 
-                {userData ? t('home.greeting', { name: userData.name }) : t('welcome')}
-              </Text>
-              <Text style={[styles.subtitle, { color: theme.colors.text.inverse }]}> 
-                {t('app_subtitle')}
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
+          <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
+          {t('navigation.home') || 'Inicio'}
+        </Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
-        {/* Si el usuario NO está logueado, solo mostrar el CTA y botones de registro/login */}
-        {!user && (
-          <View style={styles.section}>
-            <View style={[styles.ctaCard, { backgroundColor: theme.colors.background.card }]}>
-              <LinearGradient
-                colors={theme.gradients.primary}
-                style={styles.ctaGradient}
-              >
-                <Ionicons name="rocket" size={40} color={theme.colors.text.inverse} />
-                <Text style={[styles.ctaTitle, { color: theme.colors.text.inverse }]}>¡Comienza Ahora!</Text>
-                <Text style={[styles.ctaDescription, { color: theme.colors.text.inverse }]}>Conecta con músicos y crea eventos increíbles</Text>
-                <TouchableOpacity
-                  style={[styles.ctaButton, { backgroundColor: theme.colors.text.inverse, marginBottom: 12 }]}
-                  onPress={() => navigation.navigate('Register')}
-                >
-                  <Text style={[styles.ctaButtonText, { color: theme.colors.primary[500] }]}>Registrarse</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.ctaButton, { backgroundColor: theme.colors.text.inverse }]}
-                  onPress={() => navigation.navigate('Login')}
-                >
-                  <Text style={[styles.ctaButtonText, { color: theme.colors.primary[500] }]}>Iniciar Sesión</Text>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
-          </View>
-        )}
-
-        {/* Si el usuario está logueado, mostrar el resto de la UI */}
-        {user && (
-          <>
-            {/* Quick Actions */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Acciones Rápidas</Text>
-              <View style={styles.featuresGrid}>
-                {features.map((feature) => (
-                  <TouchableOpacity
-                    key={feature.id}
-                    style={[styles.featureCard, { backgroundColor: theme.colors.background.card }]}
-                    onPress={() => handleNavigate(feature.route)}
-                  >
-                    <LinearGradient
-                      colors={[`${feature.color}20`, `${feature.color}10`]}
-                      style={styles.featureGradient}
-                    >
-                      <View style={[styles.iconContainer, { backgroundColor: feature.color }]}>
-                        <Ionicons name={feature.icon as any} size={24} color={theme.colors.text.inverse} />
-                      </View>
-                      <Text style={[styles.featureTitle, { color: theme.colors.text.primary }]}>{feature.title}</Text>
-                      <Text style={[styles.featureDescription, { color: theme.colors.text.secondary }]}>{feature.description}</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Stats Section */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Estadísticas</Text>
-              <View style={styles.statsContainer}>
-                <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
-                  <LinearGradient
-                    colors={[`${theme.colors.primary[500]}20`, `${theme.colors.primary[500]}10`]}
-                    style={styles.statGradient}
-                  >
-                    <Ionicons name="musical-notes" size={24} color={theme.colors.primary[500]} />
-                    <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
-                    <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Músicos Conectados</Text>
-                  </LinearGradient>
-                </View>
-                <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
-                  <LinearGradient
-                    colors={[`${theme.colors.secondary[500]}20`, `${theme.colors.secondary[500]}10`]}
-                    style={styles.statGradient}
-                  >
-                    <Ionicons name="calendar" size={24} color={theme.colors.secondary[500]} />
-                    <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
-                    <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Eventos Creados</Text>
-                  </LinearGradient>
-                </View>
-                <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
-                  <LinearGradient
-                    colors={[`${theme.colors.accent[500]}20`, `${theme.colors.accent[500]}10`]}
-                    style={styles.statGradient}
-                  >
-                    <Ionicons name="star" size={24} color={theme.colors.accent[500]} />
-                    <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
-                    <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Calificación</Text>
-                  </LinearGradient>
-                </View>
-              </View>
-            </View>
-
-            {/* Botón de prueba para notificaciones */}
-            <View style={styles.section}>
-              <TouchableOpacity
-                style={[styles.testButton, { backgroundColor: theme.colors.primary[500] }]}
-                onPress={handleCreateTestNotifications}
-              >
-                <Ionicons name="notifications" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={[styles.testButtonText, { color: '#fff' }]}>
-                  Crear Notificaciones de Prueba
+      {/* Contenido principal */}
+      <View style={[styles.content, { paddingTop: insets.top + 80 }]}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <LinearGradient
+            colors={theme.gradients.primary}
+            style={styles.headerGradient}
+          >
+            <View style={styles.header}>
+              {/* Eliminar el botón de menú/sidebar aquí, ya está en el header global */}
+              <View style={styles.headerContent}>
+                <Text style={[styles.welcomeText, { color: theme.colors.text.inverse }]}> 
+                  {userData ? t('home.greeting', { name: userData.name }) : t('welcome')}
                 </Text>
-              </TouchableOpacity>
+                <Text style={[styles.subtitle, { color: theme.colors.text.inverse }]}> 
+                  {t('app_subtitle')}
+                </Text>
+              </View>
             </View>
-          </>
-        )}
-      </ScrollView>
-      
-      {/* Botón flotante de notificaciones */}
-      <FloatingNotificationButton 
-        onPress={() => navigation.navigate('Notifications')}
-      />
+          </LinearGradient>
+
+          {/* Si el usuario NO está logueado, solo mostrar el CTA y botones de registro/login */}
+          {!user && (
+            <View style={styles.section}>
+              <View style={[styles.ctaCard, { backgroundColor: theme.colors.background.card }]}>
+                <LinearGradient
+                  colors={theme.gradients.primary}
+                  style={styles.ctaGradient}
+                >
+                  <Ionicons name="rocket" size={40} color={theme.colors.text.inverse} />
+                  <Text style={[styles.ctaTitle, { color: theme.colors.text.inverse }]}>¡Comienza Ahora!</Text>
+                  <Text style={[styles.ctaDescription, { color: theme.colors.text.inverse }]}>Conecta con músicos y crea eventos increíbles</Text>
+                  <TouchableOpacity
+                    style={[styles.ctaButton, { backgroundColor: theme.colors.text.inverse, marginBottom: 12 }]}
+                    onPress={() => navigation.navigate('Register')}
+                  >
+                    <Text style={[styles.ctaButtonText, { color: theme.colors.primary[500] }]}>Registrarse</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.ctaButton, { backgroundColor: theme.colors.text.inverse }]}
+                    onPress={() => navigation.navigate('Login')}
+                  >
+                    <Text style={[styles.ctaButtonText, { color: theme.colors.primary[500] }]}>Iniciar Sesión</Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
+            </View>
+          )}
+
+          {/* Si el usuario está logueado, mostrar el resto de la UI */}
+          {user && (
+            <>
+              {/* Quick Actions */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Acciones Rápidas</Text>
+                <View style={styles.featuresGrid}>
+                  {features.map((feature) => (
+                    <TouchableOpacity
+                      key={feature.id}
+                      style={[styles.featureCard, { backgroundColor: theme.colors.background.card }]}
+                      onPress={() => handleNavigate(feature.route)}
+                    >
+                      <LinearGradient
+                        colors={[`${feature.color}20`, `${feature.color}10`]}
+                        style={styles.featureGradient}
+                      >
+                        <View style={[styles.iconContainer, { backgroundColor: feature.color }]}>
+                          <Ionicons name={feature.icon as any} size={24} color={theme.colors.text.inverse} />
+                        </View>
+                        <Text style={[styles.featureTitle, { color: theme.colors.text.primary }]}>{feature.title}</Text>
+                        <Text style={[styles.featureDescription, { color: theme.colors.text.secondary }]}>{feature.description}</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Stats Section */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Estadísticas</Text>
+                <View style={styles.statsContainer}>
+                  <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
+                    <LinearGradient
+                      colors={[`${theme.colors.primary[500]}20`, `${theme.colors.primary[500]}10`]}
+                      style={styles.statGradient}
+                    >
+                      <Ionicons name="musical-notes" size={24} color={theme.colors.primary[500]} />
+                      <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                      <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Músicos Conectados</Text>
+                    </LinearGradient>
+                  </View>
+                  <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
+                    <LinearGradient
+                      colors={[`${theme.colors.secondary[500]}20`, `${theme.colors.secondary[500]}10`]}
+                      style={styles.statGradient}
+                    >
+                      <Ionicons name="calendar" size={24} color={theme.colors.secondary[500]} />
+                      <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                      <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Eventos Creados</Text>
+                    </LinearGradient>
+                  </View>
+                  <View style={[styles.statCard, { backgroundColor: theme.colors.background.card }]}>
+                    <LinearGradient
+                      colors={[`${theme.colors.accent[500]}20`, `${theme.colors.accent[500]}10`]}
+                      style={styles.statGradient}
+                    >
+                      <Ionicons name="star" size={24} color={theme.colors.accent[500]} />
+                      <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>0</Text>
+                      <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Calificación</Text>
+                    </LinearGradient>
+                  </View>
+                </View>
+              </View>
+
+              {/* Botón de prueba para notificaciones */}
+              <View style={styles.section}>
+                <TouchableOpacity
+                  style={[styles.testButton, { backgroundColor: theme.colors.primary[500] }]}
+                  onPress={handleCreateTestNotifications}
+                >
+                  <Ionicons name="notifications" size={20} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={[styles.testButtonText, { color: '#fff' }]}>
+                    Crear Notificaciones de Prueba
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </ScrollView>
+        
+        {/* Botón flotante de notificaciones */}
+        <FloatingNotificationButton 
+          onPress={() => navigation.navigate('Notifications')}
+        />
+      </View>
     </View>
   );
 };
@@ -251,13 +274,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  menuButton: {
+  sidebarButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 44, // Ajustar según sea necesario para balancear el botón
+  },
+  content: {
+    flex: 1,
   },
   headerContent: {
     flex: 1,

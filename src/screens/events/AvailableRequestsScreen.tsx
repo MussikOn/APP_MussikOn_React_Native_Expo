@@ -13,6 +13,7 @@ import {
 import { useTheme } from '@hooks/useAppTheme';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useSidebar } from '@contexts/SidebarContext';
 import { requestService, Request, RequestFilters } from '@services/requests';
 import Card from '@components/ui/Card';
 import Button from '@components/ui/Button';
@@ -23,6 +24,7 @@ const { width } = Dimensions.get('window');
 const AvailableRequestsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { openSidebar } = useSidebar();
   
   // Estados
   const [requests, setRequests] = useState<Request[]>([]);
@@ -299,82 +301,90 @@ const AvailableRequestsScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.background.card }]}>
-        <Text style={[styles.title, { color: theme.colors.text.primary }]}>
+      {/* Header personalizado con botón del sidebar */}
+      <View style={[styles.customHeader, { backgroundColor: theme.colors.background.primary }]}>
+        <TouchableOpacity
+          onPress={openSidebar}
+          style={[styles.sidebarButton, {
+            backgroundColor: theme.colors.background.card,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }]}
+          accessibilityLabel="Abrir menú"
+        >
+          <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
           Solicitudes Disponibles
         </Text>
-        <TouchableOpacity
-          style={styles.filterToggle}
-          onPress={() => setShowFilters(!showFilters)}
-        >
-          <Ionicons 
-            name={showFilters ? "filter" : "filter-outline"} 
-            size={24} 
-            color={theme.colors.primary[500]} 
-          />
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
-      {/* Filtros */}
-      {showFilters && renderFilters()}
+      {/* Contenido principal */}
+      <View style={styles.content}>
+        {/* Filtros */}
+        {showFilters && renderFilters()}
 
-      {/* Lista de solicitudes */}
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error[500]} />
-          <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
-            {error}
-          </Text>
-          <Button
-            title="Reintentar"
-            onPress={() => loadAvailableRequests()}
-            style={styles.retryButton}
-          />
-        </View>
-      ) : requests.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="list-outline" size={80} color={theme.colors.text.secondary} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.text.primary }]}>
-            No hay solicitudes disponibles
-          </Text>
-          <Text style={[styles.emptyMessage, { color: theme.colors.text.secondary }]}>
-            {filters.instrument || filters.location || filters.budget?.min || filters.budget?.max
-              ? 'Intenta ajustar los filtros de búsqueda'
-              : 'No hay solicitudes activas en este momento'}
-          </Text>
-          <Button
-            title="Refrescar"
-            onPress={onRefresh}
-            type="outline"
-            style={styles.refreshButton}
-          />
-        </View>
-      ) : (
-        <FlatList
-          data={requests}
-          renderItem={renderRequestItem}
-          keyExtractor={(item) => item.id || `request-${Math.random()}`}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[theme.colors.primary[500]]}
+        {/* Lista de solicitudes */}
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error[500]} />
+            <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+              {error}
+            </Text>
+            <Button
+              title="Reintentar"
+              onPress={() => loadAvailableRequests()}
+              style={styles.retryButton}
             />
-          }
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+          </View>
+        ) : requests.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="list-outline" size={80} color={theme.colors.text.secondary} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text.primary }]}>
+              No hay solicitudes disponibles
+            </Text>
+            <Text style={[styles.emptyMessage, { color: theme.colors.text.secondary }]}>
+              {filters.instrument || filters.location || filters.budget?.min || filters.budget?.max
+                ? 'Intenta ajustar los filtros de búsqueda'
+                : 'No hay solicitudes activas en este momento'}
+            </Text>
+            <Button
+              title="Refrescar"
+              onPress={onRefresh}
+              type="outline"
+              style={styles.refreshButton}
+            />
+          </View>
+        ) : (
+          <FlatList
+            data={requests}
+            renderItem={renderRequestItem}
+            keyExtractor={(item) => item.id || `request-${Math.random()}`}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[theme.colors.primary[500]]}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        )}
 
-      {/* Contador de resultados */}
-      {requests.length > 0 && (
-        <View style={[styles.resultsCount, { backgroundColor: theme.colors.background.card }]}>
-          <Text style={[styles.resultsText, { color: theme.colors.text.secondary }]}>
-            {requests.length} solicitud{requests.length !== 1 ? 'es' : ''} disponible{requests.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-      )}
+        {/* Contador de resultados */}
+        {requests.length > 0 && (
+          <View style={[styles.resultsCount, { backgroundColor: theme.colors.background.card }]}>
+            <Text style={[styles.resultsText, { color: theme.colors.text.secondary }]}>
+              {requests.length} solicitud{requests.length !== 1 ? 'es' : ''} disponible{requests.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -419,20 +429,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
+  customHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  title: {
+  sidebarButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
   },
-  filterToggle: {
-    padding: 8,
+  headerSpacer: {
+    width: 44, // Ajustar según sea necesario para balancear el botón
+  },
+  content: {
+    flex: 1,
+    padding: 16,
   },
   filtersContainer: {
     padding: 16,

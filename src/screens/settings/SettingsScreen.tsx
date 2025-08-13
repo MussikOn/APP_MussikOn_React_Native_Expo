@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@contexts/ThemeContext';
 import { useUser } from '@contexts/UserContext';
+import { useSidebar } from '@contexts/SidebarContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '@contexts/LanguageContext';
 import Modal from 'react-native-modal';
@@ -21,6 +22,7 @@ const SettingsScreen = () => {
   const { t } = useTranslation();
   const { theme, mode, setMode, toggleTheme, isDark, hourFormat, setHourFormat } = useTheme();
   const { logout } = useUser();
+  const { openSidebar } = useSidebar();
   const { currentLanguage, changeLanguage, availableLanguages } = useLanguage();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
@@ -198,22 +200,36 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background.primary, paddingTop: insets.top }}>
-      <LinearGradient
-        colors={theme.gradients.primary}
-        style={styles.headerGradient}
-      >
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text.inverse }]}>
-            {t('settings.title')}
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.colors.text.inverse }]}>
-            {t('settings.subtitle')}
-          </Text>
-        </View>
-      </LinearGradient>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+      {/* Header personalizado con botón del sidebar */}
+      <View style={[styles.customHeader, { backgroundColor: theme.colors.background.primary }]}>
+        <TouchableOpacity
+          onPress={openSidebar}
+          style={[styles.sidebarButton, {
+            backgroundColor: theme.colors.background.card,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }]}
+          accessibilityLabel="Abrir menú"
+        >
+          <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
+          Configuración
+        </Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Contenido principal */}
+      <View style={styles.content}>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
@@ -237,7 +253,8 @@ const SettingsScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
       {/* Modal de selección de idioma */}
       <Modal
         isVisible={languageModalVisible}
@@ -280,21 +297,6 @@ const SettingsScreen = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-      <View style={{ marginVertical: 24 }}>
-        <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 }}>
-          Formato de hora
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ color: theme.colors.text.primary, marginRight: 12 }}>24h</Text>
-          <Switch
-            value={hourFormat === '12h'}
-            onValueChange={(val) => setHourFormat(val ? '12h' : '24h')}
-            thumbColor={theme.colors.primary[500]}
-            trackColor={{ false: theme.colors.border.secondary, true: theme.colors.primary[200] }}
-          />
-          <Text style={{ color: theme.colors.text.primary, marginLeft: 12 }}>12h (AM/PM)</Text>
-        </View>
-      </View>
     </View>
   );
 };
@@ -302,6 +304,37 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sidebarButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 44, // Ajustar según sea necesario para balancear el botón
   },
   headerGradient: {
     paddingTop: 60,
@@ -311,18 +344,19 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
   headerSubtitle: {
     fontSize: 16,
     opacity: 0.8,
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20, // Add some padding at the bottom for the logout button
   },
   section: {
     marginBottom: 24,

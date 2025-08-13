@@ -14,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
 import { useUser } from '@contexts/UserContext';
+import { useSidebar } from '@contexts/SidebarContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { notificationService, Notification } from '@services/notificationService';
 
@@ -24,6 +25,7 @@ interface NotificationsScreenProps {
 const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const { user } = useUser();
+  const { openSidebar } = useSidebar();
   const insets = useSafeAreaInsets();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -252,31 +254,30 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ navigation })
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
-            Notificaciones
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.colors.text.secondary }]}>
-            Toca una notificación para ver los detalles
-          </Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={handleMarkAllAsRead}
-              style={styles.headerButton}
-            >
-              <Ionicons name="checkmark-done" size={20} color={theme.colors.primary[500]} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleClearAll}
-              style={styles.headerButton}
-            >
-              <Ionicons name="trash" size={20} color={theme.colors.error[500]} />
-            </TouchableOpacity>
-          </View>
-        </View>
+      {/* Header personalizado con botón del sidebar */}
+      <View style={[styles.customHeader, { backgroundColor: theme.colors.background.primary }]}>
+        <TouchableOpacity
+          onPress={openSidebar}
+          style={[styles.sidebarButton, {
+            backgroundColor: theme.colors.background.card,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }]}
+          accessibilityLabel="Abrir menú"
+        >
+          <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
+          Notificaciones
+        </Text>
+        <View style={styles.headerSpacer} />
       </View>
+
+      {/* Contenido principal */}
+      <View style={styles.content}>
 
       {/* Notifications List */}
       <FlatList
@@ -303,6 +304,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ navigation })
           </View>
         }
       />
+      </View>
     </View>
   );
 };
@@ -328,10 +330,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
   },
   headerSubtitle: {
     fontSize: 12,
@@ -416,6 +414,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sidebarButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 44, // Ajustar según sea necesario para balancear el botón
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
 });
 

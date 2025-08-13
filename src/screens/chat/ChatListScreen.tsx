@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Ale
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useSidebar } from '../../contexts/SidebarContext';
 import { Conversation, ChatFilters } from '../../appTypes/DatasTypes';
 import { useChatService } from '../../services/chatService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -107,13 +108,14 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
 export const ChatListScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { openSidebar } = useSidebar();
   const chatService = useChatService();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [refreshing, setRefreshing] = useState(false);
+  
   const loadConversations = async () => {
     try {
       setLoading(true);
@@ -163,82 +165,104 @@ export const ChatListScreen: React.FC = () => {
   }
 
   return (
-    <View style={[
-      styles.container,
-      { backgroundColor: theme.colors.background.primary }
-    ]}>
-      <View style={[
-        styles.header,
-        { backgroundColor: theme.colors.background.card }
-      ]}>
-        <Text style={[
-          styles.headerTitle,
-          { color: theme.colors.text.primary }
-        ]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+      {/* Header personalizado con botón del sidebar */}
+      <View style={[styles.customHeader, { backgroundColor: theme.colors.background.primary }]}>
+        <TouchableOpacity
+          onPress={openSidebar}
+          style={[styles.sidebarButton, {
+            backgroundColor: theme.colors.background.card,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }]}
+          accessibilityLabel="Abrir menú"
+        >
+          <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
           Conversaciones
         </Text>
-        
-        <TouchableOpacity
-          style={styles.newChatButton}
-          onPress={handleNewChat}
-        >
-          <Ionicons 
-            name="add" 
-            size={24} 
-            color={theme.colors.primary[500]} 
-          />
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
-      {error && (
-        <View style={styles.errorContainer}>
+      {/* Contenido principal */}
+      <View style={styles.content}>
+        <View style={[
+          styles.header,
+          { backgroundColor: theme.colors.background.card }
+        ]}>
           <Text style={[
-            styles.errorText,
-            { color: theme.colors.error[500] }
+            styles.headerTitle,
+            { color: theme.colors.text.primary }
           ]}>
-            {error}
+            Conversaciones
           </Text>
-        </View>
-      )}
-
-      <FlatList
-        data={conversations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ConversationItem
-            conversation={item}
-            onPress={() => handleConversationPress(item)}
-          />
-        )}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[theme.colors.primary[500]]}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          
+          <TouchableOpacity
+            style={styles.newChatButton}
+            onPress={handleNewChat}
+          >
             <Ionicons 
-              name="chatbubbles-outline" 
-              size={64} 
-              color={theme.colors.text.secondary} 
+              name="add" 
+              size={24} 
+              color={theme.colors.primary[500]} 
             />
+          </TouchableOpacity>
+        </View>
+
+        {error && (
+          <View style={styles.errorContainer}>
             <Text style={[
-              styles.emptyText,
-              { color: theme.colors.text.secondary }
+              styles.errorText,
+              { color: theme.colors.error[500] }
             ]}>
-              No hay conversaciones
-            </Text>
-            <Text style={[
-              styles.emptySubtext,
-              { color: theme.colors.text.secondary }
-            ]}>
-              Inicia una conversación para comenzar a chatear
+              {error}
             </Text>
           </View>
-        }
-      />
+        )}
+
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ConversationItem
+              conversation={item}
+              onPress={() => handleConversationPress(item)}
+            />
+          )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[theme.colors.primary[500]]}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons 
+                name="chatbubbles-outline" 
+                size={64} 
+                color={theme.colors.text.secondary} 
+              />
+              <Text style={[
+                styles.emptyText,
+                { color: theme.colors.text.secondary }
+              ]}>
+                No hay conversaciones
+              </Text>
+              <Text style={[
+                styles.emptySubtext,
+                { color: theme.colors.text.secondary }
+              ]}>
+                Inicia una conversación para comenzar a chatear
+              </Text>
+            </View>
+          }
+        />
+      </View>
     </View>
   );
 };
@@ -256,16 +280,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
   },
   newChatButton: {
     padding: 8,
+    borderRadius: 8,
   },
   errorContainer: {
     padding: 16,
@@ -343,5 +371,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sidebarButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  headerSpacer: {
+    width: 44, // Ajustar según sea necesario para balancear el botón
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
   },
 }); 

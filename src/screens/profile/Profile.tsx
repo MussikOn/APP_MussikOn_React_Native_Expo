@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const Profile = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { openSidebar } = useSidebar();
   const [data, setData] = useState<Token>();
   const [roll, setRoll] = useState("");
   const insets = useSafeAreaInsets();
@@ -44,6 +45,28 @@ const Profile = () => {
 
     return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+      {/* Header personalizado con botón del sidebar */}
+      <View style={[styles.customHeader, { backgroundColor: theme.colors.background.primary }]}>
+        <TouchableOpacity
+          onPress={openSidebar}
+          style={[styles.sidebarButton, {
+            backgroundColor: theme.colors.background.card,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }]}
+          accessibilityLabel="Abrir menú"
+        >
+          <Ionicons name="menu" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
+          Mi Perfil
+        </Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       {/* Header con gradiente de colores */}
       <LinearGradient
         colors={[theme.colors.primary[500], theme.colors.accent[500], theme.colors.primary[500]]}
@@ -214,21 +237,47 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Header con gradiente de colores
-  headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-  },
-  headerGradientContent: {
+  // Header personalizado con botón del sidebar
+  customHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sidebarButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 44, // Ajustar según sea necesario para balancear el botón
+  },
+
+  // Header con gradiente de colores
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+  },
+  headerGradientContent: {
+    alignItems: 'center',
   },
   
   // Header estilo Instagram con más espacio

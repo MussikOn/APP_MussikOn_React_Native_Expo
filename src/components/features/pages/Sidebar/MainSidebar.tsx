@@ -100,13 +100,10 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ isVisible, user, onClose, onN
   const handleNavigate = (route: string, itemId: string) => {
     setActiveItem(itemId);
     
-    // Si es Dashboard o Home, navegar a MainTabs
-    if (route === 'Dashboard' || route === 'Home') {
-      onNavigate('MainTabs');
-    } else {
-      onNavigate(route);
-    }
-    
+    // Navegar directamente a la ruta especificada
+    // Tanto Dashboard como Home están registrados como pantallas independientes en el stack
+    console.log('Sidebar: Navigating to route:', route);
+    onNavigate(route);
     onClose();
   };
 
