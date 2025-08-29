@@ -1,201 +1,188 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { 
-  getApiConfig, 
-  getApiTimeout, 
-  getDefaultHeaders, 
-  getRetryConfig 
-} from '../config/apiConfig';
-import { getToken, deleteToken } from '../utils/functions';
-import { store } from '../store/store';
-import { logout } from '../store/slices/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_CONFIG } from '@config/apiConfig';
+import { ENV, DEFAULT_HEADERS, RETRY_CONFIG } from '@config/environment';
 
-// Tipos para las respuestas de la API
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-}
-
-export interface ApiError {
-  message: string;
-  status?: number;
-  code?: string;
-}
-
-// Clase para manejo de errores de la API
-export class ApiError extends Error {
-  public status?: number;
-  public code?: string;
-
-  constructor(message: string, status?: number, code?: string) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.code = code;
-  }
-}
-
-// Configuración base de axios
-const createApiInstance = (): AxiosInstance => {
-  const apiConfig = getApiConfig();
-  const instance = axios.create({
-    baseURL: apiConfig.BASE_URL,
-    timeout: getApiTimeout(),
-    headers: getDefaultHeaders(),
-  });
-
-  // Interceptor para agregar token a todas las peticiones
-  instance.interceptors.request.use(
-    async (config) => {
-      try {
-        const token = await getToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`);
-        return config;
-      } catch (error) {
-        console.error('Error en interceptor de request:', error);
-        return config;
-      }
-    },
-    (error) => {
-      console.error('Error en interceptor de request:', error);
-      return Promise.reject(error);
-    }
-  );
-
-  // Interceptor para manejar respuestas y errores
-  instance.interceptors.response.use(
-    (response: AxiosResponse) => {
-      console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
-      return response;
-    },
-    async (error: AxiosError) => {
-      const originalRequest = error.config as any;
-      
-      console.error(`❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status}`);
-
-      // Si el token expiró (401), intentar logout
-      if (error.response?.status === 401) {
-        try {
-          await deleteToken();
-          store.dispatch(logout());
-          console.log('🔐 Token expirado, usuario deslogueado');
-        } catch (logoutError) {
-          console.error('Error al hacer logout:', logoutError);
-        }
-      }
-
-      // Crear error personalizado
-      const apiError = new ApiError(
-        (error.response?.data as any)?.message || error.message || 'Error de conexión',
-        error.response?.status,
-        error.code
-      );
-
-      return Promise.reject(apiError);
-    }
-  );
-
-  return instance;
+// Configuración de la instancia de Axios
+const axiosConfig: AxiosRequestConfig = {
+  baseURL: API_CONFIG.baseURL,
+  timeout: API_CONFIG.timeout,
+  headers: DEFAULT_HEADERS,
+  withCredentials: API_CONFIG.security.withCredentials,
 };
 
-// Instancia principal de la API
-export const api = createApiInstance();
+// Crear instancia de Axios
+export const api: AxiosInstance = axios.create(axiosConfig);
 
-// Función para reintentos automáticos
-const retryRequest = async (
-  requestFn: () => Promise<any>,
-  maxRetries?: number,
-  delay?: number
-): Promise<any> => {
-  const retryConfig = getRetryConfig();
-  const maxRetriesValue = maxRetries || retryConfig.maxRetries;
-  const delayValue = delay || retryConfig.retryDelay;
-  let lastError: any;
-
-  for (let attempt = 1; attempt <= maxRetriesValue; attempt++) {
+// Interceptor para agregar token de autenticación
+api.interceptors.request.use(
+  async (config) => {
     try {
-      return await requestFn();
-    } catch (error) {
-      lastError = error;
-      
-      if (attempt === maxRetriesValue) {
-        throw error;
+      const token = await AsyncStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
-
-      // Esperar antes del siguiente intento
-      await new Promise(resolve => setTimeout(resolve, delayValue * attempt));
-      console.log(`🔄 Reintento ${attempt}/${maxRetriesValue} para ${requestFn.name}`);
+    } catch (error) {
+      console.error('Error getting auth token:', error);
     }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  throw lastError;
+// Interceptor para manejar respuestas
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    return response;
+  },
+  async (error: AxiosError) => {
+    const originalRequest = error.config as any;
+    
+    // Si el error es 401 y no hemos intentado renovar el token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Intentar renovar el token
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const response = await axios.post(`${API_CONFIG.baseURL}/auth/refresh`, {
+            refreshToken
+          });
+          
+          const { accessToken } = response.data;
+          await AsyncStorage.setItem('authToken', accessToken);
+          
+          // Reintentar la petición original
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // Si falla la renovación, redirigir al login
+        console.error('Token refresh failed:', refreshError);
+        // Aquí podrías redirigir al usuario al login
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+// Función para configurar reintentos
+export const configureRetries = (config: AxiosRequestConfig) => {
+  return {
+    ...config,
+    retry: RETRY_CONFIG.maxRetries,
+    retryDelay: RETRY_CONFIG.retryDelay,
+    retryCondition: (error: AxiosError) => {
+      return axios.isAxiosError(error) && 
+             (error.response?.status && error.response.status >= 500 || error.response?.status === 429);
+    },
+  };
 };
 
-// Funciones helper para métodos HTTP
-export const apiService = {
-  // GET
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return retryRequest(async () => {
-      const response = await api.get(url, config);
-      return response.data;
-    });
-  },
-
-  // POST
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return retryRequest(async () => {
-      const response = await api.post(url, data, config);
-      return response.data;
-    });
-  },
-
-  // PUT
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return retryRequest(async () => {
-      const response = await api.put(url, data, config);
-      return response.data;
-    });
-  },
-
-  // DELETE
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return retryRequest(async () => {
-      const response = await api.delete(url, config);
-      return response.data;
-    });
-  },
-
-  // PATCH
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return retryRequest(async () => {
-      const response = await api.patch(url, data, config);
-      return response.data;
-    });
-  },
-
-  // POST con FormData (para subida de archivos)
-  async postFormData<T = any>(url: string, formData: FormData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return retryRequest(async () => {
-      const response = await api.post(url, formData, {
-        ...config,
-        headers: {
-          ...config?.headers,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data;
-    });
-  },
+// Función para obtener configuración de caché
+export const getCacheConfig = (ttl: number = ENV.CACHE_TTL) => {
+  return {
+    cache: {
+      ttl,
+      maxSize: ENV.CACHE_MAX_SIZE,
+    },
+  };
 };
 
-// Crear solicitud de evento (request musician)
-export const requestMusician = async (data: any) => {
-  return apiService.post('/events/request-musician', data);
+// Función para obtener configuración de logging
+export const getLoggingConfig = (level: string = ENV.LOGGING_LEVEL) => {
+  return {
+    logging: {
+      enabled: ENV.LOGGING_ENABLED,
+      level,
+    },
+  };
 };
 
-// Exportar tipos útiles
-export type { AxiosRequestConfig, AxiosResponse, AxiosError }; 
+// Función para obtener configuración de seguridad
+export const getSecurityConfig = () => {
+  return {
+    security: {
+      includeCredentials: ENV.INCLUDE_CREDENTIALS,
+      withCredentials: ENV.WITH_CREDENTIALS,
+    },
+  };
+};
+
+// Función para obtener configuración de archivos
+export const getFileConfig = () => {
+  return {
+    files: {
+      maxSize: ENV.MAX_FILE_SIZE,
+      allowedTypes: ENV.ALLOWED_FILE_TYPES,
+      uploadTimeout: ENV.FILE_UPLOAD_TIMEOUT,
+    },
+  };
+};
+
+// Función para obtener configuración de geolocalización
+export const getGeolocationConfig = () => {
+  return {
+    geolocation: {
+      enableHighAccuracy: ENV.GEOLOCATION_HIGH_ACCURACY,
+      timeout: ENV.GEOLOCATION_TIMEOUT,
+      maximumAge: ENV.GEOLOCATION_MAX_AGE,
+      maxDistance: ENV.GEOLOCATION_MAX_DISTANCE,
+    },
+  };
+};
+
+// Función para obtener configuración de notificaciones
+export const getNotificationConfig = () => {
+  return {
+    notifications: {
+      push: {
+        supported: ENV.PUSH_NOTIFICATIONS_SUPPORTED,
+      },
+      inApp: {
+        enabled: ENV.IN_APP_NOTIFICATIONS_ENABLED,
+      },
+    },
+  };
+};
+
+// Función para obtener configuración de eventos
+export const getEventConfig = () => {
+  return {
+    events: {
+      maxDuration: ENV.MAX_EVENT_DURATION,
+      minDuration: ENV.MIN_EVENT_DURATION,
+      maxBudget: ENV.MAX_EVENT_BUDGET,
+      minBudget: ENV.MIN_EVENT_BUDGET,
+    },
+  };
+};
+
+// Función para obtener configuración de chat
+export const getChatConfig = () => {
+  return {
+    chat: {
+      maxMessageLength: ENV.MAX_MESSAGE_LENGTH,
+      typingTimeout: ENV.TYPING_TIMEOUT,
+      messageRetention: ENV.MESSAGE_RETENTION,
+    },
+  };
+};
+
+// Función para obtener configuración de pagos
+export const getPaymentConfig = () => {
+  return {
+    payments: {
+      currency: ENV.PAYMENT_CURRENCY,
+      minAmount: ENV.MIN_PAYMENT_AMOUNT,
+      maxAmount: ENV.MAX_PAYMENT_AMOUNT,
+      refundWindow: ENV.REFUND_WINDOW,
+    },
+  };
+};
+
+export default api; 

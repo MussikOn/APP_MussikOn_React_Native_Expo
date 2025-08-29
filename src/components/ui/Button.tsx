@@ -7,6 +7,7 @@ interface ButtonProps {
   title: string;
   onPress: () => void;
   type?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger';
+  size?: 'small' | 'medium' | 'large';
   loading?: boolean;
   disabled?: boolean;
   icon?: string;
@@ -19,6 +20,7 @@ const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
   type = 'primary',
+  size = 'medium',
   loading = false,
   disabled = false,
   icon,
@@ -31,10 +33,7 @@ const Button: React.FC<ButtonProps> = ({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 14,
-      paddingHorizontal: 24,
       borderRadius: 12,
-      minHeight: 48,
       elevation: 2,
       shadowColor: color_primary,
       shadowOffset: { width: 0, height: 2 },
@@ -42,20 +41,49 @@ const Button: React.FC<ButtonProps> = ({
       shadowRadius: 4,
     };
 
+    // Aplicar tamaño
+    let sizeStyle: ViewStyle;
+    switch (size) {
+      case 'small':
+        sizeStyle = {
+          paddingVertical: 8,
+          paddingHorizontal: 16,
+          minHeight: 36,
+        };
+        break;
+      case 'large':
+        sizeStyle = {
+          paddingVertical: 18,
+          paddingHorizontal: 32,
+          minHeight: 56,
+        };
+        break;
+      default: // medium
+        sizeStyle = {
+          paddingVertical: 14,
+          paddingHorizontal: 24,
+          minHeight: 48,
+        };
+    }
+
+    // Aplicar tipo
     switch (type) {
       case 'primary':
         return {
           ...baseStyle,
+          ...sizeStyle,
           backgroundColor: btn_primary,
         };
       case 'secondary':
         return {
           ...baseStyle,
+          ...sizeStyle,
           backgroundColor: color_secondary,
         };
       case 'outline':
         return {
           ...baseStyle,
+          ...sizeStyle,
           backgroundColor: 'transparent',
           borderWidth: 2,
           borderColor: color_primary,
@@ -63,15 +91,20 @@ const Button: React.FC<ButtonProps> = ({
       case 'success':
         return {
           ...baseStyle,
+          ...sizeStyle,
           backgroundColor: btn_success,
         };
       case 'danger':
         return {
           ...baseStyle,
+          ...sizeStyle,
           backgroundColor: btn_danger,
         };
       default:
-        return baseStyle;
+        return {
+          ...baseStyle,
+          ...sizeStyle,
+        };
     }
   };
 

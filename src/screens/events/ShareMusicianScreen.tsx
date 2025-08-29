@@ -1,62 +1,576 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { useTheme } from '@hooks/useAppTheme';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '@contexts/UserContext';
+import { requestService, CreateRequestData } from '@services/requests';
+import Card from '@components/ui/Card';
+import Button from '@components/ui/Button';
+import Input from '@components/ui/Input';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 const ShareMusicianScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { user } = useUser();
+  
+  // Estados del formulario
+  const [formData, setFormData] = useState<CreateRequestData>({
+    userId: user?.userEmail || '',
+    eventType: '',
+    date: new Date().toISOString().split('T')[0],
+    startTime: '18:00',
+    endTime: '20:00',
+    location: '',
+    instrument: '',
+    budget: 0,
+    comments: '',
+  });
+  
+  // Estados de UI
+  const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-        return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-      <View style={styles.content}>
-                  <Ionicons 
-          name="share-outline" 
-          size={80} 
-          color={theme.colors.text.secondary} 
+  // Opciones para los pickers
+  const eventTypes = [
+    { label: 'Concierto', value: 'concierto' },
+    { label: 'Boda', value: 'boda' },
+    { label: 'Culto', value: 'culto' },
+    { label: 'Evento Corporativo', value: 'evento_corporativo' },
+    { label: 'Festival', value: 'festival' },
+    { label: 'Fiesta Privada', value: 'fiesta_privada' },
+    { label: 'Graduación', value: 'graduacion' },
+    { label: 'Cumpleaños', value: 'cumpleanos' },
+    { label: 'Otro', value: 'otro' },
+  ];
+
+  const instruments = [
+    { label: 'Guitarra', value: 'guitarra' },
+    { label: 'Piano', value: 'piano' },
+    { label: 'Bajo', value: 'bajo' },
+    { label: 'Batería', value: 'bateria' },
+    { label: 'Saxofón', value: 'saxofon' },
+    { label: 'Trompeta', value: 'trompeta' },
+    { label: 'Violín', value: 'violin' },
+    { label: 'Canto', value: 'canto' },
+    { label: 'Teclado', value: 'teclado' },
+    { label: 'Flauta', value: 'flauta' },
+    { label: 'Otro', value: 'otro' },
+  ];
+
+  // Validar formulario
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.eventType) {
+      newErrors.eventType = 'Selecciona el tipo de evento';
+    }
+    
+    if (!formData.date) {
+      newErrors.date = 'Selecciona la fecha del evento';
+    }
+    
+    if (!formData.startTime) {
+      newErrors.startTime = 'Selecciona la hora de inicio';
+    }
+    
+    if (!formData.endTime) {
+      newErrors.endTime = 'Selecciona la hora de fin';
+    }
+    
+    if (!formData.location) {
+      newErrors.location = 'Ingresa la ubicación del evento';
+    }
+    
+    if (!formData.instrument) {
+      newErrors.instrument = 'Selecciona el instrumento requerido';
+    }
+    
+    if (formData.budget <= 0) {
+      newErrors.budget = 'Ingresa un presupuesto válido';
+    }
+    
+    if (formData.startTime >= formData.endTime) {
+      newErrors.endTime = 'La hora de fin debe ser posterior a la de inicio';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Manejar cambios en el formulario
+  const handleInputChange = (field: keyof CreateRequestData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Limpiar error del campo
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  // Manejar fecha
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      handleInputChange('date', formattedDate);
+    }
+  };
+
+  // Manejar hora
+  const handleTimeChange = (event: any, selectedTime?: Date, isStartTime: boolean = true) => {
+    if (isStartTime) {
+      setShowStartTimePicker(false);
+    } else {
+      setShowEndTimePicker(false);
+    }
+    
+    if (selectedTime) {
+      const hours = selectedTime.getHours().toString().padStart(2, '0');
+      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      
+      if (isStartTime) {
+        handleInputChange('startTime', timeString);
+      } else {
+        handleInputChange('endTime', timeString);
+      }
+    }
+  };
+
+  // Enviar solicitud
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      Alert.alert('Error', 'Por favor corrige los errores en el formulario');
+      return;
+    }
+
+    if (!user?.userEmail) {
+      Alert.alert('Error', 'Debes estar autenticado para crear una solicitud');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const requestData = {
+        ...formData,
+        userId: user.userEmail,
+      };
+
+      console.log('🎵 Enviando solicitud de músico:', requestData);
+      
+      const response = await requestService.createRequest(requestData);
+      
+      if (response.success) {
+        Alert.alert(
+          '¡Solicitud Creada!',
+          'Tu solicitud de músico ha sido creada exitosamente. Los músicos podrán verla y aceptarla.',
+          [
+            {
+              text: 'Ver Mis Solicitudes',
+              onPress: () => {
+                // TODO: Navegar a la lista de solicitudes
+              }
+            },
+            {
+              text: 'Crear Otra',
+              style: 'cancel',
+              onPress: () => {
+                // Resetear formulario
+                setFormData({
+                  userId: user.userEmail,
+                  eventType: '',
+                  date: new Date().toISOString().split('T')[0],
+                  startTime: '18:00',
+                  endTime: '20:00',
+                  location: '',
+                  instrument: '',
+                  budget: 0,
+                  comments: '',
+                });
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Error', response.message || 'Error al crear la solicitud');
+      }
+    } catch (error: any) {
+      console.error('Error creando solicitud:', error);
+      Alert.alert('Error', 'Error al crear la solicitud. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Formatear fecha para mostrar
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.colors.background.primary }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Ionicons 
+            name="musical-notes" 
+            size={32} 
+            color={theme.colors.primary[500]} 
+          />
+          <Text style={[styles.title, { color: theme.colors.text.primary }]}>
+            Solicitar Músico
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>
+            Describe tu evento y encuentra el músico perfecto
+          </Text>
+        </View>
+
+        {/* Formulario */}
+        <Card style={styles.formCard}>
+          {/* Tipo de Evento */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+              Tipo de Evento *
+            </Text>
+            <View style={[styles.pickerContainer, { borderColor: errors.eventType ? theme.colors.error[500] : theme.colors.border.primary }]}>
+              <Picker
+                selectedValue={formData.eventType}
+                onValueChange={(value) => handleInputChange('eventType', value)}
+                style={[styles.picker, { color: theme.colors.text.primary }]}
+              >
+                <Picker.Item label="Selecciona el tipo de evento" value="" />
+                {eventTypes.map((type) => (
+                  <Picker.Item key={type.value} label={type.label} value={type.value} />
+                ))}
+              </Picker>
+            </View>
+            {errors.eventType && (
+              <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+                {errors.eventType}
+              </Text>
+            )}
+          </View>
+
+          {/* Fecha */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+              Fecha del Evento *
+            </Text>
+            <TouchableOpacity
+              style={[styles.dateButton, { borderColor: errors.date ? theme.colors.error[500] : theme.colors.border.primary }]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.text.secondary} />
+              <Text style={[styles.dateButtonText, { color: theme.colors.text.primary }]}>
+                {formData.date ? formatDate(formData.date) : 'Seleccionar fecha'}
+              </Text>
+            </TouchableOpacity>
+            {errors.date && (
+              <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+                {errors.date}
+              </Text>
+            )}
+          </View>
+
+          {/* Horarios */}
+          <View style={styles.timeContainer}>
+            <View style={styles.timeInput}>
+              <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+                Hora de Inicio *
+              </Text>
+              <TouchableOpacity
+                style={[styles.timeButton, { borderColor: errors.startTime ? theme.colors.error[500] : theme.colors.border.primary }]}
+                onPress={() => setShowStartTimePicker(true)}
+              >
+                <Ionicons name="time-outline" size={20} color={theme.colors.text.secondary} />
+                <Text style={[styles.timeButtonText, { color: theme.colors.text.primary }]}>
+                  {formData.startTime}
+                </Text>
+              </TouchableOpacity>
+              {errors.startTime && (
+                <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+                  {errors.startTime}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.timeInput}>
+              <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+                Hora de Fin *
+              </Text>
+              <TouchableOpacity
+                style={[styles.timeButton, { borderColor: errors.endTime ? theme.colors.error[500] : theme.colors.border.primary }]}
+                onPress={() => setShowEndTimePicker(true)}
+              >
+                <Ionicons name="time-outline" size={20} color={theme.colors.text.secondary} />
+                <Text style={[styles.timeButtonText, { color: theme.colors.text.primary }]}>
+                  {formData.endTime}
+                </Text>
+              </TouchableOpacity>
+              {errors.endTime && (
+                <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+                  {errors.endTime}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Ubicación */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+              Ubicación del Evento *
+            </Text>
+            <Input
+              label="Ubicación del Evento"
+              placeholder="Dirección del evento"
+              value={formData.location}
+              onChangeText={(value) => handleInputChange('location', value)}
+              error={errors.location}
+            />
+          </View>
+
+          {/* Instrumento */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+              Instrumento Requerido *
+            </Text>
+            <View style={[styles.pickerContainer, { borderColor: errors.instrument ? theme.colors.error[500] : theme.colors.border.primary }]}>
+              <Picker
+                selectedValue={formData.instrument}
+                onValueChange={(value) => handleInputChange('instrument', value)}
+                style={[styles.picker, { color: theme.colors.text.primary }]}
+              >
+                <Picker.Item label="Selecciona el instrumento" value="" />
+                {instruments.map((instrument) => (
+                  <Picker.Item key={instrument.value} label={instrument.label} value={instrument.value} />
+                ))}
+              </Picker>
+            </View>
+            {errors.instrument && (
+              <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+                {errors.instrument}
+              </Text>
+            )}
+          </View>
+
+          {/* Presupuesto */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+              Presupuesto (USD) *
+            </Text>
+            <Input
+              label="Presupuesto (USD)"
+              placeholder="0.00"
+              value={formData.budget.toString()}
+              onChangeText={(value) => handleInputChange('budget', parseFloat(value) || 0)}
+              error={errors.budget}
+              keyboardType="numeric"
+            />
+          </View>
+
+          {/* Comentarios */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: theme.colors.text.primary }]}>
+              Comentarios Adicionales
+            </Text>
+            <Input
+              label="Comentarios Adicionales"
+              placeholder="Describe detalles adicionales del evento, canciones específicas, etc."
+              value={formData.comments}
+              onChangeText={(value) => handleInputChange('comments', value)}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
+          {/* Botón de envío */}
+          <Button
+            title={loading ? 'Creando Solicitud...' : 'Crear Solicitud'}
+            onPress={handleSubmit}
+            disabled={loading}
+            style={styles.submitButton}
+          />
+        </Card>
+
+        {/* Información adicional */}
+        <Card style={styles.infoCard}>
+          <View style={styles.infoHeader}>
+            <Ionicons name="information-circle-outline" size={24} color={theme.colors.primary[500]} />
+            <Text style={[styles.infoTitle, { color: theme.colors.text.primary }]}>
+              ¿Cómo funciona?
+            </Text>
+          </View>
+          <Text style={[styles.infoText, { color: theme.colors.text.secondary }]}>
+            1. Completa el formulario con los detalles de tu evento{'\n'}
+            2. Los músicos verán tu solicitud y podrán aceptarla{'\n'}
+            3. Recibirás notificaciones cuando un músico se interese{'\n'}
+            4. Podrás chatear y coordinar los detalles{'\n'}
+            5. El pago se procesa de forma segura al completar el evento
+          </Text>
+        </Card>
+      </ScrollView>
+
+      {/* Date/Time Pickers */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={new Date(formData.date)}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+          minimumDate={new Date()}
         />
-        <Text style={[styles.title, { color: theme.colors.text.primary }]}>
-          Función No Disponible
-        </Text>
-        <Text style={[styles.message, { color: theme.colors.text.secondary }]}>
-          La función de compartir músicos no está disponible en esta versión.
-        </Text>
-        <Text style={[styles.subMessage, { color: theme.colors.text.secondary }]}>
-          Esta funcionalidad será implementada en futuras actualizaciones.
-        </Text>
-    </View>
-    </View>
+      )}
+
+      {showStartTimePicker && (
+        <DateTimePicker
+          value={new Date(`2000-01-01T${formData.startTime}:00`)}
+          mode="time"
+          display="default"
+          onChange={(event, date) => handleTimeChange(event, date, true)}
+        />
+      )}
+
+      {showEndTimePicker && (
+        <DateTimePicker
+          value={new Date(`2000-01-01T${formData.endTime}:00`)}
+          mode="time"
+          display="default"
+          onChange={(event, date) => handleTimeChange(event, date, false)}
+        />
+      )}
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-              justifyContent: 'center', 
-                    alignItems: 'center',
-            padding: 20,
   },
-  content: {
-                    alignItems: 'center',
-    maxWidth: 300,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
   title: {
-    fontSize: 24,
-              fontWeight: 'bold', 
-    marginTop: 20,
-    marginBottom: 10,
-              textAlign: 'center',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  message: {
-              fontSize: 16, 
-              textAlign: 'center',
-    marginBottom: 10,
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
     lineHeight: 24,
   },
-  subMessage: {
-                fontSize: 14, 
-                textAlign: 'center',
+  formCard: {
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
+  },
+  picker: {
+    height: 50,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 15,
+    backgroundColor: 'transparent',
+  },
+  dateButtonText: {
+    marginLeft: 12,
+    fontSize: 16,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  timeInput: {
+    flex: 0.48,
+  },
+  timeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 15,
+    backgroundColor: 'transparent',
+  },
+  timeButtonText: {
+    marginLeft: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  submitButton: {
+    marginTop: 20,
+  },
+  infoCard: {
+    marginBottom: 20,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  infoText: {
+    fontSize: 14,
     lineHeight: 20,
   },
 });

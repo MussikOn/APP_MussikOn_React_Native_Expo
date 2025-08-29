@@ -1,4 +1,4 @@
-import { apiService } from './api';
+import { api } from './api';
 import { 
   UserBalance,
   BankAccount,
@@ -48,14 +48,14 @@ export const paymentService = {
    * Obtener balance del usuario
    */
   async getUserBalance(): Promise<ApiResponse<UserBalance>> {
-    return apiService.get(PAYMENT_ENDPOINTS.GET_BALANCE);
+    return api.get(PAYMENT_ENDPOINTS.GET_BALANCE);
   },
 
   /**
    * Obtener estadísticas de pagos (solo admin)
    */
   async getPaymentStatistics(): Promise<ApiResponse<PaymentStatistics>> {
-    return apiService.get(PAYMENT_ENDPOINTS.GET_STATISTICS);
+    return api.get(PAYMENT_ENDPOINTS.GET_STATISTICS);
   },
 
   // ===== CUENTAS BANCARIAS =====
@@ -64,7 +64,7 @@ export const paymentService = {
    * Obtener cuentas bancarias del usuario
    */
   async getBankAccounts(): Promise<ApiResponse<BankAccount[]>> {
-    return apiService.get(PAYMENT_ENDPOINTS.GET_BANK_ACCOUNTS);
+    return api.get(PAYMENT_ENDPOINTS.GET_BANK_ACCOUNTS);
   },
 
   /**
@@ -77,7 +77,7 @@ export const paymentService = {
     accountType: 'savings' | 'checking';
     routingNumber?: string;
   }): Promise<ApiResponse<BankAccount>> {
-    return apiService.post(PAYMENT_ENDPOINTS.CREATE_BANK_ACCOUNT, bankAccountData);
+    return api.post(PAYMENT_ENDPOINTS.CREATE_BANK_ACCOUNT, bankAccountData);
   },
 
   /**
@@ -119,7 +119,7 @@ export const paymentService = {
     page?: number;
     limit?: number;
   }): Promise<ApiResponse<PaginatedResponse<UserDeposit>>> {
-    return apiService.get(PAYMENT_ENDPOINTS.GET_DEPOSITS, { params: filters });
+          return api.get(PAYMENT_ENDPOINTS.GET_DEPOSITS, { params: filters });
   },
 
   /**
@@ -138,7 +138,7 @@ export const paymentService = {
       formData.append('description', depositData.description);
     }
     
-    return apiService.post(PAYMENT_ENDPOINTS.CREATE_DEPOSIT, formData, {
+          return api.post(PAYMENT_ENDPOINTS.CREATE_DEPOSIT, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -176,7 +176,7 @@ export const paymentService = {
     amount: number;
     bankAccountId: string;
   }): Promise<ApiResponse<WithdrawalRequest>> {
-    return apiService.post(PAYMENT_ENDPOINTS.CREATE_WITHDRAWAL, withdrawalData);
+    return api.post(PAYMENT_ENDPOINTS.CREATE_WITHDRAWAL, withdrawalData);
   },
 
   /**
@@ -199,7 +199,7 @@ export const paymentService = {
     page?: number;
     limit?: number;
   }): Promise<ApiResponse<PaginatedResponse<MusicianEarnings>>> {
-    return apiService.get(PAYMENT_ENDPOINTS.GET_MUSICIAN_EARNINGS, { params: filters });
+          return api.get(PAYMENT_ENDPOINTS.GET_MUSICIAN_EARNINGS, { params: filters });
   },
 
   /**

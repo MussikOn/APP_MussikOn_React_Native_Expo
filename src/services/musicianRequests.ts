@@ -1,4 +1,4 @@
-import { apiService } from './api';
+import { api } from './api';
 import {
   Event,
   CreateEventPayload,
@@ -16,14 +16,14 @@ import {
 export const createMusicianRequest = async (
   data: CreateEventPayload
 ): Promise<ApiResponse<Event>> => {
-  return apiService.post('/events', data);
+  return api.post('/events', data);
 };
 
 // Obtener solicitud por ID
 export const getMusicianRequestById = async (
   id: string
 ): Promise<ApiResponse<Event>> => {
-  return apiService.get(`/events/${id}`);
+  return api.get(`/events/${id}`);
 };
 
 // Actualizar solicitud
@@ -31,14 +31,14 @@ export const updateMusicianRequest = async (
   id: string,
   data: Partial<CreateEventPayload>
 ): Promise<ApiResponse<Event>> => {
-  return apiService.put(`/events/${id}`, data);
+  return api.put(`/events/${id}`, data);
 };
 
 // Eliminar solicitud
 export const deleteMusicianRequest = async (
   id: string
 ): Promise<ApiResponse<{ success: boolean; message: string }>> => {
-  return apiService.delete(`/events/${id}`);
+  return api.delete(`/events/${id}`);
 };
 
 // Aceptar solicitud (para músicos)
@@ -52,7 +52,7 @@ export const acceptMusicianRequest = async (
   status: string;
   assignedAt: string;
 }>> => {
-  return apiService.post('/events/accept', {
+  return api.post('/events/accept', {
     requestId,
     musicianId,
     message
@@ -69,7 +69,7 @@ export const cancelMusicianRequest = async (
   cancelledAt: string;
   reason?: string;
 }>> => {
-  return apiService.post('/events/cancel', {
+  return api.post('/events/cancel', {
     requestId,
     reason
   });
@@ -84,7 +84,7 @@ export const getMusicianRequestStatus = async (
   assignedMusicianId?: string;
   assignedAt?: string;
 }>> => {
-  return apiService.get(`/events/${id}/status`);
+  return api.get(`/events/${id}/status`);
 };
 
 // Obtener solicitudes del usuario
@@ -101,7 +101,7 @@ export const getMyMusicianRequests = async (
     });
   }
   
-  return apiService.get(`/events/my-requests?${params.toString()}`);
+  return api.get(`/events/my-requests?${params.toString()}`);
 };
 
 // Obtener solicitudes disponibles
@@ -118,7 +118,7 @@ export const getAvailableMusicianRequests = async (
     });
   }
   
-  return apiService.get(`/events/available?${params.toString()}`);
+  return api.get(`/events/available?${params.toString()}`);
 };
 
 // Obtener solicitudes asignadas a un músico
@@ -136,7 +136,7 @@ export const getAssignedMusicianRequests = async (
     });
   }
   
-  return apiService.get(`/events/assigned/${musicianId}?${params.toString()}`);
+  return api.get(`/events/assigned/${musicianId}?${params.toString()}`);
 };
 
 // Completar solicitud
@@ -147,7 +147,7 @@ export const completeMusicianRequest = async (
   status: string;
   completedAt: string;
 }>> => {
-  return apiService.post(`/events/${requestId}/complete`);
+  return api.post(`/events/${requestId}/complete`);
 };
 
 // Obtener estadísticas de solicitudes
@@ -160,7 +160,7 @@ export const getMusicianRequestStats = async (): Promise<ApiResponse<{
   myRequests: number;
   availableRequests: number;
 }>> => {
-  return apiService.get('/events/stats');
+  return api.get('/events/stats');
 };
 
 // Buscar solicitudes
@@ -179,7 +179,7 @@ export const searchMusicianRequests = async (
     });
   }
   
-  return apiService.get(`/events/search?${params.toString()}`);
+  return api.get(`/events/search?${params.toString()}`);
 };
 
 // Exportar el servicio completo

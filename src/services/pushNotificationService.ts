@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { apiService } from './api';
+import { api } from './api';
 
 // Configurar el comportamiento de las notificaciones
 Notifications.setNotificationHandler({
@@ -123,7 +123,7 @@ class PushNotificationService {
       }
 
       // Enviar suscripción al backend
-      const response = await apiService.post('/push-notifications/subscriptions', {
+      const response = await api.post('/push-notifications/subscriptions', {
         userId,
         endpoint: `https://exp.host/--/api/v2/push/send/${this.expoPushToken}`,
         keys: {
@@ -133,11 +133,11 @@ class PushNotificationService {
         isActive: true,
       });
 
-      if (response.success) {
+      if (response.status === 200 || response.status === 201) {
         console.log('✅ Suscrito a notificaciones push');
         return true;
       } else {
-        console.log('❌ Error suscribiéndose a notificaciones push:', response.error);
+        console.log('❌ Error suscribiéndose a notificaciones push:', response.statusText);
         return false;
       }
     } catch (error) {
@@ -151,13 +151,13 @@ class PushNotificationService {
    */
   async unsubscribeFromPushNotifications(subscriptionId: string): Promise<boolean> {
     try {
-      const response = await apiService.delete(`/push-notifications/subscription/${subscriptionId}`);
+      const response = await api.delete(`/push-notifications/subscription/${subscriptionId}`);
       
-      if (response.success) {
+      if (response.status === 200 || response.status === 204) {
         console.log('✅ Desuscrito de notificaciones push');
         return true;
       } else {
-        console.log('❌ Error desuscribiéndose de notificaciones push:', response.error);
+        console.log('❌ Error desuscribiéndose de notificaciones push:', response.statusText);
         return false;
       }
     } catch (error) {
@@ -171,8 +171,8 @@ class PushNotificationService {
    */
   async getUserSubscriptions(): Promise<PushNotificationSubscription[]> {
     try {
-      const response = await apiService.get('/push-notifications/subscriptions');
-      if (response.success && response.data) {
+      const response = await api.get('/push-notifications/subscriptions');
+      if (response.status === 200 && response.data) {
         return response.data;
       }
       return [];
@@ -187,8 +187,8 @@ class PushNotificationService {
    */
   async getNotificationSettings(): Promise<PushNotificationSettings> {
     try {
-      const response = await apiService.get('/push-notifications/settings');
-      if (response.success && response.data) {
+      const response = await api.get('/push-notifications/settings');
+      if (response.status === 200 && response.data) {
         return response.data;
       }
     } catch (error) {
@@ -221,8 +221,8 @@ class PushNotificationService {
    */
   async updateNotificationSettings(settings: Partial<PushNotificationSettings>): Promise<boolean> {
     try {
-      const response = await apiService.put('/push-notifications/settings', settings);
-      return response.success;
+      const response = await api.put('/push-notifications/settings', settings);
+      return response.status === 200 || response.status === 204;
     } catch (error) {
       console.error('❌ Error actualizando configuración:', error);
       return false;
@@ -234,8 +234,8 @@ class PushNotificationService {
    */
   async testPushNotification(): Promise<boolean> {
     try {
-      const response = await apiService.post('/push-notifications/test', {});
-      return response.success;
+      const response = await api.post('/push-notifications/test', {});
+      return response.status === 200 || response.status === 201;
     } catch (error) {
       console.error('❌ Error enviando notificación de prueba:', error);
       return false;
@@ -247,8 +247,8 @@ class PushNotificationService {
    */
   async getNotificationStats(): Promise<PushNotificationStats | null> {
     try {
-      const response = await apiService.get('/push-notifications/stats');
-      if (response.success && response.data) {
+      const response = await api.get('/push-notifications/stats');
+      if (response.status === 200 && response.data) {
         return response.data;
       }
       return null;

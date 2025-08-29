@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
-import { SOCKET_URL } from "../src/config/environment";
+import { API_CONFIG } from "../src/config/apiConfig";
 import { useAppDispatch } from '../src/store/store';
 import { addNotification } from '../src/store/slices/notificationsSlice';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,7 +16,7 @@ export interface SocketNotification {
 export const useSocket = (userId: string) => {
   const dispatch = useAppDispatch();
   useEffect(() => {
-    const newSocket: Socket = io(SOCKET_URL, {
+    const newSocket: Socket = io(API_CONFIG.socket.url, {
       transports: ["websocket"],
       timeout: 5000,
       reconnection: true,

@@ -302,3 +302,147 @@ export interface MusicianProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+// ===== SOLICITUDES DE MÚSICOS =====
+
+export interface MusicianRequest {
+  id: string;
+  userId: string;
+  eventType: string;
+  instrument: string;
+  eventDate: string;
+  duration: number;
+  location: string;
+  budget: number;
+  description?: string;
+  isUrgent: boolean;
+  specialRequirements?: string;
+  status: 'pendiente' | 'asignada' | 'completada' | 'cancelada';
+  assignedMusicianId?: string;
+  assignedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMusicianRequestDTO {
+  eventType: string;
+  instrument: string;
+  eventDate: string;
+  duration: number;
+  location: string;
+  budget: number;
+  description?: string;
+  isUrgent: boolean;
+  specialRequirements?: string;
+}
+
+export interface UpdateMusicianRequestDTO {
+  eventType?: string;
+  instrument?: string;
+  eventDate?: string;
+  duration?: number;
+  location?: string;
+  budget?: number;
+  description?: string;
+  isUrgent?: boolean;
+  specialRequirements?: string;
+}
+
+// ===== BÚSQUEDA AVANZADA =====
+
+export interface AdvancedSearchCriteria {
+  eventType?: string;
+  instrument?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  location?: string;
+  budget?: {
+    min?: number;
+    max?: number;
+  };
+  radius?: number;
+  isUrgent?: boolean;
+  specialRequirements?: string[];
+}
+
+export interface GeolocationPoint {
+  latitude: number;
+  longitude: number;
+  address?: string;
+}
+
+export interface NearbyMusician {
+  id: string;
+  userId: string;
+  name: string;
+  lastName: string;
+  email: string;
+  instruments: string[];
+  hourlyRate: number;
+  rating: number;
+  totalReviews: number;
+  isAvailable: boolean;
+  location: GeolocationPoint;
+  distance: number;
+  specialties: string[];
+  experience: string;
+  profileImage?: string;
+}
+
+// ===== CONTRATACIÓN =====
+
+export interface HiringRequest {
+  id: string;
+  eventId: string;
+  eventCreatorId: string;
+  musicianId: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed';
+  message?: string;
+  proposedRate?: number;
+  acceptedRate?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateHiringRequestDTO {
+  eventId: string;
+  musicianId: string;
+  message?: string;
+  proposedRate?: number;
+}
+
+export interface UpdateHiringRequestDTO {
+  status?: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed';
+  message?: string;
+  proposedRate?: number;
+  acceptedRate?: number;
+}
+
+// ===== RATINGS =====
+
+export interface Rating {
+  id: string;
+  userId: string;
+  targetUserId: string;
+  eventId?: string;
+  category: 'musician' | 'event_creator';
+  rating: number;
+  comment?: string;
+  isVerified: boolean;
+  helpfulCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRatingDTO {
+  targetUserId: string;
+  eventId?: string;
+  category: 'musician' | 'event_creator';
+  rating: number;
+  comment?: string;
+}
+
+export interface UpdateRatingDTO {
+  rating?: number;
+  comment?: string;
+}

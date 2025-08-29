@@ -1,8 +1,7 @@
 import { io, Socket } from "socket.io-client";
-import { SOCKET_URL } from "../config/environment";
-import { useUser } from '@contexts/UserContext';
+import { API_CONFIG } from "../config/apiConfig";
 
-export const socket: Socket = io(SOCKET_URL, {
+export const socket: Socket = io(API_CONFIG.socket.url, {
   transports: ["websocket"],
   autoConnect: false, 
   timeout: 5000,

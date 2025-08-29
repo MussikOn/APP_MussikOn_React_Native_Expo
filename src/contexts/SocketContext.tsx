@@ -1,26 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Alert } from 'react-native';
-import { useUser } from './UserContext';
-import { notificationService } from '@services/notificationService';
-import { getSocketUrl, getSocketConnectionOptions, getSocketEvents } from '../config/apiConfig';
+import { API_CONFIG } from '@config/apiConfig';
+import { ENV } from '@config/environment';
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
-  notifications: Notification[];
-  clearNotifications: () => void;
-}
-
-interface Notification {
-  id: string;
-  type: 'request_cancelled' | 'request_cancelled_by_musician' | 'request_deleted' | 'musician_accepted' | 'new_event_request';
-  title: string;
-  message: string;
-  eventId?: string;
-  event?: any;
-  timestamp: Date;
-  read: boolean;
+  connect: () => void;
+  disconnect: () => void;
+  emit: (event: string, data: any) => void;
+  on: (event: string, callback: (data: any) => void) => void;
+  off: (event: string, callback?: (data: any) => void) => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -40,214 +30,115 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { user } = useUser();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (!user?.userEmail) return;
+  const connect = () => {
+    if (socket?.connected) return;
 
-    // Crear conexión Socket.IO usando configuración centralizada
-    const socketInstance = io(getSocketUrl(), getSocketConnectionOptions());
+    const newSocket = io(API_CONFIG.socket.url, {
+      transports: ['websocket', 'polling'],
+      timeout: 5000, // Timeout fijo
+      reconnection: true,
+      reconnectionAttempts: API_CONFIG.socket.reconnectAttempts,
+      reconnectionDelay: API_CONFIG.socket.reconnectDelay,
+      reconnectionDelayMax: API_CONFIG.socket.reconnectDelay * 2,
+      autoConnect: false,
+    });
 
-    // Obtener eventos de Socket.IO
-    const socketEvents = getSocketEvents();
-
-    // Eventos de conexión
-    socketInstance.on('connect', () => {
-      console.log('🔌 Socket.IO conectado');
+    newSocket.on('connect', () => {
+      console.log('🔌 Socket conectado');
       setIsConnected(true);
-      
-      // Autenticar el usuario con el servidor
-      socketInstance.emit(socketEvents.AUTHENTICATE, {
-        userEmail: user.userEmail,
-        userId: user.userEmail, // Usar email como ID
-      });
-    });
-
-    socketInstance.on('disconnect', () => {
-      console.log('🔌 Socket.IO desconectado');
-      setIsConnected(false);
-    });
-
-    socketInstance.on('connect_error', (error) => {
-      console.error('❌ Error de conexión Socket.IO:', error);
-      setIsConnected(false);
-    });
-
-    // Evento de solicitud cancelada por organizador
-    socketInstance.on(socketEvents.REQUEST_CANCELLED, async (data: any) => {
-      console.log('📢 Notificación: Solicitud cancelada por organizador', data);
-      
-      // Crear notificación usando el servicio
-      const notification = notificationService.createNotificationFromServer(
-        data, 
-        user.userEmail, 
-        'request_cancelled'
-      );
-
-      // Guardar notificación localmente
-      await notificationService.saveNotification(notification);
-      setNotifications(prev => [notification, ...prev]);
-
-      // Mostrar alerta nativa
-      Alert.alert(
-        'Solicitud Cancelada',
-        `El organizador ha cancelado la solicitud "${data.event?.eventName || 'Solicitud de músico'}"`,
-        [
-          {
-            text: 'Cerrar',
-            style: 'cancel',
-          },
-        ]
-      );
-    });
-
-    // Evento de solicitud cancelada por músico
-    socketInstance.on(socketEvents.REQUEST_CANCELLED_BY_MUSICIAN, async (data: any) => {
-      console.log('📢 Notificación: Solicitud cancelada por músico', data);
-      
-      // Crear notificación usando el servicio
-      const notification = notificationService.createNotificationFromServer(
-        data, 
-        user.userEmail, 
-        'request_cancelled_by_musician'
-      );
-
-      // Guardar notificación localmente
-      await notificationService.saveNotification(notification);
-      setNotifications(prev => [notification, ...prev]);
-
-      // Mostrar alerta nativa
-      Alert.alert(
-        'Solicitud Cancelada por Músico',
-        `El músico ha cancelado la solicitud "${data.event?.eventName || 'Solicitud de músico'}"`,
-        [
-          {
-            text: 'Cerrar',
-            style: 'cancel',
-          },
-        ]
-      );
-    });
-
-    // Evento de solicitud eliminada
-    socketInstance.on(socketEvents.REQUEST_DELETED, async (data: any) => {
-      console.log('📢 Notificación: Solicitud eliminada', data);
-      
-      // Crear notificación usando el servicio
-      const notification = notificationService.createNotificationFromServer(
-        data, 
-        user.userEmail, 
-        'request_deleted'
-      );
-
-      // Guardar notificación localmente
-      await notificationService.saveNotification(notification);
-      setNotifications(prev => [notification, ...prev]);
-
-      // Mostrar alerta nativa
-      Alert.alert(
-        'Solicitud Eliminada',
-        `El organizador ha eliminado la solicitud "${data.event?.eventName || 'Solicitud de músico'}"`,
-        [
-          {
-            text: 'Cerrar',
-            style: 'cancel',
-          },
-        ]
-      );
-    });
-
-    // Evento de músico aceptado
-    socketInstance.on(socketEvents.MUSICIAN_ACCEPTED, async (data: any) => {
-      console.log('📢 Notificación: Músico aceptó la solicitud', data);
-      
-      // Crear notificación usando el servicio
-      const notification = notificationService.createNotificationFromServer(
-        data, 
-        user.userEmail, 
-        'musician_accepted'
-      );
-
-      // Guardar notificación localmente
-      await notificationService.saveNotification(notification);
-      setNotifications(prev => [notification, ...prev]);
-
-      // Mostrar alerta nativa
-      Alert.alert(
-        'Músico Aceptado',
-        `Un músico ha aceptado tu solicitud "${data.event?.eventName || 'Solicitud de músico'}"`,
-        [
-          {
-            text: 'Ver Detalles',
-            onPress: () => {
-              // TODO: Navegar a detalles de la solicitud
-            },
-          },
-          {
-            text: 'Cerrar',
-            style: 'cancel',
-          },
-        ]
-      );
-    });
-
-    // Evento de nueva solicitud (para músicos)
-    socketInstance.on('new_event_request', async (data: any) => {
-      console.log('📢 Nueva solicitud recibida:', data);
-      
-      // Solo mostrar a músicos
-      if (user.roll === 'musician') {
-        // Crear notificación usando el servicio
-        const notification = notificationService.createNotificationFromServer(
-          data, 
-          user.userEmail, 
-          'new_event_request'
-        );
-
-        // Guardar notificación localmente
-        await notificationService.saveNotification(notification);
-        setNotifications(prev => [notification, ...prev]);
-
-        // Mostrar alerta nativa
-        Alert.alert(
-          '¡Nueva Solicitud Disponible!',
-          `Nueva solicitud de ${data.eventType || 'evento'} - ${data.instrument || 'instrumento'} - $${data.budget || 0}`,
-          [
-            {
-              text: 'Ver Solicitudes',
-              onPress: () => {
-                // Navegar a la pantalla de solicitudes disponibles
-                // Por ahora, solo cerramos la alerta
-                // En el futuro, navegaremos a AvailableRequestsScreen
-              },
-            },
-            {
-              text: 'Cerrar',
-              style: 'cancel',
-            },
-          ]
-        );
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
     });
 
-    setSocket(socketInstance);
+    newSocket.on('disconnect', (reason) => {
+      console.log('🔌 Socket desconectado:', reason);
+      setIsConnected(false);
+      
+      if (reason === 'io server disconnect') {
+        // Reconexión manual si el servidor desconecta
+        setTimeout(() => {
+          newSocket.connect();
+        }, API_CONFIG.socket.reconnectDelay);
+      }
+    });
 
-    // Cleanup al desmontar
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [user?.userEmail]);
+    newSocket.on('connect_error', (error) => {
+      console.error('🔌 Error de conexión del socket:', error);
+      setIsConnected(false);
+    });
 
-  const clearNotifications = () => {
-    setNotifications([]);
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log(`🔌 Socket reconectado después de ${attemptNumber} intentos`);
+      setIsConnected(true);
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('🔌 Error de reconexión del socket:', error);
+    });
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('🔌 Falló la reconexión del socket');
+      setIsConnected(false);
+    });
+
+    setSocket(newSocket);
+    newSocket.connect();
   };
+
+  const disconnect = () => {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+      setIsConnected(false);
+    }
+  };
+
+  const emit = (event: string, data: any) => {
+    if (socket?.connected) {
+      socket.emit(event, data);
+    } else {
+      console.warn('Socket no está conectado, no se puede emitir evento:', event);
+    }
+  };
+
+  const on = (event: string, callback: (data: any) => void) => {
+    if (socket) {
+      socket.on(event, callback);
+    }
+  };
+
+  const off = (event: string, callback?: (data: any) => void) => {
+    if (socket) {
+      if (callback) {
+        socket.off(event, callback);
+      } else {
+        socket.off(event);
+      }
+    }
+  };
+
+  useEffect(() => {
+    connect();
+
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      disconnect();
+    };
+  }, []);
 
   const value: SocketContextType = {
     socket,
     isConnected,
-    notifications,
-    clearNotifications,
+    connect,
+    disconnect,
+    emit,
+    on,
+    off,
   };
 
   return (

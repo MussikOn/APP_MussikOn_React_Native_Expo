@@ -1,62 +1,107 @@
 // Configuración centralizada de URLs para diferentes entornos
 // Importar configuración centralizada
-import { API_CONFIG, SOCKET_CONFIG } from './apiConfig';
+import { API_CONFIG } from './apiConfig';
 
-export interface Environment {
-  API_URL: string;
-  SOCKET_URL: string;
-  ENVIRONMENT: 'development' | 'production' | 'staging';
-}
-
-// Configuraciones por entorno usando la configuración centralizada
-const environments: Record<string, Environment> = {
-  development: {
-    API_URL: API_CONFIG.BASE_URL,
-    SOCKET_URL: SOCKET_CONFIG.SOCKET_URL,
-    ENVIRONMENT: 'development',
-  },
-  production: {
-    API_URL: API_CONFIG.BASE_URL,
-    SOCKET_URL: SOCKET_CONFIG.SOCKET_URL,
-    ENVIRONMENT: 'production',
-  },
-  staging: {
-    API_URL: 'http://192.168.54.68:3001', // Mantener staging separado
-    SOCKET_URL: 'http://192.168.54.68:3001',
-    ENVIRONMENT: 'staging',
-  },
+// Configuración del entorno
+export const ENV = {
+  // URLs de la API
+  API_URL: API_CONFIG.baseURL,
+  SOCKET_URL: API_CONFIG.socket.url,
+  
+  // Configuración de la API
+  API_VERSION: API_CONFIG.version,
+  API_TIMEOUT: API_CONFIG.timeout,
+  API_RETRIES: API_CONFIG.retries,
+  
+  // Configuración de sockets
+  SOCKET_RECONNECT_ATTEMPTS: API_CONFIG.socket.reconnectAttempts,
+  SOCKET_RECONNECT_DELAY: API_CONFIG.socket.reconnectDelay,
+  SOCKET_HEARTBEAT_INTERVAL: API_CONFIG.socket.heartbeatInterval,
+  
+  // Configuración de timeouts
+  REQUEST_TIMEOUT: API_CONFIG.timeouts.request,
+  RESPONSE_TIMEOUT: API_CONFIG.timeouts.response,
+  UPLOAD_TIMEOUT: API_CONFIG.timeouts.upload,
+  DOWNLOAD_TIMEOUT: API_CONFIG.timeouts.download,
+  
+  // Configuración de reintentos
+  MAX_RETRIES: API_CONFIG.retry.attempts,
+  RETRY_DELAY: API_CONFIG.retry.delay,
+  RETRY_BACKOFF: API_CONFIG.retry.backoff,
+  MAX_RETRY_DELAY: API_CONFIG.retry.maxDelay,
+  
+  // Configuración de caché
+  CACHE_ENABLED: API_CONFIG.cache.enabled,
+  CACHE_TTL: API_CONFIG.cache.ttl,
+  CACHE_MAX_SIZE: API_CONFIG.cache.maxSize,
+  
+  // Configuración de logging
+  LOGGING_ENABLED: API_CONFIG.logging.enabled,
+  LOGGING_LEVEL: API_CONFIG.logging.level,
+  
+  // Configuración de seguridad
+  INCLUDE_CREDENTIALS: API_CONFIG.security.includeCredentials,
+  WITH_CREDENTIALS: API_CONFIG.security.withCredentials,
+  
+  // Configuración de archivos
+  MAX_FILE_SIZE: API_CONFIG.files.maxSize,
+  ALLOWED_FILE_TYPES: API_CONFIG.files.allowedTypes,
+  FILE_UPLOAD_TIMEOUT: API_CONFIG.files.uploadTimeout,
+  
+  // Configuración de geolocalización
+  GEOLOCATION_HIGH_ACCURACY: API_CONFIG.geolocation.enableHighAccuracy,
+  GEOLOCATION_TIMEOUT: API_CONFIG.geolocation.timeout,
+  GEOLOCATION_MAX_AGE: API_CONFIG.geolocation.maximumAge,
+  GEOLOCATION_MAX_DISTANCE: API_CONFIG.geolocation.maxDistance,
+  
+  // Configuración de notificaciones
+  PUSH_NOTIFICATIONS_SUPPORTED: API_CONFIG.notifications.push.supported,
+  IN_APP_NOTIFICATIONS_ENABLED: API_CONFIG.notifications.inApp.enabled,
+  
+  // Configuración de eventos
+  MAX_EVENT_DURATION: API_CONFIG.events.maxDuration,
+  MIN_EVENT_DURATION: API_CONFIG.events.minDuration,
+  MAX_EVENT_BUDGET: API_CONFIG.events.maxBudget,
+  MIN_EVENT_BUDGET: API_CONFIG.events.minBudget,
+  
+  // Configuración de chat
+  MAX_MESSAGE_LENGTH: API_CONFIG.chat.maxMessageLength,
+  TYPING_TIMEOUT: API_CONFIG.chat.typingTimeout,
+  MESSAGE_RETENTION: API_CONFIG.chat.messageRetention,
+  
+  // Configuración de pagos
+  PAYMENT_CURRENCY: API_CONFIG.payments.currency,
+  MIN_PAYMENT_AMOUNT: API_CONFIG.payments.minAmount,
+  MAX_PAYMENT_AMOUNT: API_CONFIG.payments.maxAmount,
+  REFUND_WINDOW: API_CONFIG.payments.refundWindow,
 };
 
-// Determinar el entorno actual
-const getCurrentEnvironment = (): Environment => {
-  // En desarrollo, usar development por defecto
-  // En producción, usar production
-  const isDevelopment = __DEV__;
-  
-  if (isDevelopment) {
-    return environments.development;
-  }
-  
-  return environments.production;
+// Headers por defecto
+export const DEFAULT_HEADERS = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'User-Agent': 'MussikOn-Mobile/1.0.0',
 };
 
-export const config = getCurrentEnvironment();
+// Configuración de reintentos
+export const RETRY_CONFIG = {
+  maxRetries: ENV.MAX_RETRIES,
+  retryDelay: ENV.RETRY_DELAY,
+  backoffMultiplier: ENV.RETRY_BACKOFF,
+  maxDelay: ENV.MAX_RETRY_DELAY,
+};
 
-// URLs específicas para uso directo
-export const API_URL = config.API_URL;
-export const SOCKET_URL = config.SOCKET_URL;
+// Configuración de caché
+export const CACHE_CONFIG = {
+  enabled: ENV.CACHE_ENABLED,
+  ttl: ENV.CACHE_TTL,
+  maxSize: ENV.CACHE_MAX_SIZE,
+};
 
-// Headers comunes (usar configuración centralizada)
-export const DEFAULT_HEADERS = API_CONFIG.DEFAULT_HEADERS;
-
-// Timeouts (usar configuración centralizada)
-export const API_TIMEOUT = API_CONFIG.TIMEOUT;
-export const SOCKET_TIMEOUT = 5000; // 5 segundos
-
-// Configuración de reintentos (usar configuración centralizada)
-export const MAX_RETRIES = API_CONFIG.RETRY_CONFIG.maxRetries;
-export const RETRY_DELAY = API_CONFIG.RETRY_CONFIG.retryDelay;
-
-console.log(`🌍 Entorno actual: ${config.ENVIRONMENT}`);
-console.log(`🔗 API URL: ${config.API_URL}`);
-console.log(`🔌 Socket URL: ${config.SOCKET_URL}`); 
+// Configuración de sockets
+export const SOCKET_CONFIG = {
+  url: ENV.SOCKET_URL,
+  reconnectAttempts: ENV.SOCKET_RECONNECT_ATTEMPTS,
+  reconnectDelay: ENV.SOCKET_RECONNECT_DELAY,
+  heartbeatInterval: ENV.SOCKET_HEARTBEAT_INTERVAL,
+}; 

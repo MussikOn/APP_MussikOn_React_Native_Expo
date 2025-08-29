@@ -1,6 +1,6 @@
-import { apiService, ApiResponse } from './api';
-import { getApiUrl, API_CONFIG } from '../config/apiConfig';
-import { Event } from '../appTypes/DatasTypes';
+import { api } from './api';
+import { API_ENDPOINTS } from '../config/apiConfig';
+import { Event, ApiResponse } from '../appTypes/DatasTypes';
 
 // Tipos para solicitudes - ALINEADOS EXACTAMENTE CON EL BACKEND
 export interface Request {
@@ -71,15 +71,15 @@ export const requestService = {
     };
 
     console.log('src/services/requests.ts:createRequest - Enviando datos al backend:', backendData);
-    return apiService.post(API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS, backendData);
+    return api.post(API_ENDPOINTS.musicianRequests.create, backendData);
   },
 
   /**
    * Obtener solicitudes pendientes del organizador
    * GET /events/my-pending
    */
-  async getMyPendingRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
+  async getMyPendingRequests(): Promise<any> {
+    return api.get(API_ENDPOINTS.musicianRequests.getUserRequests);
   },
 
   /**
@@ -87,7 +87,7 @@ export const requestService = {
    * GET /events/my-assigned
    */
   async getMyAssignedRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.ASSIGNED_MUSICIAN_REQUESTS);
+    return api.get(API_ENDPOINTS.musicianRequests.getUserRequests);
   },
 
   /**
@@ -95,7 +95,7 @@ export const requestService = {
    * GET /events/my-completed
    */
   async getMyCompletedRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
+    return api.get(API_ENDPOINTS.musicianRequests.getUserRequests);
   },
 
   /**
@@ -103,7 +103,7 @@ export const requestService = {
    * GET /events/my-events
    */
   async getMyRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_EVENTS);
+    return api.get(API_ENDPOINTS.events.getAll);
   },
 
   /**
@@ -113,20 +113,23 @@ export const requestService = {
   async getMyCancelledRequests(): Promise<ApiResponse<Request[]>> {
     try {
       // Intentar endpoint específico primero
-      return await apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
+      return await api.get(API_ENDPOINTS.musicianRequests.getUserRequests);
     } catch (error) {
       // Si no existe, filtrar de todas las solicitudes (sin logs excesivos)
-      const allRequests = await apiService.get(API_CONFIG.ENDPOINTS.MY_EVENTS);
+      const allRequests = await api.get(API_ENDPOINTS.events.getAll);
       if (allRequests.data) {
         const cancelledRequests = allRequests.data.filter((request: Request) => 
           request.status === 'cancelada'
         );
         return {
-          ...allRequests,
+          success: true,
           data: cancelledRequests
         };
       }
-      return allRequests;
+      return {
+        success: true,
+        data: []
+      };
     }
   },
 
@@ -165,10 +168,10 @@ export const requestService = {
     params.append('sortBy', 'createdAt');
     params.append('sortOrder', 'desc');
     
-    const url = `${API_CONFIG.ENDPOINTS.AVAILABLE_MUSICIAN_REQUESTS}?${params.toString()}`;
+    const url = `${API_ENDPOINTS.musicianRequests.getAvailable}?${params.toString()}`;
     console.log('🔍 Obteniendo solicitudes disponibles desde:', url);
     
-    return apiService.get(url);
+    return api.get(url);
   },
 
   /**
@@ -176,7 +179,7 @@ export const requestService = {
    * PUT /musician-requests/:id para cambiar status a 'asignada'
    */
   async acceptRequest(requestId: string): Promise<ApiResponse<Request>> {
-    const url = `${API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS}/${requestId}`;
+    const url = `${API_ENDPOINTS.musicianRequests.create}/${requestId}`;
     
     // Actualizar el status a 'asignada' y asignar el músico actual
     const updateData = {
@@ -186,7 +189,7 @@ export const requestService = {
     };
     
     console.log('✅ Aceptando solicitud:', requestId, 'con datos:', updateData);
-    return apiService.put(url, updateData);
+    return api.put(url, updateData);
   },
 
   /**
@@ -194,7 +197,7 @@ export const requestService = {
    * GET /events/my-scheduled
    */
   async getMyScheduledRequests(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.ASSIGNED_MUSICIAN_REQUESTS);
+    return api.get(API_ENDPOINTS.musicianRequests.getUserRequests);
   },
 
   /**
@@ -202,7 +205,7 @@ export const requestService = {
    * GET /events/my-past-performances
    */
   async getMyPastPerformances(): Promise<ApiResponse<Request[]>> {
-    return apiService.get(API_CONFIG.ENDPOINTS.MY_MUSICIAN_REQUESTS);
+    return api.get(API_ENDPOINTS.musicianRequests.getUserRequests);
   },
 
   // ===== SERVICIOS GENERALES =====
@@ -212,8 +215,8 @@ export const requestService = {
    * GET /events/:requestId
    */
   async getRequestById(requestId: string): Promise<ApiResponse<Request>> {
-    const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
-    return apiService.get(url);
+    const url = API_ENDPOINTS.musicianRequests.create + '/' + requestId;
+    return api.get(url);
   },
 
   /**
@@ -221,8 +224,8 @@ export const requestService = {
    * PUT /events/:requestId
    */
   async updateRequest(requestId: string, requestData: Partial<CreateRequestData>): Promise<ApiResponse<Request>> {
-    const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
-    return apiService.put(url, requestData);
+    const url = API_ENDPOINTS.musicianRequests.create + '/' + requestId;
+    return api.put(url, requestData);
   },
 
   /**
@@ -231,7 +234,7 @@ export const requestService = {
    */
   async cancelRequest(requestId: string): Promise<ApiResponse<void>> {
     try {
-      const url = `${API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS}/${requestId}`;
+      const url = `${API_ENDPOINTS.musicianRequests.create}/${requestId}`;
       
       // Actualizar el status a 'cancelada'
       const updateData = {
@@ -240,7 +243,7 @@ export const requestService = {
       };
       
       console.log('❌ Cancelando solicitud:', requestId, 'con datos:', updateData);
-      return await apiService.put(url, updateData);
+      return await api.put(url, updateData);
     } catch (error: any) {
       console.error('Error al cancelar solicitud:', error);
       throw error;
@@ -253,7 +256,7 @@ export const requestService = {
    */
   async completeRequest(requestId: string): Promise<ApiResponse<Request>> {
     try {
-      const url = `${API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS}/${requestId}`;
+      const url = `${API_ENDPOINTS.musicianRequests.create}/${requestId}`;
       
       // Actualizar el status a 'completada'
       const updateData = {
@@ -262,7 +265,7 @@ export const requestService = {
       };
       
       console.log('✅ Completando solicitud:', requestId, 'con datos:', updateData);
-      return await apiService.put(url, updateData);
+      return await api.put(url, updateData);
     } catch (error: any) {
       console.error('Error al completar solicitud:', error);
       throw error;
@@ -274,8 +277,8 @@ export const requestService = {
    * DELETE /events/:requestId
    */
   async deleteRequest(requestId: string): Promise<ApiResponse<void>> {
-    const url = API_CONFIG.ENDPOINTS.MUSICIAN_REQUESTS + '/' + requestId;
-    return apiService.delete(url);
+    const url = API_ENDPOINTS.musicianRequests.create + '/' + requestId;
+    return api.delete(url);
   },
 };
 

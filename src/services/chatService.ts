@@ -1,4 +1,4 @@
-import { apiService } from './api';
+import { api } from './api';
 import { Message, Conversation, ChatFilters } from '../appTypes/DatasTypes';
 
 export interface ApiResponse<T> {
@@ -15,7 +15,7 @@ export class ChatService {
    * GET /chat/conversations
    */
   async getConversations(): Promise<ApiResponse<Conversation[]>> {
-    return apiService.get('/chat/conversations');
+    return api.get('/chat/conversations');
   }
 
   /**
@@ -23,7 +23,7 @@ export class ChatService {
    * GET /chat/conversations/:conversationId/messages
    */
   async getMessages(conversationId: string): Promise<ApiResponse<Message[]>> {
-    return apiService.get(`/chat/conversations/${conversationId}/messages`);
+    return api.get(`/chat/conversations/${conversationId}/messages`);
   }
 
   /**
@@ -31,7 +31,7 @@ export class ChatService {
    * POST /chat/conversations/:conversationId/messages
    */
   async sendMessage(conversationId: string, message: string): Promise<ApiResponse<Message>> {
-    return apiService.post(`/chat/conversations/${conversationId}/messages`, {
+    return api.post(`/chat/conversations/${conversationId}/messages`, {
       content: message,
       type: 'text'
     });
@@ -42,7 +42,7 @@ export class ChatService {
    * PATCH /chat/messages/:messageId/read
    */
   async markAsRead(messageId: string): Promise<ApiResponse<void>> {
-    return apiService.patch(`/chat/messages/${messageId}/read`);
+    return api.patch(`/chat/messages/${messageId}/read`);
   }
 
   /**
@@ -50,7 +50,7 @@ export class ChatService {
    * POST /chat/conversations
    */
   async createConversation(userId: string): Promise<ApiResponse<Conversation>> {
-    return apiService.post('/chat/conversations', {
+    return api.post('/chat/conversations', {
       participants: [userId]
     });
   }
@@ -67,7 +67,7 @@ export class ChatService {
     if (filters.dateTo) params.append('dateTo', filters.dateTo);
 
     const url = filters ? `/chat/conversations/search?${params.toString()}` : '/chat/conversations/search';
-    return apiService.get(url);
+    return api.get(url);
   }
 
   /**
@@ -75,7 +75,7 @@ export class ChatService {
    * DELETE /chat/conversations/:conversationId
    */
   async deleteConversation(conversationId: string): Promise<ApiResponse<void>> {
-    return apiService.delete(`/chat/conversations/${conversationId}`);
+    return api.delete(`/chat/conversations/${conversationId}`);
   }
 
   /**
@@ -83,7 +83,7 @@ export class ChatService {
    * PATCH /chat/conversations/:conversationId/archive
    */
   async archiveConversation(conversationId: string): Promise<ApiResponse<void>> {
-    return apiService.patch(`/chat/conversations/${conversationId}/archive`);
+    return api.patch(`/chat/conversations/${conversationId}/archive`);
   }
 
   /**
@@ -91,7 +91,7 @@ export class ChatService {
    * GET /chat/conversations/:conversationId
    */
   async getConversationById(conversationId: string): Promise<ApiResponse<Conversation>> {
-    return apiService.get(`/chat/conversations/${conversationId}`);
+    return api.get(`/chat/conversations/${conversationId}`);
   }
 }
 
